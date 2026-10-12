@@ -106,7 +106,7 @@ public class ParticleInit {
             @Override
             public Particle createParticle(SimpleParticleType defaultParticleType, ClientLevel clientWorld, double d, double e, double f, double g, double h, double i) {
                 ShardParticle shardParticle = new ShardParticle(clientWorld, d, e, f, 0.5D - ShardParticle.RANDOM.nextDouble(), h, 0.5D - ShardParticle.RANDOM.nextDouble(), this.spriteProvider);
-                int rand = clientWorld.random.nextInt(4);
+                int rand = clientWorld.getRandom().nextInt(4);
                 if (rand == 0)
                     shardParticle.setColor(1.0F, 0.796F, 0.9F);
                 else if (rand == 1)
@@ -122,7 +122,7 @@ public class ParticleInit {
                     shardParticle.velocityZ *= 0.10000000149011612D;
                 }
 
-                shardParticle.setMaxAge((int) (8.0D / (clientWorld.random.nextDouble() * 0.8D + 0.2D)));
+                shardParticle.setMaxAge((int) (8.0D / (clientWorld.getRandom().nextDouble() * 0.8D + 0.2D)));
                 return shardParticle;
             }
         }

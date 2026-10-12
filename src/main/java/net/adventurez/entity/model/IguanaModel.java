@@ -76,7 +76,7 @@ public class IguanaModel<T extends IguanaEntity> extends AgeableListModel<T> {
         this.right_middle.pitch = Mth.cos(limbAngle * 0.6662F + 4.7123889803F) * 1.4F * limbDistance;
         this.left_middle.pitch = Mth.cos(limbAngle * 0.6662F + 1.57079632F) * 1.4F * limbDistance;
 
-        if (entity.getDataTracker().get(IguanaEntity.OPEN_MOUTH)) {
+        if (entity.getEntityData().get(IguanaEntity.OPEN_MOUTH)) {
             this.jaw.pitch = 0.3F;
         } else
             this.jaw.pitch = 0.0F;

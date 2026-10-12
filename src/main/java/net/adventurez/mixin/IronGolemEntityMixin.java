@@ -75,9 +75,9 @@ public abstract class IronGolemEntityMixin extends AbstractGolem implements Enti
             if (!this.level().isClientSide()) {
                 this.targetSelector.add(3, new NearestAttackableTargetGoal<>(this, Creeper.class, false, true));
                 this.dataTracker.set(BLACKSTONED, true);
-                this.getAttributeInstance(Attributes.GENERIC_MAX_HEALTH).setBaseValue(this.getAttributeBaseValue(Attributes.GENERIC_MAX_HEALTH) + 100.0D);
-                this.getAttributeInstance(Attributes.GENERIC_ATTACK_DAMAGE).setBaseValue(this.getAttributeBaseValue(Attributes.GENERIC_ATTACK_DAMAGE) + 5.0D);
-                this.getAttributeInstance(Attributes.GENERIC_MOVEMENT_SPEED).setBaseValue(this.getAttributeBaseValue(Attributes.GENERIC_MOVEMENT_SPEED) + 0.04D);
+                this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(this.getAttributeBaseValue(Attributes.MAX_HEALTH) + 100.0D);
+                this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE) + 5.0D);
+                this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED) + 0.04D);
                 this.setHealth(this.getMaxHealth());
                 itemStack.decrement(1);
             }

@@ -117,7 +117,7 @@ public class PiglinBeastModel<T extends PiglinBeastEntity> extends ListModel<T> 
         this.rightArm.pitch = Mth.cos(limbAngle * 0.6662F + 3.1415927F) * 2.0F * limbDistance * 0.3F;
         this.leftArm.pitch = -Mth.cos(limbAngle * 0.6662F + 3.1415927F) * 2.0F * limbDistance * 0.3F;
 
-        float attackTick = entity.getDataTracker().get(PiglinBeastEntity.ATTACK_TICK_VISUAL);
+        float attackTick = entity.getEntityData().get(PiglinBeastEntity.ATTACK_TICK_VISUAL);
         if (attackTick > 0F) {
             float g = attackTick;
             float h = Mth.sin(g * 3.1415927F);
@@ -126,7 +126,7 @@ public class PiglinBeastModel<T extends PiglinBeastEntity> extends ListModel<T> 
             rightArm.roll += Mth.sin(attackTick * 3.1415927F) * -0.4F - limbDistance;
         }
 
-        float handUp = entity.getDataTracker().get(PiglinBeastEntity.LEAD_ARM);
+        float handUp = entity.getEntityData().get(PiglinBeastEntity.LEAD_ARM);
         if (handUp > 0.0F) {
             float g = handUp;
             float h = Mth.sin(g * 3.1415927F);

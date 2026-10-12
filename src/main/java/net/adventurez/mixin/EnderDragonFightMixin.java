@@ -34,8 +34,8 @@ public class EnderDragonFightMixin {
     @Inject(method = "dragonKilled", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/dimension/end/EnderDragonFight;generateNewEndGateway()V"))
     public void dragonKilledMixin(EnderDragon dragon, CallbackInfo info) {
         if (!this.world.isClient && ConfigInit.CONFIG.resummoned_ender_dragon_drops_egg && this.previouslyKilled
-                && this.world.getBlockState(this.world.getTopPosition(Heightmap.Type.MOTION_BLOCKING, EndPodiumFeature.offsetOrigin(this.origin))).getBlock() != Blocks.DRAGON_EGG) {
-            this.world.setBlockState(this.world.getTopPosition(Heightmap.Type.MOTION_BLOCKING, EndPodiumFeature.offsetOrigin(this.origin)), Blocks.DRAGON_EGG.defaultBlockState());
+                && this.world.getBlockState(this.world.getTopPosition(Heightmap.Types.MOTION_BLOCKING, EndPodiumFeature.offsetOrigin(this.origin))).getBlock() != Blocks.DRAGON_EGG) {
+            this.world.setBlockState(this.world.getTopPosition(Heightmap.Types.MOTION_BLOCKING, EndPodiumFeature.offsetOrigin(this.origin)), Blocks.DRAGON_EGG.defaultBlockState());
         }
     }
 

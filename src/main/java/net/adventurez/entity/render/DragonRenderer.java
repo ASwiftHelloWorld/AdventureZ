@@ -38,7 +38,7 @@ public class DragonRenderer extends MobRenderer<DragonEntity, DragonModel<Dragon
 
     @Override
     public Identifier getTexture(DragonEntity dragonEntity) {
-        if (dragonEntity.getDataTracker().get(DragonEntity.RED_DRAGON)) {
+        if (dragonEntity.getEntityData().get(DragonEntity.RED_DRAGON)) {
             return RED_DRAGON_TEXTURE;
         }
         return TEXTURE;

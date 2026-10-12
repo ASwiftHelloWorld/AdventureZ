@@ -89,7 +89,6 @@ public class ShadowChestEntity extends ChestBlockEntity {
     }
 
     @Override
-    @Override
     protected Component getDefaultName() {
         return Component.translatable("adventurez.container.shadowchest");
     }

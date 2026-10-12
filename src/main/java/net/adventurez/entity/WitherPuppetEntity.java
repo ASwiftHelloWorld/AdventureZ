@@ -1,5 +1,8 @@
 package net.adventurez.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -40,37 +43,35 @@ public class WitherPuppetEntity extends Monster {
     }
 
     public static AttributeSupplier.Builder createWitherPuppetAttributes() {
-        return Monster.createHostileAttributes().add(Attributes.GENERIC_MAX_HEALTH, 14.0D).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.25D)
-                .add(Attributes.GENERIC_ATTACK_DAMAGE, 5.0D).add(Attributes.GENERIC_FOLLOW_RANGE, 38.0D);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 14.0D).add(Attributes.MOVEMENT_SPEED, 0.25D)
+                .add(Attributes.ATTACK_DAMAGE, 5.0D).add(Attributes.FOLLOW_RANGE, 38.0D);
     }
 
     @Override
-    public void initGoals() {
-        super.initGoals();
-        this.goalSelector.add(0, new FloatGoal(this));
-        this.goalSelector.add(1, new MeleeAttackGoal(this, 1.2D, false));
-        this.goalSelector.add(6, new RandomStrollGoal(this, 0.9D));
-        this.goalSelector.add(7, new LookAtPlayerGoal(this, Player.class, 3.0F, 1.0F));
-        this.goalSelector.add(8, new LookAtPlayerGoal(this, Mob.class, 8.0F));
-        this.targetSelector.add(1, (new HurtByTargetGoal(this, new Class[] { NecromancerEntity.class })));
-        this.targetSelector.add(2, (new HurtByTargetGoal(this, new Class[] { Piglin.class })));
-        this.targetSelector.add(3, new TrackOwnerTargetGoal(this));
-        this.targetSelector.add(4, new NearestAttackableTargetGoal<>(this, Player.class, true));
+    public void registerGoals() {
+        super.registerGoals();
+        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.2D, false));
+        this.goalSelector.addGoal(6, new RandomStrollGoal(this, 0.9D));
+        this.goalSelector.addGoal(7, new LookAtPlayerGoal(this, Player.class, 3.0F, 1.0F));
+        this.goalSelector.addGoal(8, new LookAtPlayerGoal(this, Mob.class, 8.0F));
+        this.targetSelector.addGoal(1, (new HurtByTargetGoal(this, new Class[] { NecromancerEntity.class })));
+        this.targetSelector.addGoal(2, (new HurtByTargetGoal(this, new Class[] { Piglin.class })));
+        this.targetSelector.addGoal(3, new TrackOwnerTargetGoal(this));
+        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, Player.class, true));
     }
 
     @Override
-    public void readCustomDataFromNbt(CompoundTag tag) {
-        super.readCustomDataFromNbt(tag);
-        if (tag.contains("LifeTicks")) {
-            this.setLifeTicks(tag.getInt("LifeTicks"));
-        }
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput input) {
+        super.readAdditionalSaveData(input);
+        input.getInt("LifeTicks").ifPresent(this::setLifeTicks);
     }
 
     @Override
-    public void writeCustomDataToNbt(CompoundTag tag) {
-        super.writeCustomDataToNbt(tag);
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput output) {
+        super.addAdditionalSaveData(output);
         if (this.alive) {
-            tag.putInt("LifeTicks", this.lifeTicks);
+            output.putInt("LifeTicks", this.lifeTicks);
         }
     }
 
@@ -151,7 +152,7 @@ public class WitherPuppetEntity extends Monster {
             super(mob, false);
         }
 
-        public boolean canStart() {
+        public boolean canUse() {
             return WitherPuppetEntity.this.owner != null && WitherPuppetEntity.this.owner.getTarget() != null && this.canTrack(WitherPuppetEntity.this.owner.getTarget(), this.TRACK_OWNER_PREDICATE);
         }
 

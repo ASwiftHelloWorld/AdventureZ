@@ -1,5 +1,8 @@
 package net.adventurez.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+
 import net.adventurez.init.SoundInit;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.EntityType;
@@ -29,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 public class DubiousPumpkinEntity extends PathfinderMob implements NeutralMob {
-    public static final EntityDataAccessor<Boolean> ANGRY = SynchedEntityData.registerData(DubiousPumpkinEntity.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> ANGRY = SynchedEntityData.defineId(DubiousPumpkinEntity.class, EntityDataSerializers.BOOLEAN);
     private static final UniformInt ANGER_TIME_RANGE = TimeUtil.betweenSeconds(10, 29);
     private int angerTime;
     @Nullable
@@ -40,33 +43,33 @@ public class DubiousPumpkinEntity extends PathfinderMob implements NeutralMob {
     }
 
     @Override
-    protected void initGoals() {
-        super.initGoals();
-        this.goalSelector.add(0, new SwimGoal(this));
-        this.goalSelector.add(1, new DubiousPumpkinEntity.AttackGoal());
-        this.goalSelector.add(5, new WanderAroundGoal(this, 1.0));
-        this.goalSelector.add(6, new LookAtEntityGoal(this, Player.class, 6.0F));
-        this.goalSelector.add(7, new LookAroundGoal(this));
-        this.targetSelector.add(1, new DubiousPumpkinEntity.DubiousPumpkinRevengeGoal());
-        this.targetSelector.add(3, new ActiveTargetGoal<>(this, Player.class, 10, true, false, this::shouldAngerAt));
-        this.targetSelector.add(4, new ActiveTargetGoal<>(this, Zombie.class, 10, true, true, null));
-        this.targetSelector.add(5, new UniversalAngerGoal<>(this, false));
+    protected void registerGoals() {
+        super.registerGoals();
+        this.goalSelector.addGoal(0, new SwimGoal(this));
+        this.goalSelector.addGoal(1, new DubiousPumpkinEntity.AttackGoal());
+        this.goalSelector.addGoal(5, new WanderAroundGoal(this, 1.0));
+        this.goalSelector.addGoal(6, new LookAtEntityGoal(this, Player.class, 6.0F));
+        this.goalSelector.addGoal(7, new LookAroundGoal(this));
+        this.targetSelector.addGoal(1, new DubiousPumpkinEntity.DubiousPumpkinRevengeGoal());
+        this.targetSelector.addGoal(3, new ActiveTargetGoal<>(this, Player.class, 10, true, false, this::shouldAngerAt));
+        this.targetSelector.addGoal(4, new ActiveTargetGoal<>(this, Zombie.class, 10, true, true, null));
+        this.targetSelector.addGoal(5, new UniversalAngerGoal<>(this, false));
     }
 
     public static AttributeSupplier.Builder createDubiousPumpkinAttributes() {
-        return Mob.createMobAttributes().add(Attributes.GENERIC_MAX_HEALTH, 10.0).add(Attributes.GENERIC_FOLLOW_RANGE, 20.0).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.25).add(Attributes.GENERIC_ATTACK_DAMAGE, 1.0);
+        return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 10.0).add(Attributes.FOLLOW_RANGE, 20.0).add(Attributes.MOVEMENT_SPEED, 0.25).add(Attributes.ATTACK_DAMAGE, 1.0);
     }
 
     @Override
-    public void readCustomDataFromNbt(CompoundTag nbt) {
-        super.readCustomDataFromNbt(nbt);
-        this.readAngerFromNbt(this.level(), nbt);
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput input) {
+        super.readAdditionalSaveData(input);
+        this.readAngerFromNbt(this.level(), input);
     }
 
     @Override
-    public void writeCustomDataToNbt(CompoundTag nbt) {
-        super.writeCustomDataToNbt(nbt);
-        this.writeAngerToNbt(nbt);
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        this.writeAngerToNbt(output);
     }
 
     @Override
@@ -86,14 +89,14 @@ public class DubiousPumpkinEntity extends PathfinderMob implements NeutralMob {
 
     @Override
     public void setAngryAt(@Nullable UUID angryAt) {
-        this.dataTracker.set(ANGRY, angryAt != null);
+        this.entityData.set(ANGRY, angryAt != null);
         this.angryAt = angryAt;
     }
 
     @Override
     public void stopAnger() {
         NeutralMob.super.stopAnger();
-        this.dataTracker.set(ANGRY, false);
+        this.entityData.set(ANGRY, false);
     }
 
     @Nullable
@@ -123,9 +126,9 @@ public class DubiousPumpkinEntity extends PathfinderMob implements NeutralMob {
     }
 
     @Override
-    protected void initDataTracker(SynchedEntityData.Builder builder) {
-        super.initDataTracker(builder);
-        builder.add(ANGRY, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(ANGRY, false);
     }
 
     @Override

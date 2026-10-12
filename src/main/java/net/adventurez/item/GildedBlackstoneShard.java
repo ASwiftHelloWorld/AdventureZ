@@ -52,7 +52,7 @@ public class GildedBlackstoneShard extends Item {
     public InteractionResult<ItemStack> use(Level world, Player user, InteractionHand hand) {
         ItemStack itemStack = user.getItemInHand(hand);
         if (ConfigInit.CONFIG.allow_gilded_blackstone_shard_throw && !user.isSneaking()) {
-            world.playSound((Player) null, user.getX(), user.getY(), user.getZ(), SoundEvents.ENTITY_EGG_THROW, SoundSource.PLAYERS, 0.5F, 0.4F / (world.random.nextFloat() * 0.4F + 0.8F));
+            world.playSound((Player) null, user.getX(), user.getY(), user.getZ(), SoundEvents.ENTITY_EGG_THROW, SoundSource.PLAYERS, 0.5F, 0.4F / (world.getRandom().nextFloat() * 0.4F + 0.8F));
             if (!world.isClientSide()) {
                 GildedBlackstoneShardEntity gildedStoneEntity = new GildedBlackstoneShardEntity(world, user.getX(), user.getY() + 1.6D, user.getZ());
                 gildedStoneEntity.setItem(itemStack);

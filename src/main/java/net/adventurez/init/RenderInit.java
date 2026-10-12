@@ -166,7 +166,7 @@ public class RenderInit {
                     if (itemStack.get(ItemInit.GILDED_DATA) != null && itemStack.get(ItemInit.GILDED_DATA).activated()) {
                         int scaledWidth = client.getWindow().getScaledWidth();
                         int scaledHeight = client.getWindow().getScaledHeight();
-                        int worldTime = (int) client.player.level().getTime();
+                        int worldTime = (int) client.player.level().getGameTime();
                         int savedTagInt = itemStack.get(ItemInit.GILDED_DATA).time();
                         float effectDuration = ConfigInit.CONFIG.gilded_netherite_armor_effect_duration;
                         drawContext.getMatrices().push();

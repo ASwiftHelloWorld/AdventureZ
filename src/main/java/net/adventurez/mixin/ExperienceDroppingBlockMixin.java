@@ -35,7 +35,7 @@ public abstract class ExperienceDroppingBlockMixin extends Block {
         if (!world.isClientSide() && world instanceof ServerLevel serverWorld && net.adventurez.util.MinecraftCompat.isBlock(state, Blocks.NETHER_GOLD_ORE) && ConfigInit.CONFIG.piglin_beast_ore_spawn_chance != 0) {
             if (!player.isCreative() && world.getRegistryKey() == Level.NETHER
                     && player.getMainHandItem().getEnchantments().getEnchantments().stream().filter(entry -> entry.matchesId(Enchantments.SILK_TOUCH.getRegistry())).findAny().isPresent()) {
-                if (world.getEntitiesByType(EntityInit.PIGLIN_BEAST, player.getBoundingBox().inflate(40D), EntitySelector.EXCEPT_SPECTATOR).isEmpty()) {
+                if (world.getEntitiesByType(EntityInit.PIGLIN_BEAST, player.getBoundingBox().inflate(40D), EntitySelector.NO_SPECTATORS).isEmpty()) {
                     int spawnChanceInt = world.getRandom().nextInt(ConfigInit.CONFIG.piglin_beast_ore_spawn_chance) + 1;
                     if (spawnChanceInt == 1) {
 
@@ -45,12 +45,12 @@ public abstract class ExperienceDroppingBlockMixin extends Block {
                             float randomFloat = world.getRandom().nextFloat() * 6.2831855F;
                             int posX = pos.getX() + Mth.floor(Mth.cos(randomFloat) * 18.0F + world.getRandom().nextInt(16));
                             int posZ = pos.getZ() + Mth.floor(Mth.sin(randomFloat) * 18.0F + world.getRandom().nextInt(16));
-                            // int posY = world.getTopY(Heightmap.Type.WORLD_SURFACE_WG, posX, posZ); doesnt work in nether
+                            // int posY = world.getTopY(Heightmap.Types.WORLD_SURFACE_WG, posX, posZ); doesnt work in nether
                             int posY = posYOfPlayer - 20 + world.getRandom().nextInt(40);
                             BlockPos spawnPos = new BlockPos(posX, posY, posZ);
 
                             if (world.isRegionLoaded(spawnPos.getX() - 4, spawnPos.getY() - 4, spawnPos.getZ() - 4, spawnPos.getX() + 4, spawnPos.getY() + 4, spawnPos.getZ() + 4)
-                                    && SpawnPlacements.canSpawn(EntityInit.PIGLIN_BEAST, serverWorld, EntitySpawnReason.EVENT, spawnPos, world.getRandom())) {
+                                    && SpawnPlacements.checkSpawnRules(EntityInit.PIGLIN_BEAST, serverWorld, EntitySpawnReason.EVENT, spawnPos, world.getRandom())) {
                                 beastEntity.refreshPositionAndAngles(spawnPos, 0.0F, 0.0F);
                                 beastEntity.initialize(serverWorld, world.getLocalDifficulty(spawnPos), EntitySpawnReason.EVENT, null);
                                 world.spawnEntity(beastEntity);

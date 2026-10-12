@@ -44,7 +44,7 @@ public abstract class PiglinEntityMixin extends AbstractPiglin {
                         BlockPos spawnPos = new BlockPos(posX, posY, posZ);
 
                         if (this.level().isRegionLoaded(spawnPos.getX() - 4, spawnPos.getY() - 4, spawnPos.getZ() - 4, spawnPos.getX() + 4, spawnPos.getY() + 4, spawnPos.getZ() + 4)
-                                && SpawnPlacements.canSpawn(EntityInit.PIGLIN_BEAST, (ServerLevel) this.level(), EntitySpawnReason.EVENT, spawnPos, this.level().getRandom())) {
+                                && SpawnPlacements.checkSpawnRules(EntityInit.PIGLIN_BEAST, (ServerLevel) this.level(), EntitySpawnReason.EVENT, spawnPos, this.level().getRandom())) {
                             beastEntity.refreshPositionAndAngles(spawnPos, this.level().getRandom().nextFloat() * 360.0F, 0.0F);
                             beastEntity.initialize(((ServerLevel) this.level()), this.level().getLocalDifficulty(this.getBlockPos()), EntitySpawnReason.EVENT, null);
                             this.level().spawnEntity(beastEntity);
@@ -59,7 +59,7 @@ public abstract class PiglinEntityMixin extends AbstractPiglin {
     }
 
     private boolean isEntityNearby(EntityType<?> entityType, double distance, int count) {
-        List<?> list = this.level().getEntitiesByType(entityType, this.getBoundingBox().inflate(distance), EntitySelector.EXCEPT_SPECTATOR);
+        List<?> list = this.level().getEntitiesByType(entityType, this.getBoundingBox().inflate(distance), EntitySelector.NO_SPECTATORS);
         if (list.size() >= count) {
             return true;
         } else {

@@ -93,7 +93,7 @@ public class ChiseledPolishedBlackstoneHolderEntity extends BlockEntity implemen
 
     public void tick() {
         if (!this.isEmpty()) {
-            if (!this.getLevel().getBlockState(pos.up()).isAir()) {
+            if (!this.getLevel().getBlockState(pos.above()).isAir()) {
                 if (!this.getLevel().isClientSide()) {
                     Containers.spawn(world, pos, inventory);
                     inventory.clear();
@@ -172,67 +172,67 @@ public class ChiseledPolishedBlackstoneHolderEntity extends BlockEntity implemen
         if (!this.getLevel().isClientSide()) {
             // First Layer
             if (buildGolemCounter == 30) {
-                this.getLevel().setBlockState(this.getBlockPos().up().north(2).east(2), Blocks.BLACKSTONE_STAIRS.defaultBlockState(), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up().north(2).west(2), Blocks.BLACKSTONE_STAIRS.defaultBlockState(), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up().north(3).east(2),
+                this.getLevel().setBlockState(this.getBlockPos().above().north(2).east(2), Blocks.BLACKSTONE_STAIRS.defaultBlockState(), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above().north(2).west(2), Blocks.BLACKSTONE_STAIRS.defaultBlockState(), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above().north(3).east(2),
                         Blocks.BLACKSTONE_STAIRS.defaultBlockState().with(StairBlock.HALF, Half.TOP).with(StairBlock.FACING, Direction.SOUTH), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up().north(3).west(2),
+                this.getLevel().setBlockState(this.getBlockPos().above().north(3).west(2),
                         Blocks.BLACKSTONE_STAIRS.defaultBlockState().with(StairBlock.HALF, Half.TOP).with(StairBlock.FACING, Direction.SOUTH), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up().north(7).east(), Blocks.BLACKSTONE.defaultBlockState(), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up().north(7).west(), Blocks.BLACKSTONE.defaultBlockState(), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above().north(7).east(), Blocks.BLACKSTONE.defaultBlockState(), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above().north(7).west(), Blocks.BLACKSTONE.defaultBlockState(), 3);
                 this.getLevel().playSound(null, this.getBlockPos(), SoundEvents.BLOCK_STONE_PLACE, SoundSource.BLOCKS, 1F, 1F);
             }
             // Second Layer
             if (buildGolemCounter == 60) {
-                this.getLevel().setBlockState(this.getBlockPos().up(2).north(3).east(2), Blocks.BLACKSTONE_STAIRS.defaultBlockState(), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up(2).north(3).west(2), Blocks.BLACKSTONE_STAIRS.defaultBlockState(), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up(2).north(4).east(2),
+                this.getLevel().setBlockState(this.getBlockPos().above(2).north(3).east(2), Blocks.BLACKSTONE_STAIRS.defaultBlockState(), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above(2).north(3).west(2), Blocks.BLACKSTONE_STAIRS.defaultBlockState(), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above(2).north(4).east(2),
                         Blocks.BLACKSTONE_STAIRS.defaultBlockState().with(StairBlock.HALF, Half.TOP).with(StairBlock.FACING, Direction.SOUTH), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up(2).north(4).west(2),
+                this.getLevel().setBlockState(this.getBlockPos().above(2).north(4).west(2),
                         Blocks.BLACKSTONE_STAIRS.defaultBlockState().with(StairBlock.HALF, Half.TOP).with(StairBlock.FACING, Direction.SOUTH), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up(2).north(6).east(), Blocks.BLACKSTONE_SLAB.defaultBlockState().with(SlabBlock.TYPE, SlabType.TOP), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up(2).north(6).west(), Blocks.BLACKSTONE_SLAB.defaultBlockState().with(SlabBlock.TYPE, SlabType.TOP), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up(2).north(7).east(), Blocks.BLACKSTONE.defaultBlockState(), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up(2).north(7).west(), Blocks.BLACKSTONE.defaultBlockState(), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above(2).north(6).east(), Blocks.BLACKSTONE_SLAB.defaultBlockState().with(SlabBlock.TYPE, SlabType.TOP), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above(2).north(6).west(), Blocks.BLACKSTONE_SLAB.defaultBlockState().with(SlabBlock.TYPE, SlabType.TOP), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above(2).north(7).east(), Blocks.BLACKSTONE.defaultBlockState(), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above(2).north(7).west(), Blocks.BLACKSTONE.defaultBlockState(), 3);
                 this.getLevel().playSound(null, this.getBlockPos(), SoundEvents.BLOCK_STONE_PLACE, SoundSource.BLOCKS, 1F, 1F);
             }
             // Third Layer
             if (buildGolemCounter == 90) {
-                this.getLevel().setBlockState(this.getBlockPos().up(3).north(4).east(2), Blocks.BLACKSTONE_STAIRS.defaultBlockState(), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up(3).north(4).west(2), Blocks.BLACKSTONE_STAIRS.defaultBlockState(), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up(3).north(5).east(2), Blocks.BLACKSTONE.defaultBlockState(), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up(3).north(5).west(2), Blocks.BLACKSTONE.defaultBlockState(), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up(3).north(6).east(2), Blocks.BLACKSTONE.defaultBlockState(), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up(3).north(6).west(2), Blocks.BLACKSTONE.defaultBlockState(), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up(3).north(7).east(), Blocks.BLACKSTONE_STAIRS.defaultBlockState().with(StairBlock.FACING, Direction.SOUTH), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up(3).north(7).west(), Blocks.BLACKSTONE_STAIRS.defaultBlockState().with(StairBlock.FACING, Direction.SOUTH), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above(3).north(4).east(2), Blocks.BLACKSTONE_STAIRS.defaultBlockState(), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above(3).north(4).west(2), Blocks.BLACKSTONE_STAIRS.defaultBlockState(), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above(3).north(5).east(2), Blocks.BLACKSTONE.defaultBlockState(), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above(3).north(5).west(2), Blocks.BLACKSTONE.defaultBlockState(), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above(3).north(6).east(2), Blocks.BLACKSTONE.defaultBlockState(), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above(3).north(6).west(2), Blocks.BLACKSTONE.defaultBlockState(), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above(3).north(7).east(), Blocks.BLACKSTONE_STAIRS.defaultBlockState().with(StairBlock.FACING, Direction.SOUTH), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above(3).north(7).west(), Blocks.BLACKSTONE_STAIRS.defaultBlockState().with(StairBlock.FACING, Direction.SOUTH), 3);
                 for (int i = -1; i < 2; i++) {
-                    this.getLevel().setBlockState(this.getBlockPos().up(3).north(5).east(i), Blocks.BLACKSTONE.defaultBlockState(), 3);
-                    this.getLevel().setBlockState(this.getBlockPos().up(3).north(6).east(i), Blocks.BLACKSTONE.defaultBlockState(), 3);
+                    this.getLevel().setBlockState(this.getBlockPos().above(3).north(5).east(i), Blocks.BLACKSTONE.defaultBlockState(), 3);
+                    this.getLevel().setBlockState(this.getBlockPos().above(3).north(6).east(i), Blocks.BLACKSTONE.defaultBlockState(), 3);
                 }
                 this.getLevel().playSound(null, this.getBlockPos(), SoundEvents.BLOCK_STONE_PLACE, SoundSource.BLOCKS, 1F, 1F);
             }
             // Fourth Layer
             if (buildGolemCounter == 120) {
-                this.getLevel().setBlockState(this.getBlockPos().up(4).north(5).east(2), Blocks.BLACKSTONE_STAIRS.defaultBlockState().with(StairBlock.FACING, Direction.WEST), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up(4).north(5).west(2), Blocks.BLACKSTONE_STAIRS.defaultBlockState().with(StairBlock.FACING, Direction.EAST), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up(4).north(6).east(2),
+                this.getLevel().setBlockState(this.getBlockPos().above(4).north(5).east(2), Blocks.BLACKSTONE_STAIRS.defaultBlockState().with(StairBlock.FACING, Direction.WEST), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above(4).north(5).west(2), Blocks.BLACKSTONE_STAIRS.defaultBlockState().with(StairBlock.FACING, Direction.EAST), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above(4).north(6).east(2),
                         Blocks.BLACKSTONE_STAIRS.defaultBlockState().with(StairBlock.FACING, Direction.WEST).with(StairBlock.SHAPE, StairsShape.OUTER_LEFT), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up(4).north(6).west(2),
+                this.getLevel().setBlockState(this.getBlockPos().above(4).north(6).west(2),
                         Blocks.BLACKSTONE_STAIRS.defaultBlockState().with(StairBlock.FACING, Direction.EAST).with(StairBlock.SHAPE, StairsShape.OUTER_RIGHT), 3);
                 for (int i = -1; i < 2; i++) {
-                    this.getLevel().setBlockState(this.getBlockPos().up(4).north(5).east(i), Blocks.BLACKSTONE.defaultBlockState(), 3);
-                    this.getLevel().setBlockState(this.getBlockPos().up(4).north(6).east(i), Blocks.BLACKSTONE_STAIRS.defaultBlockState().with(StairBlock.FACING, Direction.SOUTH), 3);
+                    this.getLevel().setBlockState(this.getBlockPos().above(4).north(5).east(i), Blocks.BLACKSTONE.defaultBlockState(), 3);
+                    this.getLevel().setBlockState(this.getBlockPos().above(4).north(6).east(i), Blocks.BLACKSTONE_STAIRS.defaultBlockState().with(StairBlock.FACING, Direction.SOUTH), 3);
                 }
-                this.getLevel().setBlockState(this.getBlockPos().up(4).north(4), Blocks.BLACKSTONE.defaultBlockState(), 3);
-                this.getLevel().setBlockState(this.getBlockPos().up(5).north(4), Blocks.BLACKSTONE_SLAB.defaultBlockState(), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above(4).north(4), Blocks.BLACKSTONE.defaultBlockState(), 3);
+                this.getLevel().setBlockState(this.getBlockPos().above(5).north(4), Blocks.BLACKSTONE_SLAB.defaultBlockState(), 3);
                 this.getLevel().playSound(null, this.getBlockPos(), SoundEvents.BLOCK_STONE_PLACE, SoundSource.BLOCKS, 1F, 1F);
             }
             if (buildGolemCounter >= 150) {
                 for (int i = 1; i < 6; i++) {
                     for (int o = -4; o < 6; o++) {
                         for (int u = 1; u < 10; u++) {
-                            this.getLevel().breakBlock(this.getBlockPos().up(i).east(o).north(u), false);
+                            this.getLevel().breakBlock(this.getBlockPos().above(i).east(o).north(u), false);
                         }
                     }
                 }

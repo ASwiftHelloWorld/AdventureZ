@@ -57,15 +57,15 @@ public class MobSpawnerLogicMixin {
             if (this.spawnGuardian) {
                 BlazeGuardianEntity blazeGuardianEntity = EntityInit.BLAZE_GUARDIAN.create(world.toServerWorld());
                 blazeGuardianEntity.initialize(world.toServerWorld(), world.getLocalDifficulty(pos), EntitySpawnReason.STRUCTURE, null);
-                int randomCheck = world.random.nextInt(3);
-                blazeGuardianEntity.refreshPositionAndAngles(pos.north(world.random.nextInt(3) - 1).east(randomCheck - 1 == 0 ? -1 : randomCheck), world.random.nextFloat() * 360F, 0.0F);
+                int randomCheck = world.getRandom().nextInt(3);
+                blazeGuardianEntity.refreshPositionAndAngles(pos.north(world.getRandom().nextInt(3) - 1).east(randomCheck - 1 == 0 ? -1 : randomCheck), world.getRandom().nextFloat() * 360F, 0.0F);
                 world.spawnEntity(blazeGuardianEntity);
                 spawnDelay = 600;
                 this.spawnGuardian = false;
             } else if (this.spawnEntry != null && this.spawnEntry.getNbt() != null) {
                 Optional<EntityType<?>> optionalEntityType = EntityType.fromNbt(this.spawnEntry.getNbt());
                 if (optionalEntityType.isPresent() && optionalEntityType.get().equals(EntityType.BLAZE)
-                        && !world.getEntitiesByClass(BlazeGuardianEntity.class, new AABB(pos).inflate(16D), EntitySelector.EXCEPT_SPECTATOR).isEmpty()) {
+                        && !world.getEntitiesOfClass(BlazeGuardianEntity.class, new AABB(pos).inflate(16D), EntitySelector.NO_SPECTATORS).isEmpty()) {
                     spawnDelay = 600;
                 }
             }

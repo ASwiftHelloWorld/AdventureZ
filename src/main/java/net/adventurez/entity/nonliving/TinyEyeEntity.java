@@ -1,17 +1,20 @@
 package net.adventurez.entity.nonliving;
 
 import java.util.UUID;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import net.adventurez.init.EntityInit;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.network.syncher.SynchedEntityData.Builder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.arrow.Arrow;
 import net.minecraft.world.entity.projectile.hurtingprojectile.AbstractHurtingProjectile;
@@ -74,43 +77,41 @@ public class TinyEyeEntity extends AbstractHurtingProjectile {
     }
 
     @Override
-    public void writeCustomDataToNbt(CompoundTag tag) {
-        super.writeCustomDataToNbt(tag);
+    public void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
         if (this.target != null)
-            tag.putUuid("Target", this.target.getUuid());
+            output.store("Target", UUIDUtil.CODEC, this.target.getUUID());
         if (this.direction != null)
-            tag.putInt("Dir", this.direction.getId());
+            output.putInt("Dir", this.direction.get3DDataValue());
 
-        tag.putInt("Steps", this.stepCount);
-        tag.putDouble("TXD", this.targetX);
-        tag.putDouble("TYD", this.targetY);
-        tag.putDouble("TZD", this.targetZ);
+        output.putInt("Steps", this.stepCount);
+        output.putDouble("TXD", this.targetX);
+        output.putDouble("TYD", this.targetY);
+        output.putDouble("TZD", this.targetZ);
     }
 
     @Override
-    public void readCustomDataFromNbt(CompoundTag tag) {
-        super.readCustomDataFromNbt(tag);
-        this.stepCount = tag.getInt("Steps");
-        this.targetX = tag.getDouble("TXD");
-        this.targetY = tag.getDouble("TYD");
-        this.targetZ = tag.getDouble("TZD");
-        if (tag.contains("Dir", 99))
-            this.direction = Direction.byId(tag.getInt("Dir"));
+    public void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
+        this.stepCount = input.getIntOr("Steps", 0);
+        this.targetX = input.getDoubleOr("TXD", 0.0D);
+        this.targetY = input.getDoubleOr("TYD", 0.0D);
+        this.targetZ = input.getDoubleOr("TZD", 0.0D);
+        input.getInt("Dir").ifPresent(value -> this.direction = Direction.from3DDataValue(value));
 
-        if (tag.containsUuid("Target"))
-            this.targetUuid = tag.getUuid("Target");
+        input.read("Target", UUIDUtil.CODEC).ifPresent(uuid -> this.targetUuid = uuid);
 
     }
 
     @Override
-    protected void initDataTracker(Builder builder) {
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
     }
 
     private void movingAround() {
         double d = 0.5D;
         BlockPos blockPos;
         if (this.target == null)
-            blockPos = this.getBlockPos().down();
+            blockPos = this.getBlockPos().below();
         else {
             d = (double) this.target.getHeight() * 0.5D;
             blockPos = BlockPos.ofFloored(this.target.getX(), this.target.getY() + d, this.target.getZ());
@@ -249,10 +250,10 @@ public class TinyEyeEntity extends AbstractHurtingProjectile {
                 float randomFloat = this.level().getRandom().nextFloat() * 6.2831855F;
                 int posX = livingEntity.getBlockPos().getX() + Mth.floor(Mth.cos(randomFloat) * 9.0F + serverWorld.getRandom().nextInt(30));
                 int posZ = livingEntity.getBlockPos().getZ() + Mth.floor(Mth.sin(randomFloat) * 9.0F + serverWorld.getRandom().nextInt(30));
-                int posY = serverWorld.getTopY(Heightmap.Type.WORLD_SURFACE, posX, posZ);
+                int posY = serverWorld.getTopY(Heightmap.Types.WORLD_SURFACE, posX, posZ);
                 BlockPos teleportPos = new BlockPos(posX, posY, posZ);
                 if (serverWorld.isRegionLoaded(teleportPos.getX() - 4, teleportPos.getY() - 4, teleportPos.getZ() - 4, teleportPos.getX() + 4, teleportPos.getY() + 4, teleportPos.getZ() + 4)
-                        && SpawnPlacements.canSpawn(EntityType.PLAYER, serverWorld, EntitySpawnReason.EVENT, teleportPos, serverWorld.getRandom())) {
+                        && SpawnPlacements.checkSpawnRules(EntityType.PLAYER, serverWorld, EntitySpawnReason.EVENT, teleportPos, serverWorld.getRandom())) {
                     if (!this.level().isClientSide()) {
                         livingEntity.teleport(teleportPos.getX(), teleportPos.getY(), teleportPos.getZ(), false);
                     }

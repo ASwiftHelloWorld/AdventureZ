@@ -24,7 +24,7 @@ public class OrcInventoryFeatureRenderer extends RenderLayer<OrcEntity, OrcModel
 
     @Override
     public void render(PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int i, OrcEntity orcEntity, float f, float g, float h, float j, float k, float l) {
-        int itemId = orcEntity.getDataTracker().get(OrcEntity.INVENTORY_ITEM_ID);
+        int itemId = orcEntity.getEntityData().get(OrcEntity.INVENTORY_ITEM_ID);
         if (!orcEntity.isBigOrc() && itemId != -1) {
             matrixStack.push();
             ModelPart modelPart = this.getContextModel().getTorso();

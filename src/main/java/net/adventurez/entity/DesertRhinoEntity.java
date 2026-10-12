@@ -1,5 +1,8 @@
 package net.adventurez.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+
 import java.util.EnumSet;
 
 import net.adventurez.init.SoundInit;
@@ -50,39 +53,39 @@ public class DesertRhinoEntity extends Monster {
     }
 
     public static AttributeSupplier.Builder createDesertRhinoAttributes() {
-        return Monster.createHostileAttributes().add(Attributes.GENERIC_MAX_HEALTH, 60.0D).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.26D).add(Attributes.GENERIC_ARMOR, 4.0D)
-                .add(Attributes.GENERIC_KNOCKBACK_RESISTANCE, 0.5D).add(Attributes.GENERIC_ATTACK_DAMAGE, 9.0D).add(Attributes.GENERIC_ATTACK_KNOCKBACK, 2.2D)
-                .add(Attributes.GENERIC_FOLLOW_RANGE, 38.0D);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 60.0D).add(Attributes.MOVEMENT_SPEED, 0.26D).add(Attributes.ARMOR, 4.0D)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 0.5D).add(Attributes.ATTACK_DAMAGE, 9.0D).add(Attributes.ATTACK_KNOCKBACK, 2.2D)
+                .add(Attributes.FOLLOW_RANGE, 38.0D);
     }
 
     public static boolean canSpawn(EntityType<DesertRhinoEntity> type, ServerLevelAccessor world, EntitySpawnReason spawnReason, BlockPos pos, RandomSource random) {
-        return ((world.getBlockState(pos.down()).isOf(Blocks.SAND) || world.getBlockState(pos.down()).isOf(Blocks.SANDSTONE)) && world.getBaseLightLevel(pos, 0) > 8 && world.isSkyVisible(pos)
-                && world.getEntitiesByClass(DesertRhinoEntity.class, new AABB(pos).inflate(120D), EntitySelector.EXCEPT_SPECTATOR).isEmpty() && world.getRandom().nextFloat() < 0.5F)
+        return ((world.getBlockState(pos.below()).isOf(Blocks.SAND) || world.getBlockState(pos.below()).isOf(Blocks.SANDSTONE)) && world.getBaseLightLevel(pos, 0) > 8 && world.isSkyVisible(pos)
+                && world.getEntitiesOfClass(DesertRhinoEntity.class, new AABB(pos).inflate(120D), EntitySelector.NO_SPECTATORS).isEmpty() && world.getRandom().nextFloat() < 0.5F)
                 || spawnReason == EntitySpawnReason.SPAWNER;
     }
 
     @Override
-    public void initGoals() {
-        super.initGoals();
-        this.goalSelector.add(0, new FloatGoal(this));
-        this.goalSelector.add(1, new SprintAttackGoal(this));
-        this.goalSelector.add(2, new HeadAttackGoal(this, 1.1D, true));
-        this.goalSelector.add(3, new WaterAvoidingRandomStrollGoal(this, 0.85D));
-        this.goalSelector.add(4, new LookAtPlayerGoal(this, Player.class, 6.0F));
-        this.goalSelector.add(5, new RandomLookAroundGoal(this));
-        this.targetSelector.add(1, new NearestAttackableTargetGoal<>(this, Husk.class, true));
-        this.targetSelector.add(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
-        this.targetSelector.add(3, (new HurtByTargetGoal(this, new Class[] { DesertRhinoEntity.class })));
+    public void registerGoals() {
+        super.registerGoals();
+        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new SprintAttackGoal(this));
+        this.goalSelector.addGoal(2, new HeadAttackGoal(this, 1.1D, true));
+        this.goalSelector.addGoal(3, new WaterAvoidingRandomStrollGoal(this, 0.85D));
+        this.goalSelector.addGoal(4, new LookAtPlayerGoal(this, Player.class, 6.0F));
+        this.goalSelector.addGoal(5, new RandomLookAroundGoal(this));
+        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Husk.class, true));
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        this.targetSelector.addGoal(3, (new HurtByTargetGoal(this, new Class[] { DesertRhinoEntity.class })));
     }
 
     @Override
-    public void writeCustomDataToNbt(CompoundTag tag) {
-        super.writeCustomDataToNbt(tag);
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput output) {
+        super.addAdditionalSaveData(output);
     }
 
     @Override
-    public void readCustomDataFromNbt(CompoundTag tag) {
-        super.readCustomDataFromNbt(tag);
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput input) {
+        super.readAdditionalSaveData(input);
     }
 
     @Override
@@ -146,11 +149,11 @@ public class DesertRhinoEntity extends Monster {
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             if (this.desertRhinoEntity.sprintedTicker > 0) {
                 return false;
             } else
-                return super.canStart();
+                return super.canUse();
         }
 
         // @Override
@@ -167,11 +170,11 @@ public class DesertRhinoEntity extends Monster {
 
         public SprintAttackGoal(DesertRhinoEntity desertRhinoEntity) {
             this.desertRhinoEntity = desertRhinoEntity;
-            this.setControls(EnumSet.of(Goal.Control.MOVE, Goal.Control.LOOK));
+            this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             if (this.cooldown-- > 0) {
                 return false;
             } else {
@@ -193,7 +196,7 @@ public class DesertRhinoEntity extends Monster {
         }
 
         @Override
-        public boolean shouldContinue() {
+        public boolean canContinueToUse() {
             LivingEntity livingEntity = this.desertRhinoEntity.getTarget();
             if (livingEntity == null) {
                 return false;
@@ -227,25 +230,25 @@ public class DesertRhinoEntity extends Monster {
             double d = (double) (this.desertRhinoEntity.getWidth() * 2.25F * this.desertRhinoEntity.getWidth() * 2.25F + target.getWidth() * 1.25F);
             if (squaredDistance <= d) {
                 this.desertRhinoEntity.swingHand(InteractionHand.MAIN_HAND);
-                this.desertRhinoEntity.getAttributeInstance(Attributes.GENERIC_ATTACK_KNOCKBACK)
-                        .setBaseValue(this.desertRhinoEntity.getAttributeValue(Attributes.GENERIC_ATTACK_KNOCKBACK) + 10.0D);
+                this.desertRhinoEntity.getAttribute(Attributes.ATTACK_KNOCKBACK)
+                        .setBaseValue(this.desertRhinoEntity.getAttributeValue(Attributes.ATTACK_KNOCKBACK) + 10.0D);
                 BlockPos attackedPos;
                 if (this.desertRhinoEntity.tryAttack(target)) {
                     attackedPos = BlockPos.ofFloored(target.getX(), target.getY(), target.getZ());
                 } else {
                     attackedPos = targetPos;
                 }
-                if (!this.desertRhinoEntity.level().getBlockState(attackedPos.down()).isAir())
+                if (!this.desertRhinoEntity.level().getBlockState(attackedPos.below()).isAir())
                     for (int i = 0; i < 30; i++) {
                         ((ServerLevel) this.desertRhinoEntity.level()).spawnParticles(
-                                new BlockParticleOption(ParticleTypes.BLOCK, this.desertRhinoEntity.level().getBlockState(attackedPos.down())),
+                                new BlockParticleOption(ParticleTypes.BLOCK, this.desertRhinoEntity.level().getBlockState(attackedPos.below())),
                                 attackedPos.getX() + this.desertRhinoEntity.level().getRandom().nextDouble() * 2.5D - 1.25D,
                                 attackedPos.getY() + this.desertRhinoEntity.level().getRandom().nextDouble() * 0.2D,
                                 attackedPos.getZ() + this.desertRhinoEntity.level().getRandom().nextDouble() * 2.5D - 1.25D, 4, 0.0D,
                                 this.desertRhinoEntity.level().getRandom().nextDouble() * 0.15D, 0.D, 1.0D);
                     }
-                this.desertRhinoEntity.getAttributeInstance(Attributes.GENERIC_ATTACK_KNOCKBACK)
-                        .setBaseValue(this.desertRhinoEntity.getAttributeValue(Attributes.GENERIC_ATTACK_KNOCKBACK) - 10.0D);
+                this.desertRhinoEntity.getAttribute(Attributes.ATTACK_KNOCKBACK)
+                        .setBaseValue(this.desertRhinoEntity.getAttributeValue(Attributes.ATTACK_KNOCKBACK) - 10.0D);
             }
         }
     }

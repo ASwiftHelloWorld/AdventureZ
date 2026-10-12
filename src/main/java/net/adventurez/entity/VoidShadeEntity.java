@@ -16,7 +16,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.entity.FlyingMob;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
@@ -27,28 +26,28 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.level.Level;
 
-public class VoidShadeEntity extends FlyingMob implements Enemy {
+public class VoidShadeEntity extends AdventureFlyingMob implements Enemy {
 
-    public VoidShadeEntity(EntityType<? extends FlyingMob> entityType, Level world) {
+    public VoidShadeEntity(EntityType<? extends AdventureFlyingMob> entityType, Level world) {
         super(entityType, world);
         this.moveControl = new VoidShadeEntity.VoidShadeMoveControl(this);
         this.experiencePoints = 0;
     }
 
     public static AttributeSupplier.Builder createVoidShadeAttributes() {
-        return Monster.createHostileAttributes().add(Attributes.GENERIC_MAX_HEALTH, 20.0D).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.15D)
-                .add(Attributes.GENERIC_ATTACK_DAMAGE, 7.0D).add(Attributes.GENERIC_ATTACK_KNOCKBACK, 0.5D).add(Attributes.GENERIC_KNOCKBACK_RESISTANCE, 10.0D)
-                .add(Attributes.GENERIC_FOLLOW_RANGE, 80.0D);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 20.0D).add(Attributes.MOVEMENT_SPEED, 0.15D)
+                .add(Attributes.ATTACK_DAMAGE, 7.0D).add(Attributes.ATTACK_KNOCKBACK, 0.5D).add(Attributes.KNOCKBACK_RESISTANCE, 10.0D)
+                .add(Attributes.FOLLOW_RANGE, 80.0D);
     }
 
     @Override
-    public void initGoals() {
-        super.initGoals();
-        this.goalSelector.add(3, new VoidShadeEntity.LookAtTargetGoal(this));
-        this.goalSelector.add(7, new RandomLookAroundGoal(this));
-        this.goalSelector.add(3, new VoidShadeEntity.MoveGoal(this));
-        this.goalSelector.add(5, new VoidShadeEntity.ShootBulletGoal(this));
-        this.targetSelector.add(1, new NearestAttackableTargetGoal<>(this, Player.class, true));
+    public void registerGoals() {
+        super.registerGoals();
+        this.goalSelector.addGoal(3, new VoidShadeEntity.LookAtTargetGoal(this));
+        this.goalSelector.addGoal(7, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal(3, new VoidShadeEntity.MoveGoal(this));
+        this.goalSelector.addGoal(5, new VoidShadeEntity.ShootBulletGoal(this));
+        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, true));
     }
 
     @Override
@@ -101,7 +100,7 @@ public class VoidShadeEntity extends FlyingMob implements Enemy {
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             LivingEntity livingEntity = this.voidShadeEntity.getTarget();
             return livingEntity != null && this.voidShadeEntity.canSee(livingEntity);
         }
@@ -120,7 +119,7 @@ public class VoidShadeEntity extends FlyingMob implements Enemy {
                 if (this.cooldown == 20) {
                     ((ServerLevel) world).playSoundFromEntity(null, this.voidShadeEntity, SoundInit.SHADOW_CAST_EVENT, SoundSource.HOSTILE, 1.0F, 1.0F);
                     Vec3 vec3d = this.voidShadeEntity.getRotationVec(1.0F);
-                    vec3d.add(world.random.nextFloat() * 0.5F - 0.25F, 0, world.random.nextFloat() * 0.5F - 0.25F);
+                    vec3d.add(world.getRandom().nextFloat() * 0.5F - 0.25F, 0, world.getRandom().nextFloat() * 0.5F - 0.25F);
                     VoidBulletEntity voidBulletEntity = new VoidBulletEntity(this.voidShadeEntity, vec3d, world);
                     world.spawnEntity(voidBulletEntity);
 
@@ -140,11 +139,11 @@ public class VoidShadeEntity extends FlyingMob implements Enemy {
 
         public LookAtTargetGoal(VoidShadeEntity voidShadeEntity) {
             this.voidShadeEntity = voidShadeEntity;
-            this.setControls(EnumSet.of(Goal.Control.LOOK));
+            this.setFlags(EnumSet.of(Goal.Flag.LOOK));
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             return true;
         }
 
@@ -172,11 +171,11 @@ public class VoidShadeEntity extends FlyingMob implements Enemy {
 
         public MoveGoal(VoidShadeEntity voidShadeEntity) {
             this.voidShadeEntity = voidShadeEntity;
-            this.setControls(EnumSet.of(Goal.Control.MOVE));
+            this.setFlags(EnumSet.of(Goal.Flag.MOVE));
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             if (this.voidShadeEntity.getTarget() != null) {
                 return true;
             } else
@@ -184,7 +183,7 @@ public class VoidShadeEntity extends FlyingMob implements Enemy {
         }
 
         @Override
-        public boolean shouldContinue() {
+        public boolean canContinueToUse() {
             return false;
         }
 

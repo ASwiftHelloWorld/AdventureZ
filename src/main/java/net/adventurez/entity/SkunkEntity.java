@@ -36,20 +36,20 @@ public class SkunkEntity extends Animal {
     }
 
     public static AttributeSupplier.Builder createSkunkAttributes() {
-        return Mob.createMobAttributes().add(Attributes.GENERIC_MAX_HEALTH, 8.0D).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.21D);
+        return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 8.0D).add(Attributes.MOVEMENT_SPEED, 0.21D);
     }
 
     @Override
-    protected void initGoals() {
-        this.goalSelector.add(0, new SwimGoal(this));
-        this.goalSelector.add(1, new EscapeDangerGoal(this, 1.8D));
-        this.goalSelector.add(2, new AnimalMateGoal(this, 1.0D));
-        this.goalSelector.add(3, new TemptGoal(this, 1.20D, Ingredient.ofItems(Items.SHORT_GRASS, Items.FERN), true));
-        this.goalSelector.add(4, new FollowParentGoal(this, 1.25D));
-        this.goalSelector.add(5, new EscapePlayerGoal(this, 2.0D));
-        this.goalSelector.add(6, new WanderAroundFarGoal(this, 1.0D));
-        this.goalSelector.add(7, new LookAtEntityGoal(this, Player.class, 6.0F));
-        this.goalSelector.add(8, new LookAroundGoal(this));
+    protected void registerGoals() {
+        this.goalSelector.addGoal(0, new SwimGoal(this));
+        this.goalSelector.addGoal(1, new EscapeDangerGoal(this, 1.8D));
+        this.goalSelector.addGoal(2, new AnimalMateGoal(this, 1.0D));
+        this.goalSelector.addGoal(3, new TemptGoal(this, 1.20D, Ingredient.ofItems(Items.SHORT_GRASS, Items.FERN), true));
+        this.goalSelector.addGoal(4, new FollowParentGoal(this, 1.25D));
+        this.goalSelector.addGoal(5, new EscapePlayerGoal(this, 2.0D));
+        this.goalSelector.addGoal(6, new WanderAroundFarGoal(this, 1.0D));
+        this.goalSelector.addGoal(7, new LookAtEntityGoal(this, Player.class, 6.0F));
+        this.goalSelector.addGoal(8, new LookAroundGoal(this));
     }
 
     @Override
@@ -111,11 +111,11 @@ public class SkunkEntity extends Animal {
         public EscapePlayerGoal(SkunkEntity skunkEntity, double speed) {
             this.skunkEntity = skunkEntity;
             this.speed = speed;
-            this.setControls(EnumSet.of(Goal.Control.MOVE));
+            this.setFlags(EnumSet.of(Goal.Flag.MOVE));
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             if (this.skunkEntity.level().getClosestPlayer(this.skunkEntity, 4.0D) == null) {
                 return false;
             } else {
@@ -141,7 +141,7 @@ public class SkunkEntity extends Animal {
         }
 
         @Override
-        public boolean shouldContinue() {
+        public boolean canContinueToUse() {
             return !this.skunkEntity.getNavigation().isIdle();
         }
 

@@ -143,7 +143,7 @@ public class EnderwarthogModel<T extends EnderwarthogEntity> extends ListModel<T
         float k = Mth.sin(this.handSwingProgress * 3.1415927F);
 
         if (k > 0.0F) {
-            if (entity.getDataTracker().get(EnderwarthogEntity.BITE_ATTACK)) {
+            if (entity.getEntityData().get(EnderwarthogEntity.BITE_ATTACK)) {
                 this.neck.pitch = -k * 0.05F;
                 this.head.pitch = -k * 0.01F;
                 this.jaw.pitch = 0.0524F + k * 0.45F;

@@ -272,16 +272,16 @@ public class DragonModel<T extends DragonEntity> extends ListModel<T> {
         this.neck4.pitch = headPitch * 0.0017453292F;
 
         // Fire Breath
-        Boolean isFireBreathing = entity.getDataTracker().get(DragonEntity.FIRE_BREATH);
+        Boolean isFireBreathing = entity.getEntityData().get(DragonEntity.FIRE_BREATH);
         if (isFireBreathing) {
             this.jaw.pitch = 0.4F;
         }
 
-        float slowlyIncreasingFloat = ((float) Math.floorMod(entity.level().getTime(), 100L) + animationProgress) / 100.0F;
+        float slowlyIncreasingFloat = ((float) Math.floorMod(entity.level().getGameTime(), 100L) + animationProgress) / 100.0F;
 
         // Between Animation
-        if (entity.getDataTracker().get(DragonEntity.CLIENT_START_FLYING)) {
-            if (entity.getDataTracker().get(DragonEntity.IS_START_FLYING)) {
+        if (entity.getEntityData().get(DragonEntity.CLIENT_START_FLYING)) {
+            if (entity.getEntityData().get(DragonEntity.IS_START_FLYING)) {
                 startFlyingTicker = Mth.clamp(startFlyingTicker + 0.05164F, 0.0F, 1.4981F);
             } else {
                 startFlyingTicker = Mth.clamp(startFlyingTicker - 0.05164F, 0.0F, 1.4981F);
@@ -311,7 +311,7 @@ public class DragonModel<T extends DragonEntity> extends ListModel<T> {
         } else
 
         // While Flying Animation
-        if (entity.getDataTracker().get(DragonEntity.IS_FLYING)) {
+        if (entity.getEntityData().get(DragonEntity.IS_FLYING)) {
             startFlyingTicker = 0.0F;
             // mediumSpeedSin goes from -1 to 1
             float mediumSpeedSin = Mth.cos(12.566370614F * slowlyIncreasingFloat - (betweenFloater + 3.1415926535897F));
@@ -394,7 +394,7 @@ public class DragonModel<T extends DragonEntity> extends ListModel<T> {
         } else
 
         // End of Flying Animation
-        if (entity.getDataTracker().get(DragonEntity.CLIENT_END_FLYING)) {
+        if (entity.getEntityData().get(DragonEntity.CLIENT_END_FLYING)) {
             float mediumSpeedSin = Mth.cos(12.566370614F * slowlyIncreasingFloat - (betweenFloater + 3.1415926535897F)); // 1to-1
             if (mediumSpeedSin < 0.04F && mediumSpeedSin > -0.04F) {
                 endFlying = true;
@@ -416,7 +416,7 @@ public class DragonModel<T extends DragonEntity> extends ListModel<T> {
                     this.wingTipRight.roll = -(startFlyingTicker * 3.75017905F);
 
                 } else {
-                    entity.getDataTracker().set(DragonEntity.CLIENT_END_FLYING, false);
+                    entity.getEntityData().set(DragonEntity.CLIENT_END_FLYING, false);
                     endFlyingTicker = 0;
                     startFlyingTicker = 0;
                     endFlying = false;
@@ -550,24 +550,24 @@ public class DragonModel<T extends DragonEntity> extends ListModel<T> {
     }
 
     private void renderExtras(Entity entity) {
-        if (entity.getDataTracker().get(DragonEntity.HAS_SADDLE)) {
+        if (entity.getEntityData().get(DragonEntity.HAS_SADDLE)) {
             this.spike.visible = false;
         } else {
             this.spike.visible = true;
         }
-        if (entity.getDataTracker().get(DragonEntity.HAS_CHEST)) {
+        if (entity.getEntityData().get(DragonEntity.HAS_CHEST)) {
             this.chest.visible = true;
         } else {
             this.chest.visible = false;
         }
-        if (entity.getDataTracker().get(DragonEntity.OTHER_EARS)) {
+        if (entity.getEntityData().get(DragonEntity.OTHER_EARS)) {
             this.otherEars.visible = true;
             this.ears.visible = false;
         } else {
             this.otherEars.visible = false;
             this.ears.visible = true;
         }
-        if (entity.getDataTracker().get(DragonEntity.OTHER_TAIL)) {
+        if (entity.getEntityData().get(DragonEntity.OTHER_TAIL)) {
             this.otherTail.visible = true;
             this.extraTail.visible = false;
         } else {

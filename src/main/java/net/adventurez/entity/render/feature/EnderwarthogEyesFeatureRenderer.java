@@ -27,7 +27,7 @@ public class EnderwarthogEyesFeatureRenderer extends RenderLayer<EnderwarthogEnt
     public void render(PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int i, EnderwarthogEntity enderwarthogEntity, float f, float g, float h, float j, float k, float l) {
         VertexConsumer vertexConsumer = vertexConsumerProvider.getBuffer(EYE_LAYER);
         this.getContextModel().render(matrixStack, vertexConsumer, 15728640, OverlayTexture.DEFAULT_UV);
-        if (enderwarthogEntity.getDataTracker().get(EnderwarthogEntity.RARE_VARIANT)) {
+        if (enderwarthogEntity.getEntityData().get(EnderwarthogEntity.RARE_VARIANT)) {
             VertexConsumer otherVertexConsumer = vertexConsumerProvider.getBuffer(RARE_LAYER);
             this.getContextModel().render(matrixStack, otherVertexConsumer, 20, OverlayTexture.DEFAULT_UV);
         }

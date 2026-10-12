@@ -34,7 +34,7 @@ public class GildedStoneRenderer extends EntityRenderer<GildedBlackstoneShardEnt
 
         matrixStack.push();
         VertexConsumer vertexConsumer = vertexConsumerProvider.getBuffer(this.model.getLayer(this.getTexture(gildedStoneEntity)));
-        int lightAbove = LevelRenderer.getLightmapCoordinates(gildedStoneEntity.getEntityWorld(), gildedStoneEntity.getBlockPos().up());
+        int lightAbove = LevelRenderer.getLightmapCoordinates(gildedStoneEntity.getEntityWorld(), gildedStoneEntity.getBlockPos().above());
         matrixStack.scale(1.0F, -1.0F, 1.0F);
         matrixStack.translate(0D, -1.45D, 0D);
         model.render(matrixStack, vertexConsumer, lightAbove, OverlayTexture.DEFAULT_UV);

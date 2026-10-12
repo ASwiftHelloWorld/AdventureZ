@@ -4,7 +4,6 @@ import net.adventurez.entity.BlazeGuardianEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.network.syncher.SynchedEntityData.Builder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.sounds.SoundSource;
@@ -29,15 +28,15 @@ public class BlazeGuardianShieldEntity extends Entity {
     }
 
     @Override
-    protected void initDataTracker(Builder builder) {
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
     }
 
     @Override
-    protected void readCustomDataFromNbt(CompoundTag nbt) {
+    protected void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput input) {
     }
 
     @Override
-    protected void writeCustomDataToNbt(CompoundTag nbt) {
+    protected void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput output) {
     }
 
     @Override
@@ -86,16 +85,16 @@ public class BlazeGuardianShieldEntity extends Entity {
     private void removeShield(String string, BlazeGuardianEntity blazeGuardianEntity) {
         switch (string) {
         case "shield_north":
-            blazeGuardianEntity.getDataTracker().set(BlazeGuardianEntity.SHIELD_NORTH, false);
+            blazeGuardianEntity.getEntityData().set(BlazeGuardianEntity.SHIELD_NORTH, false);
             break;
         case "shield_east":
-            blazeGuardianEntity.getDataTracker().set(BlazeGuardianEntity.SHIELD_EAST, false);
+            blazeGuardianEntity.getEntityData().set(BlazeGuardianEntity.SHIELD_EAST, false);
             break;
         case "shield_south":
-            blazeGuardianEntity.getDataTracker().set(BlazeGuardianEntity.SHIELD_SOUTH, false);
+            blazeGuardianEntity.getEntityData().set(BlazeGuardianEntity.SHIELD_SOUTH, false);
             break;
         case "shield_west":
-            blazeGuardianEntity.getDataTracker().set(BlazeGuardianEntity.SHIELD_WEST, false);
+            blazeGuardianEntity.getEntityData().set(BlazeGuardianEntity.SHIELD_WEST, false);
             break;
         default:
             return;

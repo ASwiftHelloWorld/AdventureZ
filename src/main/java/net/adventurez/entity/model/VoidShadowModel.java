@@ -125,7 +125,7 @@ public class VoidShadowModel<T extends VoidShadowEntity> extends ListModel<T> {
         this.rightArm.roll = 0.0F;
         this.leftArm.roll = 0.0F;
 
-        if (shadow.getDataTracker().get(VoidShadowEntity.IS_THROWING_BLOCKS)) {
+        if (shadow.getEntityData().get(VoidShadowEntity.IS_THROWING_BLOCKS)) {
             throwingBlocksTicker = Mth.clamp(throwingBlocksTicker + 0.05817666666666F, 0.0F, 1.7453F);
         } else {
             throwingBlocksTicker = Mth.clamp(throwingBlocksTicker - 0.05817666666666F, 0.0F, 1.7453F);
@@ -136,7 +136,7 @@ public class VoidShadowModel<T extends VoidShadowEntity> extends ListModel<T> {
         this.rightArm.yaw = -throwingBlocksTicker * 0.20002291869F;
         this.leftArm.yaw = throwingBlocksTicker * 0.20002291869F;
 
-        if (shadow.getDataTracker().get(VoidShadowEntity.HOVERING_MAGIC_HANDS)) {
+        if (shadow.getEntityData().get(VoidShadowEntity.HOVERING_MAGIC_HANDS)) {
             this.rightArm.roll = -2.4871F - Mth.cos(animationProgress * 0.3662F) * 0.1F;
             this.leftArm.roll = 2.4871F + Mth.cos(animationProgress * 0.3662F) * 0.1F;
             this.rightArm.pitch = -Mth.cos(animationProgress * 0.1662F) * 0.25F;
@@ -145,7 +145,7 @@ public class VoidShadowModel<T extends VoidShadowEntity> extends ListModel<T> {
             // 0.25F;
             // this.leftAttackingArm.pitch = Mth.cos(animationProgress * 0.6662F) *
             // 0.25F;
-        } else if (shadow.getDataTracker().get(VoidShadowEntity.CIRCLING_HANDS)) {
+        } else if (shadow.getEntityData().get(VoidShadowEntity.CIRCLING_HANDS)) {
             this.rightArm.roll = -1.5708F;
             this.leftArm.roll = 1.5708F;
         }

@@ -76,7 +76,7 @@ public class PiglinFlagRenderer implements BlockEntityRenderer<PiglinFlagEntity>
         }
         matrices.translate(0.5D, 1.25D, 0.5D);
         BlockPos blockPos = entity.getBlockPos();
-        long worldTime = entity.getLevel().getTime();
+        long worldTime = entity.getLevel().getGameTime();
         float goodFloat = ((float) Math.floorMod((long) (blockPos.getX() * 7 + blockPos.getY() * 9 + blockPos.getZ() * 13) + worldTime, 100L) + tickDelta) / 100.0F;
         flag.roll = Mth.cos(6.2831855F * goodFloat) / 4;
         holder.render(matrices, vertexConsumer, light, overlay);

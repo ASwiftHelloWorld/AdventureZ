@@ -24,7 +24,7 @@ public class VoidFragmentCorruptFeatureRenderer extends RenderLayer<VoidFragment
 
     @Override
     public void render(PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int i, VoidFragmentEntity voidFragmentEntity, float f, float g, float h, float j, float k, float l) {
-        if (voidFragmentEntity.getDataTracker().get(VoidFragmentEntity.IS_VOID_ORB)) {
+        if (voidFragmentEntity.getEntityData().get(VoidFragmentEntity.IS_VOID_ORB)) {
             VertexConsumer vertexConsumer = vertexConsumerProvider.getBuffer(CORRUPT_LAYER);
             this.getContextModel().render(matrixStack, vertexConsumer, 15728640, OverlayTexture.DEFAULT_UV);
         }

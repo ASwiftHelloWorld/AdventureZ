@@ -37,7 +37,7 @@ public class DragonEggBlockMixin implements EntityBlock {
                 }
             } else {
                 for (int i = 0; i < 20; i++)
-                    world.addParticle(ParticleTypes.HAPPY_VILLAGER, pos.getX() + world.random.nextDouble(), pos.getY() + world.random.nextDouble(), pos.getZ() + world.random.nextDouble(), 0.0D, 0.0D,
+                    world.addParticle(ParticleTypes.HAPPY_VILLAGER, pos.getX() + world.getRandom().nextDouble(), pos.getY() + world.getRandom().nextDouble(), pos.getZ() + world.getRandom().nextDouble(), 0.0D, 0.0D,
                             0.0D);
             }
             info.setReturnValue(InteractionResult.success(true));

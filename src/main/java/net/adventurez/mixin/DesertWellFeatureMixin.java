@@ -37,7 +37,7 @@ public class DesertWellFeatureMixin {
                             spawnPos = spawnPos.north(5).east(3);
                         }
                         if (context.level().isAir(spawnPos)
-                                && SpawnPlacements.canSpawn(EntityInit.DESERT_RHINO, context.level(), EntitySpawnReason.CHUNK_GENERATION, spawnPos, context.getRandom())) {
+                                && SpawnPlacements.checkSpawnRules(EntityInit.DESERT_RHINO, context.level(), EntitySpawnReason.CHUNK_GENERATION, spawnPos, context.getRandom())) {
                             DesertRhinoEntity desertRhinoEntity = EntityInit.DESERT_RHINO.create(context.level().toServerWorld());
                             desertRhinoEntity.refreshPositionAndAngles(spawnPos, context.getRandom().nextFloat() * 360F, 0.0F);
                             context.level().spawnEntity(desertRhinoEntity);

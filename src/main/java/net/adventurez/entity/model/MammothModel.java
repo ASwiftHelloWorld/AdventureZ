@@ -153,7 +153,7 @@ public class MammothModel<T extends MammothEntity> extends ListModel<T> {
         this.legFrontLeft.pitch = Mth.cos(limbAngle * slowerWalking + 3.1415927F) * 0.7F * limbDistance;
         this.legFrontRight.pitch = Mth.cos(limbAngle * slowerWalking) * 0.7F * limbDistance;
 
-        int i = entity.getDataTracker().get(MammothEntity.ATTACK_TICKS);
+        int i = entity.getEntityData().get(MammothEntity.ATTACK_TICKS);
         if (i > 0) {
             this.head.pitch = -0.3491F + Mth.sin((3.14159265358F / 10F) * ((float) i - 9)) * 0.4F;
         }

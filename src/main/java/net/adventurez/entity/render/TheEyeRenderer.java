@@ -73,7 +73,7 @@ public class TheEyeRenderer extends MobRenderer<TheEyeEntity, TheEyeModel<TheEye
         super.render(theEyeEntity, f, g, matrixStack, vertexConsumerProvider, i);
         LivingEntity livingEntity = theEyeEntity.getBeamTarget();
         if (livingEntity != null && livingEntity.isAlive() && theEyeEntity.isAlive()) {
-            float j = (float) theEyeEntity.level().getTime() + g;
+            float j = (float) theEyeEntity.level().getGameTime() + g;
             float k = j * 0.5F % 1.0F;
             float l = theEyeEntity.getStandingEyeHeight();
             matrixStack.push();

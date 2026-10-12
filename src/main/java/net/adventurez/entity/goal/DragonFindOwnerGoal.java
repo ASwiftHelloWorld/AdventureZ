@@ -25,11 +25,11 @@ public class DragonFindOwnerGoal extends Goal {
         this.navigation = dragonEntity.getNavigation();
         this.minDistance = minDistance;
         this.maxDistance = maxDistance;
-        this.setControls(EnumSet.of(Goal.Control.MOVE, Goal.Control.LOOK));
+        this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
     }
 
     @Override
-    public boolean canStart() {
+    public boolean canUse() {
         LivingEntity livingEntity = this.dragonEntity.getOwner();
         if (livingEntity == null) {
             return false;
@@ -52,7 +52,7 @@ public class DragonFindOwnerGoal extends Goal {
     }
 
     @Override
-    public boolean shouldContinue() {
+    public boolean canContinueToUse() {
         if (this.dragonEntity.squaredDistanceTo(this.owner) > 800.0D) {
             return false;
         } else if (this.dragonEntity.isInSittingPose() || !this.dragonEntity.canSee(this.owner)) {

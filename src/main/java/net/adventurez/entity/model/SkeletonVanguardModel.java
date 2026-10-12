@@ -94,7 +94,7 @@ public class SkeletonVanguardModel<T extends SkeletonVanguardEntity> extends Lis
             this.rightArm.pitch = -k * 1.5F;
             this.rightArm.roll = -k * 0.4F;
         }
-        float shieldSwing = vanguard.getDataTracker().get(SkeletonVanguardEntity.SHIELD_SWING) * 2F;
+        float shieldSwing = vanguard.getEntityData().get(SkeletonVanguardEntity.SHIELD_SWING) * 2F;
         if (shieldSwing > 0.0F) {
             this.leftArm.pitch = Mth.sin(shieldSwing * 3.1415927F) - 1.5708F;
         }

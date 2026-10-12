@@ -1,5 +1,8 @@
 package net.adventurez.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -24,7 +27,6 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData.Builder;
 import net.minecraft.world.entity.monster.piglin.AbstractPiglin;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.Mob;
@@ -42,8 +44,8 @@ import net.minecraft.world.entity.monster.piglin.Piglin;
 import net.minecraft.world.entity.monster.skeleton.WitherSkeleton;
 
 public class PiglinBeastEntity extends Monster {
-    public static final EntityDataAccessor<Float> ATTACK_TICK_VISUAL = SynchedEntityData.registerData(PiglinBeastEntity.class, EntityDataSerializers.FLOAT);
-    public static final EntityDataAccessor<Float> LEAD_ARM = SynchedEntityData.registerData(PiglinBeastEntity.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> ATTACK_TICK_VISUAL = SynchedEntityData.defineId(PiglinBeastEntity.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> LEAD_ARM = SynchedEntityData.defineId(PiglinBeastEntity.class, EntityDataSerializers.FLOAT);
     private float attackTick;
     public float armTick;
     private int makePiglinsAngry = 0;
@@ -55,69 +57,69 @@ public class PiglinBeastEntity extends Monster {
     }
 
     public static AttributeSupplier.Builder createPiglinBeastAttributes() {
-        return Monster.createHostileAttributes().add(Attributes.GENERIC_MAX_HEALTH, 80.0D).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.225D)
-                .add(Attributes.GENERIC_KNOCKBACK_RESISTANCE, 0.5D).add(Attributes.GENERIC_ATTACK_DAMAGE, 9.0D).add(Attributes.GENERIC_ATTACK_KNOCKBACK, 2D)
-                .add(Attributes.GENERIC_FOLLOW_RANGE, 38.0D);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 80.0D).add(Attributes.MOVEMENT_SPEED, 0.225D)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 0.5D).add(Attributes.ATTACK_DAMAGE, 9.0D).add(Attributes.ATTACK_KNOCKBACK, 2D)
+                .add(Attributes.FOLLOW_RANGE, 38.0D);
     }
 
     @Override
-    public void initGoals() {
-        super.initGoals();
-        this.goalSelector.add(0, new FloatGoal(this));
-        this.goalSelector.add(1, new AttackGoal());
-        this.goalSelector.add(4, new WaterAvoidingRandomStrollGoal(this, 1.0D));
-        this.goalSelector.add(5, new LookAtPlayerGoal(this, Player.class, 12.0F));
-        this.goalSelector.add(6, new RandomLookAroundGoal(this));
-        this.goalSelector.add(7, new LookAtPlayerGoal(this, Mob.class, 8.0F));
-        this.targetSelector.add(1, new NearestAttackableTargetGoal<>(this, WitherSkeleton.class, true));
-        this.targetSelector.add(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
-        this.targetSelector.add(3, new NearestAttackableTargetGoal<>(this, BlazeGuardianEntity.class, true));
-        this.targetSelector.add(4, (new HurtByTargetGoal(this, new Class[] { Piglin.class })));
+    public void registerGoals() {
+        super.registerGoals();
+        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new AttackGoal());
+        this.goalSelector.addGoal(4, new WaterAvoidingRandomStrollGoal(this, 1.0D));
+        this.goalSelector.addGoal(5, new LookAtPlayerGoal(this, Player.class, 12.0F));
+        this.goalSelector.addGoal(6, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal(7, new LookAtPlayerGoal(this, Mob.class, 8.0F));
+        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, WitherSkeleton.class, true));
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, BlazeGuardianEntity.class, true));
+        this.targetSelector.addGoal(4, (new HurtByTargetGoal(this, new Class[] { Piglin.class })));
     }
 
     @Override
     public void mobTick() {
         if (attackTick > 0F) {
             attackTick = attackTick - 0.08F;
-            dataTracker.set(ATTACK_TICK_VISUAL, attackTick);
+            entityData.set(ATTACK_TICK_VISUAL, attackTick);
         }
         if (this.getTarget() instanceof Player) {
             makePiglinsAngry++;
             if (makePiglinsAngry == 600) {
-                dataTracker.set(LEAD_ARM, 1F);
+                entityData.set(LEAD_ARM, 1F);
                 getPiglins();
                 this.level().playSoundFromEntity(null, this, SoundInit.PIGLINBEAST_SHOUT_EVENT, SoundSource.HOSTILE, 1.0F, 1.0F);
-                this.getAttributeInstance(Attributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0.0D);
+                this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.0D);
             }
             if (makePiglinsAngry > 600) {
-                dataTracker.set(LEAD_ARM, dataTracker.get(LEAD_ARM) - 0.02F);
+                entityData.set(LEAD_ARM, entityData.get(LEAD_ARM) - 0.02F);
             }
             if (makePiglinsAngry == 650) {
-                this.getAttributeInstance(Attributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0.23D);
+                this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.23D);
                 makePiglinsAngry = 0;
             }
         }
     }
 
     @Override
-    public void writeCustomDataToNbt(CompoundTag tag) {
-        super.writeCustomDataToNbt(tag);
-        tag.putFloat("AttackTick", this.attackTick);
-        tag.putFloat("LeadArm", 0F);
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putFloat("AttackTick", this.attackTick);
+        output.putFloat("LeadArm", 0F);
     }
 
     @Override
-    public void readCustomDataFromNbt(CompoundTag tag) {
-        super.readCustomDataFromNbt(tag);
-        this.attackTick = tag.getFloat("AttackTick");
-        this.armTick = tag.getFloat("LeadArm");
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput input) {
+        super.readAdditionalSaveData(input);
+        this.attackTick = input.getFloatOr("AttackTick", 0.0F);
+        this.armTick = input.getFloatOr("LeadArm", 0.0F);
     }
 
     @Override
-    protected void initDataTracker(Builder builder) {
-        super.initDataTracker(builder);
-        builder.add(ATTACK_TICK_VISUAL, 0F);
-        builder.add(LEAD_ARM, 0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(ATTACK_TICK_VISUAL, 0F);
+        builder.define(LEAD_ARM, 0F);
     }
 
     @Override
@@ -181,7 +183,7 @@ public class PiglinBeastEntity extends Monster {
     }
 
     public void getPiglins() {
-        List<Piglin> list = this.level().getEntitiesByClass(Piglin.class, this.getBoundingBox().inflate(40D), EntitySelector.EXCEPT_SPECTATOR);
+        List<Piglin> list = this.level().getEntitiesOfClass(Piglin.class, this.getBoundingBox().inflate(40D), EntitySelector.NO_SPECTATORS);
         for (int i = 0; i < list.size(); ++i) {
             angerNearbyPiglins(list.get(i));
         }
@@ -208,7 +210,7 @@ public class PiglinBeastEntity extends Monster {
             piglin.getBrain().remember(MemoryModuleType.UNIVERSAL_ANGER, true, 600L);
         }
         if (!piglin.level().isClientSide()) {
-            piglin.getAttributeInstance(Attributes.GENERIC_ATTACK_DAMAGE).setBaseValue(piglin.getAttributeValue(Attributes.GENERIC_ATTACK_DAMAGE) + 3.0D);
+            piglin.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(piglin.getAttributeValue(Attributes.ATTACK_DAMAGE) + 3.0D);
             piglin.heal(piglin.getMaxHealth());
         }
 

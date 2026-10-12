@@ -1,5 +1,8 @@
 package net.adventurez.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+
 import java.util.List;
 
 import net.adventurez.init.EntityInit;
@@ -25,7 +28,6 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData.Builder;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.monster.Monster;
@@ -54,7 +56,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.ServerLevelAccessor;
 
 public class SummonerEntity extends SpellCastingEntity {
-    public static final EntityDataAccessor<Boolean> INVULNERABLE_SHIELD = SynchedEntityData.registerData(SummonerEntity.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> INVULNERABLE_SHIELD = SynchedEntityData.defineId(SummonerEntity.class, EntityDataSerializers.BOOLEAN);
     private int invulnerableMagicTick;
     private boolean gotShotByABow = false;
 
@@ -63,63 +65,63 @@ public class SummonerEntity extends SpellCastingEntity {
     }
 
     public static AttributeSupplier.Builder createSummonerAttributes() {
-        return Monster.createHostileAttributes().add(Attributes.GENERIC_MAX_HEALTH, 55.0D).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.3D)
-                .add(Attributes.GENERIC_ATTACK_DAMAGE, 6.0D).add(Attributes.GENERIC_ATTACK_KNOCKBACK, 2.2D).add(Attributes.GENERIC_FOLLOW_RANGE, 35.0D);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 55.0D).add(Attributes.MOVEMENT_SPEED, 0.3D)
+                .add(Attributes.ATTACK_DAMAGE, 6.0D).add(Attributes.ATTACK_KNOCKBACK, 2.2D).add(Attributes.FOLLOW_RANGE, 35.0D);
     }
 
     @Override
-    public void initGoals() {
-        super.initGoals();
-        this.goalSelector.add(0, new FloatGoal(this));
-        this.goalSelector.add(1, new LookAtTargetGoalNecro());
-        this.goalSelector.add(2, new NormalAttack(this, 1.0D, false));
-        this.goalSelector.add(2, new AvoidEntityGoal<>(this, Player.class, 8.0F, 0.7D, 0.9D));
-        this.goalSelector.add(4, new SummonPuppetGoal());
-        this.goalSelector.add(5, new ThunderboltSpellGoal());
-        this.goalSelector.add(6, new InvulnerableSpellGoal());
-        this.goalSelector.add(7, new TeleportSpellGoal());
-        this.goalSelector.add(8, new LookAtPlayerGoal(this, Player.class, 7.0F, 1.0F));
-        this.goalSelector.add(9, new RandomStrollGoal(this, 0.9D));
-        this.goalSelector.add(10, new LookAtPlayerGoal(this, Mob.class, 8.0F));
-        this.targetSelector.add(1, (new HurtByTargetGoal(this, new Class[] { SkeletonVanguardEntity.class })));
-        this.targetSelector.add(2, (new HurtByTargetGoal(this, new Class[] { Zombie.class })));
-        this.targetSelector.add(3, (new HurtByTargetGoal(this, new Class[] { Skeleton.class })));
-        this.targetSelector.add(4, (new NearestAttackableTargetGoal<>(this, Player.class, true)).setMaxTimeWithoutVisibility(300));
+    public void registerGoals() {
+        super.registerGoals();
+        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new LookAtTargetGoalNecro());
+        this.goalSelector.addGoal(2, new NormalAttack(this, 1.0D, false));
+        this.goalSelector.addGoal(2, new AvoidEntityGoal<>(this, Player.class, 8.0F, 0.7D, 0.9D));
+        this.goalSelector.addGoal(4, new SummonPuppetGoal());
+        this.goalSelector.addGoal(5, new ThunderboltSpellGoal());
+        this.goalSelector.addGoal(6, new InvulnerableSpellGoal());
+        this.goalSelector.addGoal(7, new TeleportSpellGoal());
+        this.goalSelector.addGoal(8, new LookAtPlayerGoal(this, Player.class, 7.0F, 1.0F));
+        this.goalSelector.addGoal(9, new RandomStrollGoal(this, 0.9D));
+        this.goalSelector.addGoal(10, new LookAtPlayerGoal(this, Mob.class, 8.0F));
+        this.targetSelector.addGoal(1, (new HurtByTargetGoal(this, new Class[] { SkeletonVanguardEntity.class })));
+        this.targetSelector.addGoal(2, (new HurtByTargetGoal(this, new Class[] { Zombie.class })));
+        this.targetSelector.addGoal(3, (new HurtByTargetGoal(this, new Class[] { Skeleton.class })));
+        this.targetSelector.addGoal(4, (new NearestAttackableTargetGoal<>(this, Player.class, true)).setMaxTimeWithoutVisibility(300));
     }
 
     public static boolean canSpawn(EntityType<SummonerEntity> type, ServerLevelAccessor world, EntitySpawnReason spawnReason, BlockPos pos, RandomSource random) {
-        return (canSpawnInDark(type, world, spawnReason, pos, random) && world.isSkyVisible(pos) && world.getLevelProperties().isRaining()) || spawnReason == EntitySpawnReason.SPAWNER;
+        return (Monster.checkMonsterSpawnRules(type, world, spawnReason, pos, random) && world.isSkyVisible(pos) && world.getLevelProperties().isRaining()) || spawnReason == EntitySpawnReason.SPAWNER;
     }
 
     @Override
-    public void writeCustomDataToNbt(CompoundTag tag) {
-        super.writeCustomDataToNbt(tag);
-        tag.putInt("InvulnerableMagicTick", this.invulnerableMagicTick);
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putInt("InvulnerableMagicTick", this.invulnerableMagicTick);
     }
 
     @Override
-    public void readCustomDataFromNbt(CompoundTag tag) {
-        super.readCustomDataFromNbt(tag);
-        this.invulnerableMagicTick = tag.getInt("InvulnerableMagicTick");
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput input) {
+        super.readAdditionalSaveData(input);
+        this.invulnerableMagicTick = input.getIntOr("InvulnerableMagicTick", 0);
     }
 
     @Override
-    protected void initDataTracker(Builder builder) {
-        super.initDataTracker(builder);
-        builder.add(INVULNERABLE_SHIELD, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(INVULNERABLE_SHIELD, false);
     }
 
     @Override
     public void mobTick() {
         super.mobTick();
-        if (dataTracker.get(INVULNERABLE_SHIELD)) {
+        if (entityData.get(INVULNERABLE_SHIELD)) {
             this.setInvulnerable(true);
-            this.getAttributeInstance(Attributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0.0D);
+            this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.0D);
             this.invulnerableMagicTick--;
             if (this.invulnerableMagicTick < 0) {
                 this.setInvulnerable(false);
-                this.getAttributeInstance(Attributes.GENERIC_MOVEMENT_SPEED).setBaseValue(0.3D);
-                dataTracker.set(INVULNERABLE_SHIELD, false);
+                this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.3D);
+                entityData.set(INVULNERABLE_SHIELD, false);
             }
         }
 
@@ -204,9 +206,9 @@ public class SummonerEntity extends SpellCastingEntity {
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             LivingEntity attacker = SummonerEntity.this.getAttacker();
-            if (super.canStart() && attacker != null && attacker.getMainHandItem().getItem() instanceof ProjectileWeaponItem && SummonerEntity.this.squaredDistanceTo(attacker) > 12
+            if (super.canUse() && attacker != null && attacker.getMainHandItem().getItem() instanceof ProjectileWeaponItem && SummonerEntity.this.squaredDistanceTo(attacker) > 12
                     && SummonerEntity.this.gotShotByABow) {
                 return true;
             } else
@@ -261,8 +263,8 @@ public class SummonerEntity extends SpellCastingEntity {
         }
 
         @Override
-        public boolean canStart() {
-            if (!super.canStart()) {
+        public boolean canUse() {
+            if (!super.canUse()) {
                 return false;
             } else
                 return true;
@@ -275,11 +277,11 @@ public class SummonerEntity extends SpellCastingEntity {
                 float randomFloat = SummonerEntity.this.level().getRandom().nextFloat() * 6.2831855F;
                 int posX = SummonerEntity.this.getBlockPos().getX() + Mth.floor(Mth.cos(randomFloat) * 8.0F + SummonerEntity.this.level().getRandom().nextInt(12));
                 int posZ = SummonerEntity.this.getBlockPos().getZ() + Mth.floor(Mth.sin(randomFloat) * 8.0F + SummonerEntity.this.level().getRandom().nextInt(12));
-                int posY = SummonerEntity.this.level().getTopY(Heightmap.Type.WORLD_SURFACE, posX, posZ);
+                int posY = SummonerEntity.this.level().getTopY(Heightmap.Types.WORLD_SURFACE, posX, posZ);
                 BlockPos teleportPos = new BlockPos(posX, posY, posZ);
                 if (SummonerEntity.this.level().isRegionLoaded(teleportPos.getX() - 4, teleportPos.getY() - 4, teleportPos.getZ() - 4, teleportPos.getX() + 4, teleportPos.getY() + 4,
                         teleportPos.getZ() + 4)
-                        && SpawnPlacements.canSpawn(EntityInit.SUMMONER, (ServerLevel) SummonerEntity.this.level(), EntitySpawnReason.EVENT, teleportPos, SummonerEntity.this.getRandom())) {
+                        && SpawnPlacements.checkSpawnRules(EntityInit.SUMMONER, (ServerLevel) SummonerEntity.this.level(), EntitySpawnReason.EVENT, teleportPos, SummonerEntity.this.getRandom())) {
                     SummonerEntity.this.teleport(teleportPos.getX(), teleportPos.getY(), teleportPos.getZ(), true);
                     break;
                 }
@@ -320,8 +322,8 @@ public class SummonerEntity extends SpellCastingEntity {
         }
 
         @Override
-        public boolean canStart() {
-            if (!super.canStart() || (SummonerEntity.this.getTarget() != null && SummonerEntity.this.squaredDistanceTo(SummonerEntity.this.getTarget()) > 7D)) {
+        public boolean canUse() {
+            if (!super.canUse() || (SummonerEntity.this.getTarget() != null && SummonerEntity.this.squaredDistanceTo(SummonerEntity.this.getTarget()) > 7D)) {
                 return false;
             } else
                 return true;
@@ -339,7 +341,7 @@ public class SummonerEntity extends SpellCastingEntity {
 
         @Override
         public void castSpell() {
-            dataTracker.set(INVULNERABLE_SHIELD, true);
+            entityData.set(INVULNERABLE_SHIELD, true);
             SummonerEntity.this.invulnerableMagicTick = 160;
             for (int i = 0; i < 60; ++i) {
                 ((ServerLevel) SummonerEntity.this.level()).spawnParticles(ParticleTypes.END_ROD, SummonerEntity.this.getParticleX(1.5D), SummonerEntity.this.getRandomBodyY(),
@@ -371,8 +373,8 @@ public class SummonerEntity extends SpellCastingEntity {
         }
 
         @Override
-        public boolean canStart() {
-            if (!super.canStart() || tooManySlaves()) {
+        public boolean canUse() {
+            if (!super.canUse() || tooManySlaves()) {
                 return false;
             } else {
                 int i = SummonerEntity.this.level().getTargets(WitherPuppetEntity.class, this.PUPPET_PREDICATE, SummonerEntity.this, SummonerEntity.this.getBoundingBox().inflate(16.0D)).size();
@@ -396,7 +398,7 @@ public class SummonerEntity extends SpellCastingEntity {
             int spellCount = 0;
             for (int i = 0; i < 20; ++i) {
                 BlockPos blockPos = SummonerEntity.this.getBlockPos().add(-2 + serverWorld.getRandom().nextInt(5), serverWorld.getRandom().nextInt(3), -2 + serverWorld.getRandom().nextInt(5));
-                if (SpawnPlacements.canSpawn(EntityInit.SKELETON_VANGUARD, serverWorld, EntitySpawnReason.EVENT, blockPos, serverWorld.getRandom())) {
+                if (SpawnPlacements.checkSpawnRules(EntityInit.SKELETON_VANGUARD, serverWorld, EntitySpawnReason.EVENT, blockPos, serverWorld.getRandom())) {
                     spellCount++;
                     if (SummonerEntity.this.getHealth() <= 40.0F || SummonerEntity.this.getEntityWorld().isDay()) {
                         SkeletonVanguardEntity skeletonVanguardEntity = EntityInit.SKELETON_VANGUARD.create(serverWorld);
@@ -452,7 +454,7 @@ public class SummonerEntity extends SpellCastingEntity {
     }
 
     private boolean tooManySlaves() {
-        List<LivingEntity> list = this.level().getEntitiesByClass(LivingEntity.class, this.getBoundingBox().inflate(40D), EntitySelector.EXCEPT_SPECTATOR);
+        List<LivingEntity> list = this.level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(40D), EntitySelector.NO_SPECTATORS);
         if (!list.isEmpty()) {
             int vanguards = 0;
             int othermobs = 0;
@@ -480,13 +482,13 @@ public class SummonerEntity extends SpellCastingEntity {
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             LivingEntity livingEntity = this.summonerEntity.getTarget();
-            return livingEntity != null && livingEntity.isAlive() && this.summonerEntity.canTarget(livingEntity) && this.summonerEntity.squaredDistanceTo(livingEntity) < 7.0D && super.canStart();
+            return livingEntity != null && livingEntity.isAlive() && this.summonerEntity.canTarget(livingEntity) && this.summonerEntity.squaredDistanceTo(livingEntity) < 7.0D && super.canUse();
         }
 
         @Override
-        public boolean shouldContinue() {
+        public boolean canContinueToUse() {
             LivingEntity livingEntity = this.mob.getTarget();
             if (livingEntity == null || this.summonerEntity.squaredDistanceTo(livingEntity) > 5D) {
                 return false;

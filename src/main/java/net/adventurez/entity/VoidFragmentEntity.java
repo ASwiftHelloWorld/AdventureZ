@@ -1,5 +1,8 @@
 package net.adventurez.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+
 import java.util.List;
 
 import net.minecraft.tags.DamageTypeTags;
@@ -20,9 +23,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData.Builder;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.entity.FlyingMob;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
@@ -36,19 +37,19 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.Level.ExplosionInteraction;
 
-public class VoidFragmentEntity extends FlyingMob implements Enemy {
+public class VoidFragmentEntity extends AdventureFlyingMob implements Enemy {
 
-    public static final EntityDataAccessor<Boolean> IS_VOID_ORB = SynchedEntityData.registerData(VoidFragmentEntity.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> IS_VOID_ORB = SynchedEntityData.defineId(VoidFragmentEntity.class, EntityDataSerializers.BOOLEAN);
     public boolean isVoidOrb;
     private int deathTick;
 
-    public VoidFragmentEntity(EntityType<? extends FlyingMob> entityType, Level world) {
+    public VoidFragmentEntity(EntityType<? extends AdventureFlyingMob> entityType, Level world) {
         super(entityType, world);
     }
 
     public static AttributeSupplier.Builder createVoidFragmentAttributes() {
-        return Monster.createHostileAttributes().add(Attributes.GENERIC_MAX_HEALTH, 10.0D).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.0D)
-                .add(Attributes.GENERIC_KNOCKBACK_RESISTANCE, 10.0D);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 10.0D).add(Attributes.MOVEMENT_SPEED, 0.0D)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 10.0D);
     }
 
     @Override
@@ -61,35 +62,35 @@ public class VoidFragmentEntity extends FlyingMob implements Enemy {
     }
 
     @Override
-    protected void initDataTracker(Builder builder) {
-        super.initDataTracker(builder);
-        builder.add(IS_VOID_ORB, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(IS_VOID_ORB, false);
     }
 
     @Override
-    public void writeCustomDataToNbt(CompoundTag tag) {
-        super.writeCustomDataToNbt(tag);
-        tag.putBoolean("IsVoidOrb", this.isVoidOrb);
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putBoolean("IsVoidOrb", this.isVoidOrb);
 
     }
 
     @Override
-    public void readCustomDataFromNbt(CompoundTag tag) {
-        super.readCustomDataFromNbt(tag);
-        this.isVoidOrb = tag.getBoolean("IsVoidOrb");
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput input) {
+        super.readAdditionalSaveData(input);
+        this.isVoidOrb = input.getBooleanOr("IsVoidOrb", false);
         this.setVoidOrb(this.isVoidOrb);
     }
 
     public void setVoidOrb(boolean orb) {
         this.isVoidOrb = orb;
-        dataTracker.set(IS_VOID_ORB, orb);
+        entityData.set(IS_VOID_ORB, orb);
         this.refreshPosition();
         this.calculateDimensions();
     }
 
     @Override
     protected EntityDimensions getBaseDimensions(Pose pose) {
-        return super.getBaseDimensions(pose).scaled(1.0F, (this.isVoidOrb || this.dataTracker.get(IS_VOID_ORB)) ? 2.1F : 1.2F);
+        return super.getBaseDimensions(pose).scaled(1.0F, (this.isVoidOrb || this.entityData.get(IS_VOID_ORB)) ? 2.1F : 1.2F);
     }
 
     @Override
@@ -124,7 +125,7 @@ public class VoidFragmentEntity extends FlyingMob implements Enemy {
     public void onDeath(DamageSource source) {
         if (!this.level().isClientSide() && this.isVoidOrb) {
             AABB box = new AABB(this.getBlockPos());
-            List<VoidShadowEntity> list = this.level().getEntitiesByClass(VoidShadowEntity.class, box.inflate(120D), EntitySelector.EXCEPT_SPECTATOR);
+            List<VoidShadowEntity> list = this.level().getEntitiesOfClass(VoidShadowEntity.class, box.inflate(120D), EntitySelector.NO_SPECTATORS);
             for (int i = 0; i < list.size(); ++i) {
                 list.get(i).damage(this.getDamageSources().magic(), 40f);
             }

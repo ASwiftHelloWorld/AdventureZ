@@ -9,13 +9,13 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.monster.piglin.Piglin;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.world.entity.EntitySelector;
-import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public class PiglinFlagEntity extends BlockEntity {
     private int flagWave;
@@ -25,15 +25,15 @@ public class PiglinFlagEntity extends BlockEntity {
     }
 
     @Override
-    protected void readNbt(CompoundTag nbt, Provider registryLookup) {
-        super.readNbt(nbt, registryLookup);
-        this.flagWave = nbt.getInt("Flagging");
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        this.flagWave = input.getIntOr("Flagging", 0);
     }
 
     @Override
-    public void writeNbt(CompoundTag nbt, Provider registryLookup) {
-        super.writeNbt(nbt, registryLookup);
-        nbt.putInt("Flagging", flagWave);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.putInt("Flagging", flagWave);
     }
 
     public static void clientTick(Level world, BlockPos pos, BlockState state, PiglinFlagEntity blockEntity) {
@@ -45,7 +45,7 @@ public class PiglinFlagEntity extends BlockEntity {
     }
 
     @Override
-    public void markDirty() {
+    public void setChanged() {
         super.setChanged();
         this.sendUpdate();
     }
@@ -53,16 +53,16 @@ public class PiglinFlagEntity extends BlockEntity {
     private void sendUpdate() {
         if (this.getLevel() != null) {
             BlockState state = this.getLevel().getBlockState(this.getBlockPos());
-            this.getLevel().updateListeners(this.getBlockPos(), state, state, 3);
+            this.getLevel().sendBlockUpdated(this.getBlockPos(), state, state, 3);
         }
     }
 
     private void update() {
-        if (this.getLevel().getTime() % 20 == 0) {
+        if (this.getLevel().getGameTime() % 20 == 0) {
             if (this.flagWave < 120) {
                 this.flagWave++;
             }
-            if (this.flagWave >= 120 && this.getLevel().getClosestPlayer((double) this.getBlockPos().getX(), (double) this.getBlockPos().getY(), (double) this.getBlockPos().getZ(), 3D, null) != null) {
+            if (this.flagWave >= 120 && this.getLevel().getNearestPlayer((double) this.getBlockPos().getX(), (double) this.getBlockPos().getY(), (double) this.getBlockPos().getZ(), 3D, entity -> true) != null) {
                 this.getPiglins();
                 this.setChanged();
                 if (this.getLevel().isClientSide()) {
@@ -79,15 +79,14 @@ public class PiglinFlagEntity extends BlockEntity {
     }
 
     public void getPiglins() {
-        List<LivingEntity> list = this.getLevel().getEntitiesByClass(LivingEntity.class, new AABB(this.getBlockPos()).inflate(40D), EntitySelector.EXCEPT_SPECTATOR);
+        List<LivingEntity> list = this.getLevel().getEntitiesOfClass(LivingEntity.class, new AABB(this.getBlockPos()).inflate(40D), EntitySelector.NO_SPECTATORS);
         for (int i = 0; i < list.size(); ++i) {
             LivingEntity entity = list.get(i);
-            if (entity.getType() == EntityType.PIGLIN) {
-                Piglin piglin = (Piglin) entity;
-                if (piglin.getBrain().hasMemoryModule(MemoryModuleType.ATTACK_TARGET)) {
-                    piglin.getBrain().forget(MemoryModuleType.ANGRY_AT);
-                    piglin.getBrain().forget(MemoryModuleType.ATTACK_TARGET);
-                    piglin.getBrain().forget(MemoryModuleType.WALK_TARGET);
+            if (entity instanceof Piglin piglin) {
+                if (piglin.getBrain().hasMemoryValue(MemoryModuleType.ATTACK_TARGET)) {
+                    piglin.getBrain().eraseMemory(MemoryModuleType.ANGRY_AT);
+                    piglin.getBrain().eraseMemory(MemoryModuleType.ATTACK_TARGET);
+                    piglin.getBrain().eraseMemory(MemoryModuleType.WALK_TARGET);
                 }
             }
         }

@@ -5,6 +5,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import net.adventurez.init.EntityInit;
 import net.adventurez.init.ParticleInit;
@@ -15,7 +18,6 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.network.syncher.SynchedEntityData.Builder;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -59,8 +61,8 @@ public class VoidCloudEntity extends Entity {
     }
 
     @Override
-    protected void initDataTracker(Builder builder) {
-        builder.add(RADIUS, 0.5F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(RADIUS, 0.5F);
     }
 
     @Override
@@ -74,12 +76,12 @@ public class VoidCloudEntity extends Entity {
 
     public void setRadius(float radius) {
         if (!this.level().isClientSide()) {
-            this.getDataTracker().set(RADIUS, Mth.clamp(radius, 0.0F, 32.0F));
+            this.getEntityData().set(RADIUS, Mth.clamp(radius, 0.0F, 32.0F));
         }
     }
 
     public float getRadius() {
-        return (Float) this.getDataTracker().get(RADIUS);
+        return (Float) this.getEntityData().get(RADIUS);
     }
 
     public void setDuration(int duration) {
@@ -182,30 +184,29 @@ public class VoidCloudEntity extends Entity {
     }
 
     @Override
-    protected void readCustomDataFromNbt(CompoundTag nbt) {
-        this.age = nbt.getInt("Age");
-        this.duration = nbt.getInt("Duration");
-        this.waitTime = nbt.getInt("WaitTime");
-        this.reapplicationDelay = nbt.getInt("ReapplicationDelay");
-        this.durationOnUse = nbt.getInt("DurationOnUse");
-        this.radiusOnUse = nbt.getFloat("RadiusOnUse");
-        this.radiusGrowth = nbt.getFloat("RadiusPerTick");
-        this.setRadius(nbt.getFloat("Radius"));
-        if (nbt.containsUuid("Owner"))
-            this.ownerUuid = nbt.getUuid("Owner");
+    protected void readAdditionalSaveData(ValueInput input) {
+        this.age = input.getIntOr("Age", 0);
+        this.duration = input.getIntOr("Duration", 0);
+        this.waitTime = input.getIntOr("WaitTime", 0);
+        this.reapplicationDelay = input.getIntOr("ReapplicationDelay", 0);
+        this.durationOnUse = input.getIntOr("DurationOnUse", 0);
+        this.radiusOnUse = input.getFloatOr("RadiusOnUse", 0.0F);
+        this.radiusGrowth = input.getFloatOr("RadiusPerTick", 0.0F);
+        this.setRadius(input.getFloatOr("Radius", 0.0F));
+        input.read("Owner", UUIDUtil.CODEC).ifPresent(uuid -> this.ownerUuid = uuid);
     }
 
     @Override
-    protected void writeCustomDataToNbt(CompoundTag nbt) {
-        nbt.putInt("Age", this.age);
-        nbt.putInt("Duration", this.duration);
-        nbt.putInt("ReapplicationDelay", this.reapplicationDelay);
-        nbt.putInt("DurationOnUse", this.durationOnUse);
-        nbt.putFloat("RadiusOnUse", this.radiusOnUse);
-        nbt.putFloat("RadiusPerTick", this.radiusGrowth);
-        nbt.putFloat("Radius", this.getRadius());
+    protected void addAdditionalSaveData(ValueOutput output) {
+        output.putInt("Age", this.age);
+        output.putInt("Duration", this.duration);
+        output.putInt("ReapplicationDelay", this.reapplicationDelay);
+        output.putInt("DurationOnUse", this.durationOnUse);
+        output.putFloat("RadiusOnUse", this.radiusOnUse);
+        output.putFloat("RadiusPerTick", this.radiusGrowth);
+        output.putFloat("Radius", this.getRadius());
         if (this.ownerUuid != null)
-            nbt.putUuid("Owner", this.ownerUuid);
+            output.store("Owner", UUIDUtil.CODEC, this.ownerUuid);
     }
 
     @Override
@@ -226,6 +227,6 @@ public class VoidCloudEntity extends Entity {
     }
 
     static {
-        RADIUS = SynchedEntityData.registerData(VoidCloudEntity.class, EntityDataSerializers.FLOAT);
+        RADIUS = SynchedEntityData.defineId(VoidCloudEntity.class, EntityDataSerializers.FLOAT);
     }
 }

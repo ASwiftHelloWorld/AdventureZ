@@ -3,20 +3,13 @@ package net.adventurez.init;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 
-import net.adventurez.entity.*;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.SpawnPlacementTypes;
-import net.minecraft.world.entity.SpawnPlacements;
-import net.minecraft.world.entity.monster.Monster;
-import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.world.level.biome.Biomes;
-import net.minecraft.world.level.levelgen.Heightmap;
 
 public class SpawnInit {
 
     public static void init() {
-        setSpawnRestriction();
         addSpawnEntries();
     }
 
@@ -40,26 +33,6 @@ public class SpawnInit {
                 ConfigInit.CONFIG.enderwarthog_spawn_weight, 1, 1);
         BiomeModifications.addSpawn(BiomeSelectors.tag(BiomeTags.IS_FOREST), MobCategory.CREATURE, EntityInit.DEER, ConfigInit.CONFIG.deer_spawn_weight, 2, 3);
         BiomeModifications.addSpawn(BiomeSelectors.tag(BiomeTags.IS_FOREST), MobCategory.CREATURE, EntityInit.SKUNK, ConfigInit.CONFIG.skunk_spawn_weight, 1, 2);
-    }
-
-    private static void setSpawnRestriction() {
-        SpawnPlacements.register(EntityInit.MINI_BLACKSTONE_GOLEM, SpawnPlacementTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, MiniBlackstoneGolemEntity::canSpawn);
-        SpawnPlacements.register(EntityInit.NECROMANCER, SpawnPlacementTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, NecromancerEntity::canSpawn);
-        SpawnPlacements.register(EntityInit.SUMMONER, SpawnPlacementTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, SummonerEntity::canSpawn);
-        SpawnPlacements.register(EntityInit.BLAZE_GUARDIAN, SpawnPlacementTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, BlazeGuardianEntity::canSpawn);
-        SpawnPlacements.register(EntityInit.PIGLIN_BEAST, SpawnPlacementTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, Monster::canSpawnIgnoreLightLevel);
-        SpawnPlacements.register(EntityInit.SOUL_REAPER, SpawnPlacementTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, SoulReaperEntity::canSpawn);
-        SpawnPlacements.register(EntityInit.RED_FUNGUS, SpawnPlacementTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, RedFungusEntity::canSpawn);
-        SpawnPlacements.register(EntityInit.BROWN_FUNGUS, SpawnPlacementTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, BrownFungusEntity::canSpawn);
-        SpawnPlacements.register(EntityInit.ORC, SpawnPlacementTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, OrcEntity::canSpawn);
-        SpawnPlacements.register(EntityInit.MAMMOTH, SpawnPlacementTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, Animal::isValidNaturalSpawn);
-        SpawnPlacements.register(EntityInit.ENDER_WHALE, SpawnPlacementTypes.UNRESTRICTED, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, EnderWhaleEntity::canSpawn);
-        SpawnPlacements.register(EntityInit.IGUANA, SpawnPlacementTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, IguanaEntity::isValidNaturalSpawn);
-        SpawnPlacements.register(EntityInit.DESERT_RHINO, SpawnPlacementTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, DesertRhinoEntity::canSpawn);
-        SpawnPlacements.register(EntityInit.SHAMAN, SpawnPlacementTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, ShamanEntity::canSpawn);
-        SpawnPlacements.register(EntityInit.DEER, SpawnPlacementTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, Animal::isValidNaturalSpawn);
-        SpawnPlacements.register(EntityInit.SKUNK, SpawnPlacementTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, Animal::isValidNaturalSpawn);
-        SpawnPlacements.register(EntityInit.ENDERWARTHOG, SpawnPlacementTypes.ON_GROUND, Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, EnderwarthogEntity::canSpawn);
     }
 
 }

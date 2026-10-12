@@ -47,10 +47,10 @@ public class GildedNetheriteArmor extends ArmorItem {
         if (stack.getItem() == ItemInit.GILDED_NETHERITE_CHESTPLATE) {
             GildedActivationComponent component = stack.getOrDefault(ItemInit.GILDED_DATA, GildedActivationComponent.DEFAULT);
 
-            if (component.activated() && component.time() + (ConfigInit.CONFIG.gilded_netherite_armor_effect_duration * 2) < (int) world.getTime()) {
+            if (component.activated() && component.time() + (ConfigInit.CONFIG.gilded_netherite_armor_effect_duration * 2) < (int) world.getGameTime()) {
                 stack.set(ItemInit.GILDED_DATA, new GildedActivationComponent(false, component.time(), component.visuals()));
             }
-            if (component.activated() && component.time() + ConfigInit.CONFIG.gilded_netherite_armor_effect_duration < (int) world.getTime()) {
+            if (component.activated() && component.time() + ConfigInit.CONFIG.gilded_netherite_armor_effect_duration < (int) world.getGameTime()) {
                 entity.setFireTicks(0);
                 stack.set(ItemInit.GILDED_DATA, new GildedActivationComponent(component.activated(), component.time(), false));
             }
@@ -64,7 +64,7 @@ public class GildedNetheriteArmor extends ArmorItem {
 
         GildedActivationComponent component = stack.getOrDefault(ItemInit.GILDED_DATA, GildedActivationComponent.DEFAULT);
         if (!component.activated()) {
-            stack.set(ItemInit.GILDED_DATA, new GildedActivationComponent(true, (int) player.level().getTime(), true));
+            stack.set(ItemInit.GILDED_DATA, new GildedActivationComponent(true, (int) player.level().getGameTime(), true));
             if (!player.level().isClientSide()) {
                 player.addStatusEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, ConfigInit.CONFIG.gilded_netherite_armor_effect_duration, 0, false, false));
             }

@@ -73,22 +73,22 @@ public class BlazeGuardianModel<T extends BlazeGuardianEntity> extends ListModel
         this.head.yaw = headYaw * 0.017453292F;
         this.head.pitch = headPitch * 0.017453292F;
 
-        if (entity.getDataTracker().get(BlazeGuardianEntity.SHIELD_NORTH)) {
+        if (entity.getEntityData().get(BlazeGuardianEntity.SHIELD_NORTH)) {
             this.shieldThree.visible = true;
         } else {
             this.shieldThree.visible = false;
         }
-        if (entity.getDataTracker().get(BlazeGuardianEntity.SHIELD_EAST)) {
+        if (entity.getEntityData().get(BlazeGuardianEntity.SHIELD_EAST)) {
             this.shieldTwo.visible = true;
         } else {
             this.shieldTwo.visible = false;
         }
-        if (entity.getDataTracker().get(BlazeGuardianEntity.SHIELD_SOUTH)) {
+        if (entity.getEntityData().get(BlazeGuardianEntity.SHIELD_SOUTH)) {
             this.shieldFour.visible = true;
         } else {
             this.shieldFour.visible = false;
         }
-        if (entity.getDataTracker().get(BlazeGuardianEntity.SHIELD_WEST)) {
+        if (entity.getEntityData().get(BlazeGuardianEntity.SHIELD_WEST)) {
             this.shieldOne.visible = true;
         } else {
             this.shieldOne.visible = false;

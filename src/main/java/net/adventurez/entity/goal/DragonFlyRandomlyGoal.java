@@ -18,11 +18,11 @@ public class DragonFlyRandomlyGoal extends Goal {
 
     public DragonFlyRandomlyGoal(DragonEntity dragonEntity) {
         this.dragonEntity = dragonEntity;
-        this.setControls(EnumSet.of(Goal.Control.MOVE));
+        this.setFlags(EnumSet.of(Goal.Flag.MOVE));
     }
 
     @Override
-    public boolean canStart() {
+    public boolean canUse() {
         waitTimer++;
         if (waitTimer > 100 && flyTimer <= 0 && dragonEntity.sidewaysSpeed == 0.0F && dragonEntity.forwardSpeed == 0.0F && dragonEntity.isFlying && !this.dragonEntity.hasPassengers()) {
             return true;
@@ -42,7 +42,7 @@ public class DragonFlyRandomlyGoal extends Goal {
     }
 
     @Override
-    public boolean shouldContinue() {
+    public boolean canContinueToUse() {
         if (flyTimer > 0) {
             return true;
         } else

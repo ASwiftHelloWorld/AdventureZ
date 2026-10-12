@@ -1,5 +1,8 @@
 package net.adventurez.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+
 import java.util.EnumSet;
 
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +29,6 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData.Builder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.hurtingprojectile.SmallFireball;
 import net.minecraft.nbt.CompoundTag;
@@ -70,59 +72,59 @@ public class BlazeGuardianEntity extends Monster {
     }
 
     public static AttributeSupplier.Builder createBlazeGuardianAttributes() {
-        return Monster.createHostileAttributes().add(Attributes.GENERIC_MAX_HEALTH, 40.0D).add(Attributes.GENERIC_ATTACK_DAMAGE, 9.0D)
-                .add(Attributes.GENERIC_MOVEMENT_SPEED, 0.24D).add(Attributes.GENERIC_FOLLOW_RANGE, 48.0D).add(Attributes.GENERIC_ARMOR, 3.0D);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 40.0D).add(Attributes.ATTACK_DAMAGE, 9.0D)
+                .add(Attributes.MOVEMENT_SPEED, 0.24D).add(Attributes.FOLLOW_RANGE, 48.0D).add(Attributes.ARMOR, 3.0D);
     }
 
     @Override
-    public void initGoals() {
-        this.goalSelector.add(3, new BlazeGuardianEntity.ShockWaveGoal(this));
-        this.goalSelector.add(4, new BlazeGuardianEntity.ShootFireballGoal(this));
-        this.goalSelector.add(5, new MoveTowardsRestrictionGoal(this, 1.0D));
-        this.goalSelector.add(7, new WaterAvoidingRandomStrollGoal(this, 1.0D, 0.0F));
-        this.goalSelector.add(8, new LookAtPlayerGoal(this, Player.class, 8.0F));
-        this.goalSelector.add(8, new RandomLookAroundGoal(this));
-        this.targetSelector.add(1, (new HurtByTargetGoal(this, new Class[0])).setGroupRevenge());
-        this.targetSelector.add(2, (new HurtByTargetGoal(this, new Class[] { Blaze.class })));
-        this.targetSelector.add(3, new NearestAttackableTargetGoal<>(this, Player.class, true));
+    public void registerGoals() {
+        this.goalSelector.addGoal(3, new BlazeGuardianEntity.ShockWaveGoal(this));
+        this.goalSelector.addGoal(4, new BlazeGuardianEntity.ShootFireballGoal(this));
+        this.goalSelector.addGoal(5, new MoveTowardsRestrictionGoal(this, 1.0D));
+        this.goalSelector.addGoal(7, new WaterAvoidingRandomStrollGoal(this, 1.0D, 0.0F));
+        this.goalSelector.addGoal(8, new LookAtPlayerGoal(this, Player.class, 8.0F));
+        this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
+        this.targetSelector.addGoal(1, (new HurtByTargetGoal(this, new Class[0])).setGroupRevenge());
+        this.targetSelector.addGoal(2, (new HurtByTargetGoal(this, new Class[] { Blaze.class })));
+        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Player.class, true));
     }
 
     @Override
-    protected void initDataTracker(Builder builder) {
-        super.initDataTracker(builder);
-        builder.add(GUARDIAN_FLAGS, (byte) 0);
-        builder.add(SHIELD_NORTH, true);
-        builder.add(SHIELD_EAST, true);
-        builder.add(SHIELD_SOUTH, true);
-        builder.add(SHIELD_WEST, true);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(GUARDIAN_FLAGS, (byte) 0);
+        builder.define(SHIELD_NORTH, true);
+        builder.define(SHIELD_EAST, true);
+        builder.define(SHIELD_SOUTH, true);
+        builder.define(SHIELD_WEST, true);
     }
 
     @Override
-    public void writeCustomDataToNbt(CompoundTag tag) {
-        super.writeCustomDataToNbt(tag);
-        tag.putBoolean("ShieldNorth", this.shield_north.isAlive());
-        tag.putBoolean("ShieldEast", this.shield_east.isAlive());
-        tag.putBoolean("ShieldSouth", this.shield_south.isAlive());
-        tag.putBoolean("ShieldWest", this.shield_west.isAlive());
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putBoolean("ShieldNorth", this.shield_north.isAlive());
+        output.putBoolean("ShieldEast", this.shield_east.isAlive());
+        output.putBoolean("ShieldSouth", this.shield_south.isAlive());
+        output.putBoolean("ShieldWest", this.shield_west.isAlive());
     }
 
     @Override
-    public void readCustomDataFromNbt(CompoundTag tag) {
-        super.readCustomDataFromNbt(tag);
-        this.dataTracker.set(SHIELD_NORTH, tag.getBoolean("ShieldNorth"));
-        if (tag.getBoolean("ShieldNorth")) {
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput input) {
+        super.readAdditionalSaveData(input);
+        this.entityData.set(SHIELD_NORTH, input.getBooleanOr("ShieldNorth", false));
+        if (input.getBooleanOr("ShieldNorth", false)) {
             this.level().spawnEntity(shield_north);
         }
-        this.dataTracker.set(SHIELD_EAST, tag.getBoolean("ShieldEast"));
-        if (tag.getBoolean("ShieldEast")) {
+        this.entityData.set(SHIELD_EAST, input.getBooleanOr("ShieldEast", false));
+        if (input.getBooleanOr("ShieldEast", false)) {
             this.level().spawnEntity(shield_east);
         }
-        this.dataTracker.set(SHIELD_SOUTH, tag.getBoolean("ShieldSouth"));
-        if (tag.getBoolean("ShieldSouth")) {
+        this.entityData.set(SHIELD_SOUTH, input.getBooleanOr("ShieldSouth", false));
+        if (input.getBooleanOr("ShieldSouth", false)) {
             this.level().spawnEntity(shield_south);
         }
-        this.dataTracker.set(SHIELD_WEST, tag.getBoolean("ShieldWest"));
-        if (tag.getBoolean("ShieldWest")) {
+        this.entityData.set(SHIELD_WEST, input.getBooleanOr("ShieldWest", false));
+        if (input.getBooleanOr("ShieldWest", false)) {
             this.level().spawnEntity(shield_west);
         }
     }
@@ -216,18 +218,18 @@ public class BlazeGuardianEntity extends Monster {
     }
 
     private boolean isFireActive() {
-        return ((Byte) this.dataTracker.get(GUARDIAN_FLAGS) & 1) != 0;
+        return ((Byte) this.entityData.get(GUARDIAN_FLAGS) & 1) != 0;
     }
 
     private void setFireActive(boolean fireActive) {
-        byte b = (Byte) this.dataTracker.get(GUARDIAN_FLAGS);
+        byte b = (Byte) this.entityData.get(GUARDIAN_FLAGS);
         if (fireActive) {
             b = (byte) (b | 1);
         } else {
             b &= -2;
         }
 
-        this.dataTracker.set(GUARDIAN_FLAGS, b);
+        this.entityData.set(GUARDIAN_FLAGS, b);
     }
 
     @Override
@@ -264,7 +266,7 @@ public class BlazeGuardianEntity extends Monster {
             for (int i = 0; i < serverWorldAccess.getRandom().nextInt(3) + 2; i++) {
                 for (int u = 0; u < 10; u++) {
                     BlockPos pos = new BlockPos(this.getBlockPos().add(this.level().getRandom().nextInt(5), this.level().getRandom().nextInt(5), this.level().getRandom().nextInt(5)));
-                    if (SpawnPlacements.canSpawn(EntityType.BLAZE, serverWorldAccess, EntitySpawnReason.NATURAL, pos, serverWorldAccess.getRandom())) {
+                    if (SpawnPlacements.checkSpawnRules(EntityType.BLAZE, serverWorldAccess, EntitySpawnReason.NATURAL, pos, serverWorldAccess.getRandom())) {
                         Blaze blazeEntity = EntityType.BLAZE.create(serverWorldAccess.toServerWorld());
                         blazeEntity.initialize(serverWorldAccess, this.level().getLocalDifficulty(pos), EntitySpawnReason.NATURAL, null);
                         blazeEntity.refreshPositionAndAngles(pos, this.level().getRandom().nextFloat() * 360.0F, 0.0F);
@@ -280,25 +282,25 @@ public class BlazeGuardianEntity extends Monster {
             serverWorldAccess.spawnEntity(shield_east);
             serverWorldAccess.spawnEntity(shield_south);
             serverWorldAccess.spawnEntity(shield_west);
-            this.dataTracker.set(SHIELD_NORTH, true);
-            this.dataTracker.set(SHIELD_EAST, true);
-            this.dataTracker.set(SHIELD_SOUTH, true);
-            this.dataTracker.set(SHIELD_WEST, true);
+            this.entityData.set(SHIELD_NORTH, true);
+            this.entityData.set(SHIELD_EAST, true);
+            this.entityData.set(SHIELD_SOUTH, true);
+            this.entityData.set(SHIELD_WEST, true);
         }
         return super.initialize(serverWorldAccess, difficulty, spawnReason, entityData);
     }
 
     public static boolean canSpawn(EntityType<BlazeGuardianEntity> type, ServerLevelAccessor world, EntitySpawnReason spawnReason, BlockPos pos, RandomSource random) {
-        return ((world.getBlockState(pos.down()).isOf(Blocks.NETHERRACK) || world.getBlockState(pos.down()).isOf(Blocks.NETHER_BRICKS)) && canSpawnInDark(type, world, spawnReason, pos, random)
+        return ((world.getBlockState(pos.below()).isOf(Blocks.NETHERRACK) || world.getBlockState(pos.below()).isOf(Blocks.NETHER_BRICKS)) && Monster.checkMonsterSpawnRules(type, world, spawnReason, pos, random)
                 && random.nextInt(4) == 0) || spawnReason == EntitySpawnReason.SPAWNER;
     }
 
     static {
-        GUARDIAN_FLAGS = SynchedEntityData.registerData(BlazeGuardianEntity.class, EntityDataSerializers.BYTE);
-        SHIELD_NORTH = SynchedEntityData.registerData(BlazeGuardianEntity.class, EntityDataSerializers.BOOLEAN);
-        SHIELD_EAST = SynchedEntityData.registerData(BlazeGuardianEntity.class, EntityDataSerializers.BOOLEAN);
-        SHIELD_SOUTH = SynchedEntityData.registerData(BlazeGuardianEntity.class, EntityDataSerializers.BOOLEAN);
-        SHIELD_WEST = SynchedEntityData.registerData(BlazeGuardianEntity.class, EntityDataSerializers.BOOLEAN);
+        GUARDIAN_FLAGS = SynchedEntityData.defineId(BlazeGuardianEntity.class, EntityDataSerializers.BYTE);
+        SHIELD_NORTH = SynchedEntityData.defineId(BlazeGuardianEntity.class, EntityDataSerializers.BOOLEAN);
+        SHIELD_EAST = SynchedEntityData.defineId(BlazeGuardianEntity.class, EntityDataSerializers.BOOLEAN);
+        SHIELD_SOUTH = SynchedEntityData.defineId(BlazeGuardianEntity.class, EntityDataSerializers.BOOLEAN);
+        SHIELD_WEST = SynchedEntityData.defineId(BlazeGuardianEntity.class, EntityDataSerializers.BOOLEAN);
     }
 
     static class ShootFireballGoal extends Goal {
@@ -309,11 +311,11 @@ public class BlazeGuardianEntity extends Monster {
 
         public ShootFireballGoal(BlazeGuardianEntity guardian) {
             this.guardian = guardian;
-            this.setControls(EnumSet.of(Goal.Control.MOVE, Goal.Control.LOOK));
+            this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             LivingEntity livingEntity = this.guardian.getTarget();
             return livingEntity != null && livingEntity.isAlive() && this.guardian.canTarget(livingEntity);
         }
@@ -391,7 +393,7 @@ public class BlazeGuardianEntity extends Monster {
         }
 
         private double getFollowRange() {
-            return this.guardian.getAttributeValue(Attributes.GENERIC_FOLLOW_RANGE);
+            return this.guardian.getAttributeValue(Attributes.FOLLOW_RANGE);
         }
     }
 
@@ -401,11 +403,11 @@ public class BlazeGuardianEntity extends Monster {
 
         public ShockWaveGoal(BlazeGuardianEntity guardian) {
             this.guardian = guardian;
-            this.setControls(EnumSet.of(Goal.Control.MOVE, Goal.Control.LOOK));
+            this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             LivingEntity livingEntity = this.guardian.getTarget();
             return livingEntity != null && livingEntity.isAlive() && this.guardian.canTarget(livingEntity) && this.guardian.squaredDistanceTo(livingEntity) < 12D;
         }

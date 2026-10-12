@@ -1,5 +1,8 @@
 package net.adventurez.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+
 import java.util.UUID;
 
 import net.adventurez.init.EntityInit;
@@ -25,7 +28,6 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData.Builder;
 import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.animal.Animal;
@@ -57,8 +59,8 @@ public class MammothEntity extends Animal implements NeutralMob {
     }
 
     public static AttributeSupplier.Builder createMammothAttributes() {
-        return Animal.createLivingAttributes().add(Attributes.GENERIC_MAX_HEALTH, 40.0D).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.25D)
-                .add(Attributes.GENERIC_FOLLOW_RANGE, 26.0D).add(Attributes.GENERIC_ATTACK_DAMAGE, 7.0D).add(Attributes.GENERIC_ATTACK_KNOCKBACK, 0.5D);
+        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 40.0D).add(Attributes.MOVEMENT_SPEED, 0.25D)
+                .add(Attributes.FOLLOW_RANGE, 26.0D).add(Attributes.ATTACK_DAMAGE, 7.0D).add(Attributes.ATTACK_KNOCKBACK, 0.5D);
     }
 
     @Override
@@ -72,30 +74,30 @@ public class MammothEntity extends Animal implements NeutralMob {
     }
 
     @Override
-    protected void initGoals() {
-        super.initGoals();
-        this.goalSelector.add(0, new FloatGoal(this));
-        this.goalSelector.add(1, new BreedGoal(this, 1.0D));
-        this.goalSelector.add(2, new FollowParentGoal(this, 1.1D));
-        this.goalSelector.add(3, new MammothEntity.AttackGoal());
-        this.goalSelector.add(4, new RandomStrollGoal(this, 1.0D));
-        this.goalSelector.add(5, new RandomLookAroundGoal(this));
-        this.goalSelector.add(6, new LookAtPlayerGoal(this, Player.class, 6.0F));
-        this.targetSelector.add(1, new MammothEntity.MammothRevengeGoal());
-        this.targetSelector.add(2, new NearestAttackableTargetGoal<>(this, Player.class, 10, true, false, this::shouldAngerAt));
-        this.targetSelector.add(3, new ResetUniversalAngerTargetGoal<>(this, false));
+    protected void registerGoals() {
+        super.registerGoals();
+        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new BreedGoal(this, 1.0D));
+        this.goalSelector.addGoal(2, new FollowParentGoal(this, 1.1D));
+        this.goalSelector.addGoal(3, new MammothEntity.AttackGoal());
+        this.goalSelector.addGoal(4, new RandomStrollGoal(this, 1.0D));
+        this.goalSelector.addGoal(5, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 6.0F));
+        this.targetSelector.addGoal(1, new MammothEntity.MammothRevengeGoal());
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, 10, true, false, this::shouldAngerAt));
+        this.targetSelector.addGoal(3, new ResetUniversalAngerTargetGoal<>(this, false));
     }
 
     @Override
-    public void writeCustomDataToNbt(CompoundTag nbt) {
-        super.writeCustomDataToNbt(nbt);
-        this.writeAngerToNbt(nbt);
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        this.writeAngerToNbt(output);
     }
 
     @Override
-    public void readCustomDataFromNbt(CompoundTag nbt) {
-        super.readCustomDataFromNbt(nbt);
-        this.readAngerFromNbt(this.level(), nbt);
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput input) {
+        super.readAdditionalSaveData(input);
+        this.readAngerFromNbt(this.level(), input);
     }
 
     @Override
@@ -144,9 +146,9 @@ public class MammothEntity extends Animal implements NeutralMob {
     }
 
     @Override
-    protected void initDataTracker(Builder builder) {
-        super.initDataTracker(builder);
-        builder.add(ATTACK_TICKS, this.attackTicksLeft);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(ATTACK_TICKS, this.attackTicksLeft);
     }
 
     @Override
@@ -157,7 +159,7 @@ public class MammothEntity extends Animal implements NeutralMob {
         }
         if (this.attackTicksLeft > 0) {
             --this.attackTicksLeft;
-            this.getDataTracker().set(ATTACK_TICKS, this.attackTicksLeft);
+            this.getEntityData().set(ATTACK_TICKS, this.attackTicksLeft);
         }
 
     }
@@ -176,7 +178,7 @@ public class MammothEntity extends Animal implements NeutralMob {
     }
 
     static {
-        ATTACK_TICKS = SynchedEntityData.registerData(MammothEntity.class, EntityDataSerializers.INTEGER);
+        ATTACK_TICKS = SynchedEntityData.defineId(MammothEntity.class, EntityDataSerializers.INTEGER);
         ANGER_TIME_RANGE = TimeUtil.betweenSeconds(20, 39);
     }
 

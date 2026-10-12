@@ -21,7 +21,7 @@ public class DubiousPumpkinRenderer extends MobRenderer<DubiousPumpkinEntity, Du
 
     @Override
     public Identifier getTexture(DubiousPumpkinEntity dubiousPumpkinEntity) {
-        if (dubiousPumpkinEntity.getDataTracker().get(DubiousPumpkinEntity.ANGRY)) {
+        if (dubiousPumpkinEntity.getEntityData().get(DubiousPumpkinEntity.ANGRY)) {
             return TEXTURE_ANGRY;
         }
         return TEXTURE;

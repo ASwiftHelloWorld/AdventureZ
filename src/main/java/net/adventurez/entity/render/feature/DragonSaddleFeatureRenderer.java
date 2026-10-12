@@ -24,7 +24,7 @@ public class DragonSaddleFeatureRenderer extends RenderLayer<DragonEntity, Drago
     @Override
     public void render(PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int light, DragonEntity dragonEntity, float limbAngle, float limbDistance, float tickDelta,
             float animationProgress, float headYaw, float headPitch) {
-        if (dragonEntity.getDataTracker().get(DragonEntity.HAS_SADDLE)) {
+        if (dragonEntity.getEntityData().get(DragonEntity.HAS_SADDLE)) {
             VertexConsumer vertexConsumer = vertexConsumerProvider.getBuffer(SADDLE_LAYER);
             this.getContextModel().render(matrixStack, vertexConsumer, light, OverlayTexture.DEFAULT_UV);
         }

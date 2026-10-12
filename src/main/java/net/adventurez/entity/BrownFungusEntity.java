@@ -1,5 +1,8 @@
 package net.adventurez.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+
 import java.util.UUID;
 
 import org.jetbrains.annotations.Nullable;
@@ -54,25 +57,25 @@ public class BrownFungusEntity extends PathfinderMob implements NeutralMob {
     }
 
     @Override
-    public void initGoals() {
-        this.goalSelector.add(0, new FloatGoal(this));
-        this.goalSelector.add(1, new MeleeAttackGoal(this, 1.2D, true));
-        this.goalSelector.add(3, new TemptGoal(this, 1.25D, Ingredient.ofItems(Items.SEAGRASS), false));
-        this.goalSelector.add(5, new WaterAvoidingRandomStrollGoal(this, 1.0D));
-        this.goalSelector.add(6, new LookAtPlayerGoal(this, Player.class, 6.0F));
-        this.goalSelector.add(7, new RandomLookAroundGoal(this));
-        this.targetSelector.add(1, new ResetUniversalAngerTargetGoal<>(this, true));
-        this.targetSelector.add(2, new NearestAttackableTargetGoal<>(this, Player.class, 10, true, false, this::shouldAngerAt));
-        this.targetSelector.add(3, (new HurtByTargetGoal(this, new Class[0])).setGroupRevenge());
+    public void registerGoals() {
+        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.2D, true));
+        this.goalSelector.addGoal(3, new TemptGoal(this, 1.25D, Ingredient.ofItems(Items.SEAGRASS), false));
+        this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 1.0D));
+        this.goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 6.0F));
+        this.goalSelector.addGoal(7, new RandomLookAroundGoal(this));
+        this.targetSelector.addGoal(1, new ResetUniversalAngerTargetGoal<>(this, true));
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, 10, true, false, this::shouldAngerAt));
+        this.targetSelector.addGoal(3, (new HurtByTargetGoal(this, new Class[0])).setGroupRevenge());
     }
 
     public static AttributeSupplier.Builder createBrownFungusAttributes() {
-        return Mob.createMobAttributes().add(Attributes.GENERIC_MAX_HEALTH, 10.0D).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.2D).add(Attributes.GENERIC_ATTACK_DAMAGE, 1.0D)
-                .add(Attributes.GENERIC_FOLLOW_RANGE, 32.0D);
+        return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 10.0D).add(Attributes.MOVEMENT_SPEED, 0.2D).add(Attributes.ATTACK_DAMAGE, 1.0D)
+                .add(Attributes.FOLLOW_RANGE, 32.0D);
     }
 
     public static boolean canSpawn(EntityType<BrownFungusEntity> type, LevelAccessor world, EntitySpawnReason spawnReason, BlockPos pos, RandomSource random) {
-        return world.getBlockState(pos.down()).isIn(BlockTags.MOOSHROOMS_SPAWNABLE_ON) && world.getBaseLightLevel(pos, 0) > 8;
+        return world.getBlockState(pos.below()).isIn(BlockTags.MOOSHROOMS_SPAWNABLE_ON) && world.getBaseLightLevel(pos, 0) > 8;
     }
 
     @Override
@@ -96,15 +99,15 @@ public class BrownFungusEntity extends PathfinderMob implements NeutralMob {
     }
 
     @Override
-    public void writeCustomDataToNbt(CompoundTag nbt) {
-        super.writeCustomDataToNbt(nbt);
-        this.writeAngerToNbt(nbt);
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        this.writeAngerToNbt(output);
     }
 
     @Override
-    public void readCustomDataFromNbt(CompoundTag nbt) {
-        super.readCustomDataFromNbt(nbt);
-        this.readAngerFromNbt(this.level(), nbt);
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput input) {
+        super.readAdditionalSaveData(input);
+        this.readAngerFromNbt(this.level(), input);
     }
 
     @Override
@@ -114,7 +117,7 @@ public class BrownFungusEntity extends PathfinderMob implements NeutralMob {
             this.tickAngerLogic((ServerLevel) this.level(), true);
             int randomMushroom = this.level().getRandom().nextInt(20000);
             if (randomMushroom == 1997
-                    && (this.level().getBlockState(this.getBlockPos().down()).isOf(Blocks.MYCELIUM) || this.level().getBlockState(this.getBlockPos().down()).isOf(Blocks.GRASS_BLOCK))
+                    && (this.level().getBlockState(this.getBlockPos().below()).isOf(Blocks.MYCELIUM) || this.level().getBlockState(this.getBlockPos().below()).isOf(Blocks.GRASS_BLOCK))
                     && this.level().getBlockState(this.getBlockPos()).isAir()) {
                 this.level().setBlockState(this.getBlockPos(), Blocks.BROWN_MUSHROOM.defaultBlockState());
             }

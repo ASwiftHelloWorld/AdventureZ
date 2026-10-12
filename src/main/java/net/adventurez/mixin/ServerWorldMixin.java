@@ -44,8 +44,8 @@ public abstract class ServerWorldMixin extends Level {
                 int i = chunkPos.getStartX();
                 int j = chunkPos.getStartZ();
 
-                BlockPos blockPos = this.getTopPosition(Heightmap.Type.MOTION_BLOCKING, this.getRandomPosInChunk(i, 0, j, 15));
-                if (SpawnPlacements.canSpawn(EntityInit.SUMMONER, (ServerLevel) (Object) this, EntitySpawnReason.EVENT, blockPos, this.getRandom())) {
+                BlockPos blockPos = this.getTopPosition(Heightmap.Types.MOTION_BLOCKING, this.getRandomPosInChunk(i, 0, j, 15));
+                if (SpawnPlacements.checkSpawnRules(EntityInit.SUMMONER, (ServerLevel) (Object) this, EntitySpawnReason.EVENT, blockPos, this.getRandom())) {
                     SummonerEntity summonerEntity = EntityInit.SUMMONER.create(this);
                     summonerEntity.updatePosition((double) blockPos.getX(), (double) blockPos.getY(), (double) blockPos.getZ());
                     summonerEntity.initialize((ServerLevel) (Object) this, this.getLocalDifficulty(blockPos), EntitySpawnReason.EVENT, null);

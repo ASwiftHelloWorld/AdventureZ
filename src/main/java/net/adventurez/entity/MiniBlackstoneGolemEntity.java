@@ -29,24 +29,24 @@ public class MiniBlackstoneGolemEntity extends Monster {
     }
 
     @Override
-    protected void initGoals() {
-        super.initGoals();
-        this.goalSelector.add(0, new FloatGoal(this));
-        this.goalSelector.add(1, new MeleeAttackGoal(this, 0.85D, true));
-        this.goalSelector.add(5, new WaterAvoidingRandomStrollGoal(this, 0.85D));
-        this.goalSelector.add(6, new LookAtPlayerGoal(this, Player.class, 6.0F));
-        this.goalSelector.add(10, new LookAtPlayerGoal(this, Mob.class, 8.0F));
-        this.targetSelector.add(3, new NearestAttackableTargetGoal<>(this, Player.class, true));
+    protected void registerGoals() {
+        super.registerGoals();
+        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 0.85D, true));
+        this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 0.85D));
+        this.goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 6.0F));
+        this.goalSelector.addGoal(10, new LookAtPlayerGoal(this, Mob.class, 8.0F));
+        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Player.class, true));
     }
 
     public static AttributeSupplier.Builder createSmallStoneGolemAttributes() {
-        return Monster.createHostileAttributes().add(Attributes.GENERIC_MAX_HEALTH, 50.0D).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.27D)
-                .add(Attributes.GENERIC_KNOCKBACK_RESISTANCE, 2.5D).add(Attributes.GENERIC_ATTACK_DAMAGE, 6.0D).add(Attributes.GENERIC_ATTACK_KNOCKBACK, 1.0D)
-                .add(Attributes.GENERIC_FOLLOW_RANGE, 38.0D);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 50.0D).add(Attributes.MOVEMENT_SPEED, 0.27D)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 2.5D).add(Attributes.ATTACK_DAMAGE, 6.0D).add(Attributes.ATTACK_KNOCKBACK, 1.0D)
+                .add(Attributes.FOLLOW_RANGE, 38.0D);
     }
 
     public static boolean canSpawn(EntityType<MiniBlackstoneGolemEntity> type, ServerLevelAccessor world, EntitySpawnReason spawnReason, BlockPos pos, RandomSource random) {
-        return canSpawnInDark(type, world, spawnReason, pos, random) || spawnReason == EntitySpawnReason.SPAWNER;
+        return Monster.checkMonsterSpawnRules(type, world, spawnReason, pos, random) || spawnReason == EntitySpawnReason.SPAWNER;
     }
 
     @Override

@@ -22,7 +22,7 @@ public class SummonerEntityShieldFeatureRenderer extends RenderLayer<SummonerEnt
 
     @Override
     public void render(PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int i, SummonerEntity summonerEntity, float f, float g, float h, float j, float k, float l) {
-        if (summonerEntity.getDataTracker().get(SummonerEntity.INVULNERABLE_SHIELD)) {
+        if (summonerEntity.getEntityData().get(SummonerEntity.INVULNERABLE_SHIELD)) {
             VertexConsumer vertexConsumer = vertexConsumerProvider.getBuffer(SHIELD_LAYER);
             this.getContextModel().render(matrixStack, vertexConsumer, 15728640, OverlayTexture.DEFAULT_UV);
         }

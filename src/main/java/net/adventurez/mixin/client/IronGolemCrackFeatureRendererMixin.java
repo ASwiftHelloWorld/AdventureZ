@@ -30,7 +30,7 @@ public class IronGolemCrackFeatureRendererMixin {
     @ModifyVariable(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/layers/IronGolemCrackinessLayer;getContextModel()Lnet/minecraft/client/render/entity/model/EntityModel;"), ordinal = 0)
     private Identifier renderMixin(Identifier original, PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int i, IronGolem ironGolemEntity, float f, float g, float h,
             float j, float k, float l) {
-        if (ironGolemEntity.getDataTracker().get(((EntityAccess) ironGolemEntity).getTrackedDataBoolean())) {
+        if (ironGolemEntity.getEntityData().get(((EntityAccess) ironGolemEntity).getTrackedDataBoolean())) {
             return BLACKSTONED_CRACKINESS_TO_TEXTURE.get(ironGolemEntity.getCrackLevel());
         } else {
             return original;

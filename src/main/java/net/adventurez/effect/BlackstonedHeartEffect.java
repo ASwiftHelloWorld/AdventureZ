@@ -22,8 +22,8 @@ public class BlackstonedHeartEffect extends MobEffect {
     @Override
     public void onApplied(AttributeMap attributeContainer, int amplifier) {
         super.onApplied(attributeContainer, amplifier);
-        AttributeInstance entityAttributeInstance = attributeContainer.getCustomInstance((Attributes.GENERIC_ATTACK_DAMAGE));
-        AttributeInstance otherEntityAttributeInstance = attributeContainer.getCustomInstance((Attributes.GENERIC_MAX_HEALTH));
+        AttributeInstance entityAttributeInstance = attributeContainer.getCustomInstance((Attributes.ATTACK_DAMAGE));
+        AttributeInstance otherEntityAttributeInstance = attributeContainer.getCustomInstance((Attributes.MAX_HEALTH));
         if (entityAttributeInstance != null && otherEntityAttributeInstance != null) {
             entityAttributeInstance.removeModifier(BLACKSTONED);
             entityAttributeInstance.addPersistentModifier(BLACKSTONED);
@@ -36,8 +36,8 @@ public class BlackstonedHeartEffect extends MobEffect {
     @Override
     public void onRemoved(AttributeMap attributeContainer) {
         super.onRemoved(attributeContainer);
-        AttributeInstance entityAttributeInstance = attributeContainer.getCustomInstance(Attributes.GENERIC_ATTACK_DAMAGE);
-        AttributeInstance otherEntityAttributeInstance = attributeContainer.getCustomInstance(Attributes.GENERIC_MAX_HEALTH);
+        AttributeInstance entityAttributeInstance = attributeContainer.getCustomInstance(Attributes.ATTACK_DAMAGE);
+        AttributeInstance otherEntityAttributeInstance = attributeContainer.getCustomInstance(Attributes.MAX_HEALTH);
         if (entityAttributeInstance != null) {
             entityAttributeInstance.removeModifier(BLACKSTONED);
         }

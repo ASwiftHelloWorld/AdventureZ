@@ -72,7 +72,7 @@ public class ChiseledPolishedBlackstoneHolder extends Block implements EntityBlo
         Container blockEntity = (Container) world.getBlockEntity(pos);
         ItemStack blockStack = blockEntity.getStack(0);
         if (blockStack.isEmpty()) {
-            if ((net.adventurez.util.MinecraftCompat.isItemInTag(itemStack, TagInit.HOLDER_ITEMS) || ConfigInit.CONFIG.allow_all_items_on_holder) && world.getBlockState(pos.up()).isAir()) {
+            if ((net.adventurez.util.MinecraftCompat.isItemInTag(itemStack, TagInit.HOLDER_ITEMS) || ConfigInit.CONFIG.allow_all_items_on_holder) && world.getBlockState(pos.above()).isAir()) {
                 if (!world.isClientSide()) {
                     blockEntity.setStack(0, new ItemStack(itemStack.getItem(), 1));
                     if (!player.isCreative()) {

@@ -118,27 +118,27 @@ public class AmethystGolemModel<T extends AmethystGolemEntity> extends ListModel
         if (k > 0) {
             this.right_arm.pitch = -k;
         }
-        if (entity.getDataTracker().get(AmethystGolemEntity.BACK_CRYSTALS) == 4) {
+        if (entity.getEntityData().get(AmethystGolemEntity.BACK_CRYSTALS) == 4) {
             amethyst.visible = true;
             amethyst2.visible = true;
             amethyst3.visible = true;
             amethyst4.visible = true;
-        } else if (entity.getDataTracker().get(AmethystGolemEntity.BACK_CRYSTALS) == 3) {
+        } else if (entity.getEntityData().get(AmethystGolemEntity.BACK_CRYSTALS) == 3) {
             amethyst.visible = true;
             amethyst2.visible = true;
             amethyst3.visible = false;
             amethyst4.visible = true;
-        } else if (entity.getDataTracker().get(AmethystGolemEntity.BACK_CRYSTALS) == 2) {
+        } else if (entity.getEntityData().get(AmethystGolemEntity.BACK_CRYSTALS) == 2) {
             amethyst.visible = true;
             amethyst2.visible = true;
             amethyst3.visible = false;
             amethyst4.visible = false;
-        } else if (entity.getDataTracker().get(AmethystGolemEntity.BACK_CRYSTALS) == 1) {
+        } else if (entity.getEntityData().get(AmethystGolemEntity.BACK_CRYSTALS) == 1) {
             amethyst.visible = false;
             amethyst2.visible = true;
             amethyst3.visible = false;
             amethyst4.visible = false;
-        } else if (entity.getDataTracker().get(AmethystGolemEntity.BACK_CRYSTALS) == 0) {
+        } else if (entity.getEntityData().get(AmethystGolemEntity.BACK_CRYSTALS) == 0) {
             amethyst.visible = false;
             amethyst2.visible = false;
             amethyst3.visible = false;

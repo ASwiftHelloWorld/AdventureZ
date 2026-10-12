@@ -1,5 +1,8 @@
 package net.adventurez.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+
 import java.util.EnumSet;
 
 import com.google.common.collect.UnmodifiableIterator;
@@ -30,8 +33,6 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData.Builder;
-import net.minecraft.world.entity.FlyingMob;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
@@ -52,49 +53,49 @@ import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 
-public class EnderWhaleEntity extends FlyingMob implements ItemSteerable {
+public class EnderWhaleEntity extends AdventureFlyingMob implements ItemSteerable {
 
     private static final EntityDataAccessor<Boolean> ALWAYS_SADDLED;
     private static final EntityDataAccessor<Integer> BOOST_TIME;
     private final ItemBasedSteering saddledComponent;
 
-    public EnderWhaleEntity(EntityType<? extends FlyingMob> entityType, Level world) {
+    public EnderWhaleEntity(EntityType<? extends AdventureFlyingMob> entityType, Level world) {
         super(entityType, world);
-        this.saddledComponent = new ItemBasedSteering(this.dataTracker, BOOST_TIME, ALWAYS_SADDLED);
+        this.saddledComponent = new ItemBasedSteering(this.entityData, BOOST_TIME, ALWAYS_SADDLED);
         this.moveControl = new EnderWhaleEntity.EnderWhaleMovementControl(this);
         this.experiencePoints = 5;
     }
 
     public static AttributeSupplier.Builder createEnderWhaleAttributes() {
-        return Mob.createMobAttributes().add(Attributes.GENERIC_MAX_HEALTH, 60.0D).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.022D).add(Attributes.GENERIC_ATTACK_DAMAGE, 7.0D)
-                .add(Attributes.GENERIC_ATTACK_KNOCKBACK, 1.5D).add(Attributes.GENERIC_KNOCKBACK_RESISTANCE, 2.5D);
+        return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 60.0D).add(Attributes.MOVEMENT_SPEED, 0.022D).add(Attributes.ATTACK_DAMAGE, 7.0D)
+                .add(Attributes.ATTACK_KNOCKBACK, 1.5D).add(Attributes.KNOCKBACK_RESISTANCE, 2.5D);
     }
 
     public static boolean canSpawn(EntityType<EnderWhaleEntity> type, LevelAccessor world, EntitySpawnReason spawnReason, BlockPos pos, RandomSource random) {
         BlockState blockState = world.getBlockState(pos);
-        return random.nextInt(6) == 0 && pos.getY() > 40 && pos.getY() - world.getTopPosition(Heightmap.Type.WORLD_SURFACE, pos).getY() > 20 && blockState.isAir()
-                && world.getEntitiesByClass(EnderDragon.class, new AABB(pos).inflate(80D), EntitySelector.EXCEPT_SPECTATOR).isEmpty()
-                && NaturalSpawner.isClearForSpawn(world, pos, blockState, blockState.getFluidState(), EntityInit.ENDER_WHALE);
+        return random.nextInt(6) == 0 && pos.getY() > 40 && pos.getY() - world.getTopPosition(Heightmap.Types.WORLD_SURFACE, pos).getY() > 20 && blockState.isAir()
+                && world.getEntitiesOfClass(EnderDragon.class, new AABB(pos).inflate(80D), EntitySelector.NO_SPECTATORS).isEmpty()
+                && NaturalSpawner.isValidEmptySpawnBlock(world, pos, blockState, blockState.getFluidState(), EntityInit.ENDER_WHALE);
     }
 
     @Override
-    protected void initGoals() {
-        this.goalSelector.add(5, new EnderWhaleEntity.FlyRandomlyGoal(this));
-        this.goalSelector.add(4, new EnderWhaleEntity.TemptGoal(this, 1.2D, Ingredient.ofItems(ItemInit.CHORUS_FRUIT_ON_A_STICK)));
-        this.goalSelector.add(7, new EnderWhaleEntity.LookWhereToFlyGoal(this));
+    protected void registerGoals() {
+        this.goalSelector.addGoal(5, new EnderWhaleEntity.FlyRandomlyGoal(this));
+        this.goalSelector.addGoal(4, new EnderWhaleEntity.TemptGoal(this, 1.2D, Ingredient.ofItems(ItemInit.CHORUS_FRUIT_ON_A_STICK)));
+        this.goalSelector.addGoal(7, new EnderWhaleEntity.LookWhereToFlyGoal(this));
     }
 
     @Override
-    protected void initDataTracker(Builder builder) {
-        super.initDataTracker(builder);
-        builder.add(ALWAYS_SADDLED, true);
-        builder.add(BOOST_TIME, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(ALWAYS_SADDLED, true);
+        builder.define(BOOST_TIME, 0);
     }
 
     @Override
-    public void writeCustomDataToNbt(CompoundTag nbt) {
-        super.writeCustomDataToNbt(nbt);
-        this.saddledComponent.writeNbt(nbt);
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        this.saddledComponent.writeNbt(output);
     }
 
     @Override
@@ -103,9 +104,9 @@ public class EnderWhaleEntity extends FlyingMob implements ItemSteerable {
     }
 
     @Override
-    public void readCustomDataFromNbt(CompoundTag nbt) {
-        super.readCustomDataFromNbt(nbt);
-        this.saddledComponent.readNbt(nbt);
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput input) {
+        super.readAdditionalSaveData(input);
+        this.saddledComponent.readNbt(input);
     }
 
     @Override
@@ -123,7 +124,7 @@ public class EnderWhaleEntity extends FlyingMob implements ItemSteerable {
     // Not used since it is a flying entity which overrides the travel method and doesn't use movementspeed
     @Override
     protected float getSaddledSpeed(Player controllingPlayer) {
-        return (float) this.getAttributeValue(Attributes.GENERIC_MOVEMENT_SPEED) * this.saddledComponent.getMovementSpeedMultiplier();
+        return (float) this.getAttributeValue(Attributes.MOVEMENT_SPEED) * this.saddledComponent.getMovementSpeedMultiplier();
     }
 
     @Override
@@ -248,7 +249,7 @@ public class EnderWhaleEntity extends FlyingMob implements ItemSteerable {
     }
 
     @Override
-    public boolean consumeOnAStickItem() {
+    public boolean boost() {
         return this.saddledComponent.boost(this.getRandom());
     }
 
@@ -318,11 +319,11 @@ public class EnderWhaleEntity extends FlyingMob implements ItemSteerable {
 
         public FlyRandomlyGoal(EnderWhaleEntity enderWhaleEntity) {
             this.enderWhaleEntity = enderWhaleEntity;
-            this.setControls(EnumSet.of(Goal.Control.MOVE));
+            this.setFlags(EnumSet.of(Goal.Flag.MOVE));
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             MoveControl moveControl = this.enderWhaleEntity.getMoveControl();
             if (!moveControl.isMoving()) {
                 return true;
@@ -332,7 +333,7 @@ public class EnderWhaleEntity extends FlyingMob implements ItemSteerable {
         }
 
         @Override
-        public boolean shouldContinue() {
+        public boolean canContinueToUse() {
             return false;
         }
 
@@ -360,11 +361,11 @@ public class EnderWhaleEntity extends FlyingMob implements ItemSteerable {
 
         public LookWhereToFlyGoal(EnderWhaleEntity enderWhaleEntity) {
             this.enderWhaleEntity = enderWhaleEntity;
-            this.setControls(EnumSet.of(Goal.Control.LOOK));
+            this.setFlags(EnumSet.of(Goal.Flag.LOOK));
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             return true;
         }
 
@@ -394,12 +395,12 @@ public class EnderWhaleEntity extends FlyingMob implements ItemSteerable {
             this.enderWhaleEntity = entity;
             this.speed = speed;
             this.food = food;
-            this.setControls(EnumSet.of(Goal.Control.MOVE, Goal.Control.LOOK));
+            this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
             this.predicate = TEMPTING_ENTITY_PREDICATE.copy().setPredicate(this::isTemptedBy);
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             if (this.cooldown > 0) {
                 --this.cooldown;
                 return false;
@@ -414,7 +415,7 @@ public class EnderWhaleEntity extends FlyingMob implements ItemSteerable {
         }
 
         @Override
-        public boolean shouldContinue() {
+        public boolean canContinueToUse() {
             if (this.enderWhaleEntity.squaredDistanceTo(this.closestPlayer) < 36.0D) {
                 if (this.closestPlayer.squaredDistanceTo(this.lastPlayerX, this.lastPlayerY, this.lastPlayerZ) > 0.010000000000000002D) {
                     return false;
@@ -432,7 +433,7 @@ public class EnderWhaleEntity extends FlyingMob implements ItemSteerable {
             this.lastPlayerPitch = (double) this.closestPlayer.getPitch();
             this.lastPlayerYaw = (double) this.closestPlayer.getYaw();
 
-            return this.canStart();
+            return this.canUse();
         }
 
         @Override
@@ -463,8 +464,8 @@ public class EnderWhaleEntity extends FlyingMob implements ItemSteerable {
     }
 
     static {
-        ALWAYS_SADDLED = SynchedEntityData.registerData(EnderWhaleEntity.class, EntityDataSerializers.BOOLEAN);
-        BOOST_TIME = SynchedEntityData.registerData(EnderWhaleEntity.class, EntityDataSerializers.INTEGER);
+        ALWAYS_SADDLED = SynchedEntityData.defineId(EnderWhaleEntity.class, EntityDataSerializers.BOOLEAN);
+        BOOST_TIME = SynchedEntityData.defineId(EnderWhaleEntity.class, EntityDataSerializers.INTEGER);
     }
 
 }

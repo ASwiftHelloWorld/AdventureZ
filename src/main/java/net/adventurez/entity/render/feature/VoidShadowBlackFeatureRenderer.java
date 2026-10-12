@@ -26,7 +26,7 @@ public class VoidShadowBlackFeatureRenderer extends RenderLayer<VoidShadowEntity
 
     @Override
     public void render(PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int i, VoidShadowEntity voidShadowEntity, float f, float g, float h, float j, float k, float l) {
-        if (voidShadowEntity.getDataTracker().get(VoidShadowEntity.HALF_LIFE_CHANGE)) {
+        if (voidShadowEntity.getEntityData().get(VoidShadowEntity.HALF_LIFE_CHANGE)) {
             VertexConsumer vertexConsumer = vertexConsumerProvider.getBuffer(BLACK_LAYER);
             this.getContextModel().render(matrixStack, vertexConsumer, 15728640, OverlayTexture.DEFAULT_UV);
             VertexConsumer eyeVertexConsumer = vertexConsumerProvider.getBuffer(EYE_LAYER);

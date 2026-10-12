@@ -18,6 +18,8 @@ import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public class DragonEggEntity extends BlockEntity {
     private int overallSummoningTick;
@@ -31,19 +33,19 @@ public class DragonEggEntity extends BlockEntity {
     }
 
     @Override
-    protected void readNbt(CompoundTag nbt, Provider registryLookup) {
-        super.readNbt(nbt, registryLookup);
-        hatchTick = nbt.getInt("Hatch_Tick");
-        isHatchAble = nbt.getBoolean("Hatch_Able");
-        summoningTick = nbt.getInt("Summoning_Tick");
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        hatchTick = input.getIntOr("Hatch_Tick", 0);
+        isHatchAble = input.getBooleanOr("Hatch_Able", false);
+        summoningTick = input.getIntOr("Summoning_Tick", 0);
     }
 
     @Override
-    protected void writeNbt(CompoundTag nbt, Provider registryLookup) {
-        super.writeNbt(nbt, registryLookup);
-        nbt.putBoolean("Hatch_Able", isHatchAble);
-        nbt.putInt("Hatch_Tick", hatchTick);
-        nbt.putInt("Summoning_Tick", summoningTick);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.putBoolean("Hatch_Able", isHatchAble);
+        output.putInt("Hatch_Tick", hatchTick);
+        output.putInt("Summoning_Tick", summoningTick);
     }
 
     public static void clientTick(Level world, BlockPos pos, BlockState state, DragonEggEntity blockEntity) {
@@ -81,7 +83,7 @@ public class DragonEggEntity extends BlockEntity {
                 && rod_4.equals(Blocks.END_ROD.defaultBlockState())) {
             for (stoneCounter4 = -1; stoneCounter4 < 2; stoneCounter4++) {
                 for (stoneCounter5 = -1; stoneCounter5 < 2; stoneCounter5++) {
-                    BlockState middleState = world.getBlockState(pos.north(stoneCounter4).east(stoneCounter5).down());
+                    BlockState middleState = world.getBlockState(pos.north(stoneCounter4).east(stoneCounter5).below());
                     if (middleState.getBlock().equals(Blocks.CRYING_OBSIDIAN)) {
                         stoneCounter3++;
                     }
@@ -89,7 +91,7 @@ public class DragonEggEntity extends BlockEntity {
             }
             for (stoneCounter = -2; stoneCounter < 3; stoneCounter++) {
                 for (stoneCounter2 = -2; stoneCounter2 < 3; stoneCounter2++) {
-                    BlockState baseState = world.getBlockState(pos.north(stoneCounter).east(stoneCounter2).down(2));
+                    BlockState baseState = world.getBlockState(pos.north(stoneCounter).east(stoneCounter2).below(2));
                     if (net.adventurez.util.MinecraftCompat.isBlockInTag(baseState, TagInit.PLATFORM_END_BLOCKS)) {
                         stoneCounter3++;
                     }
@@ -147,7 +149,7 @@ public class DragonEggEntity extends BlockEntity {
 
     private void updateTheEyeSummoning() {
         if (ConfigInit.CONFIG.allow_the_eye_summoning) {
-            if (this.getLevel().getBlockState(pos.down()).equals(Blocks.CRYING_OBSIDIAN.defaultBlockState()) && this.getLevel().getRegistryKey() == Level.END) {
+            if (this.getLevel().getBlockState(pos.below()).equals(Blocks.CRYING_OBSIDIAN.defaultBlockState()) && this.getLevel().getRegistryKey() == Level.END) {
                 overallSummoningTick++;
                 BlockState state = this.getBlockState();
                 if (overallSummoningTick == 20 && this.isValid(this.getLevel(), pos, state)) {
@@ -178,18 +180,18 @@ public class DragonEggEntity extends BlockEntity {
     }
 
     private void dragonAltartParticle(int distance) {
-        double d = (double) pos.east(distance).north(distance).getX() + (double) world.random.nextFloat();
-        double e = (double) pos.up(1 - distance).getY() + (double) world.random.nextFloat() * 2.0D;
-        double f = (double) pos.east(distance).north(distance).getZ() + (double) world.random.nextFloat();
-        double d1 = (double) pos.west(distance).north(distance).getX() + (double) world.random.nextFloat();
-        double e1 = (double) pos.up(1 - distance).getY() + (double) world.random.nextFloat() * 2.0D;
-        double f1 = (double) pos.west(distance).north(distance).getZ() + (double) world.random.nextFloat();
-        double d2 = (double) pos.south(distance).east(distance).getX() + (double) world.random.nextFloat();
-        double e2 = (double) pos.up(1 - distance).getY() + (double) world.random.nextFloat() * 2.0D;
-        double f2 = (double) pos.south(distance).east(distance).getZ() + (double) world.random.nextFloat();
-        double d3 = (double) pos.south(distance).west(distance).getX() + (double) world.random.nextFloat();
-        double e3 = (double) pos.up(1 - distance).getY() + (double) world.random.nextFloat() * 2.0D;
-        double f3 = (double) pos.south(distance).west(distance).getZ() + (double) world.random.nextFloat();
+        double d = (double) pos.east(distance).north(distance).getX() + (double) world.getRandom().nextFloat();
+        double e = (double) pos.above(1 - distance).getY() + (double) world.getRandom().nextFloat() * 2.0D;
+        double f = (double) pos.east(distance).north(distance).getZ() + (double) world.getRandom().nextFloat();
+        double d1 = (double) pos.west(distance).north(distance).getX() + (double) world.getRandom().nextFloat();
+        double e1 = (double) pos.above(1 - distance).getY() + (double) world.getRandom().nextFloat() * 2.0D;
+        double f1 = (double) pos.west(distance).north(distance).getZ() + (double) world.getRandom().nextFloat();
+        double d2 = (double) pos.south(distance).east(distance).getX() + (double) world.getRandom().nextFloat();
+        double e2 = (double) pos.above(1 - distance).getY() + (double) world.getRandom().nextFloat() * 2.0D;
+        double f2 = (double) pos.south(distance).east(distance).getZ() + (double) world.getRandom().nextFloat();
+        double d3 = (double) pos.south(distance).west(distance).getX() + (double) world.getRandom().nextFloat();
+        double e3 = (double) pos.above(1 - distance).getY() + (double) world.getRandom().nextFloat() * 2.0D;
+        double f3 = (double) pos.south(distance).west(distance).getZ() + (double) world.getRandom().nextFloat();
         world.addParticle(ParticleTypes.END_ROD, d, e, f, 0.0D, 0.0D, 0.0D);
         world.addParticle(ParticleTypes.END_ROD, d1, e1, f1, 0.0D, 0.0D, 0.0D);
         world.addParticle(ParticleTypes.END_ROD, d2, e2, f2, 0.0D, 0.0D, 0.0D);

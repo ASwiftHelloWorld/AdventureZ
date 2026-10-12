@@ -1,5 +1,8 @@
 package net.adventurez.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+
 import java.util.EnumSet;
 
 import org.jetbrains.annotations.Nullable;
@@ -10,7 +13,6 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData.Builder;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.particles.ColorParticleOption;
@@ -30,24 +32,24 @@ public abstract class SpellCastingEntity extends Monster {
     private SpellCastingEntity.Spell spell;
 
     @Override
-    protected void initDataTracker(Builder builder) {
-        super.initDataTracker(builder);
-        builder.add(SPELL, (byte) 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(SPELL, (byte) 0);
     }
 
-    public void readCustomDataFromNbt(CompoundTag tag) {
-        super.readCustomDataFromNbt(tag);
-        this.spellTicks = tag.getInt("SpellTicks");
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput input) {
+        super.readAdditionalSaveData(input);
+        this.spellTicks = input.getIntOr("SpellTicks", 0);
     }
 
-    public void writeCustomDataToNbt(CompoundTag tag) {
-        super.writeCustomDataToNbt(tag);
-        tag.putInt("SpellTicks", this.spellTicks);
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putInt("SpellTicks", this.spellTicks);
     }
 
     public boolean isSpellcasting() {
         if (this.level().isClientSide()) {
-            return (Byte) this.dataTracker.get(SPELL) > 0;
+            return (Byte) this.entityData.get(SPELL) > 0;
         } else {
             return this.spellTicks > 0;
         }
@@ -55,11 +57,11 @@ public abstract class SpellCastingEntity extends Monster {
 
     public void setSpell(SpellCastingEntity.Spell spell) {
         this.spell = spell;
-        this.dataTracker.set(SPELL, (byte) spell.id);
+        this.entityData.set(SPELL, (byte) spell.id);
     }
 
     protected SpellCastingEntity.Spell getSpell() {
-        return !this.level().isClientSide() ? this.spell : SpellCastingEntity.Spell.byId((Byte) this.dataTracker.get(SPELL));
+        return !this.level().isClientSide() ? this.spell : SpellCastingEntity.Spell.byId((Byte) this.entityData.get(SPELL));
     }
 
     protected void mobTick() {
@@ -93,7 +95,7 @@ public abstract class SpellCastingEntity extends Monster {
     protected abstract SoundEvent getCastSpellSound();
 
     static {
-        SPELL = SynchedEntityData.registerData(SpellCastingEntity.class, EntityDataSerializers.BYTE);
+        SPELL = SynchedEntityData.defineId(SpellCastingEntity.class, EntityDataSerializers.BYTE);
     }
 
     public static enum Spell {
@@ -130,7 +132,7 @@ public abstract class SpellCastingEntity extends Monster {
         protected CastSpellGoal() {
         }
 
-        public boolean canStart() {
+        public boolean canUse() {
             LivingEntity livingEntity = SpellCastingEntity.this.getTarget();
             if (livingEntity != null && livingEntity.isAlive()) {
                 if (SpellCastingEntity.this.isSpellcasting()) {
@@ -143,7 +145,7 @@ public abstract class SpellCastingEntity extends Monster {
             }
         }
 
-        public boolean shouldContinue() {
+        public boolean canContinueToUse() {
             LivingEntity livingEntity = SpellCastingEntity.this.getTarget();
             return livingEntity != null && livingEntity.isAlive() && this.spellCooldown > 0;
         }
@@ -187,10 +189,10 @@ public abstract class SpellCastingEntity extends Monster {
 
     public class LookAtTargetGoal extends Goal {
         public LookAtTargetGoal() {
-            this.setControls(EnumSet.of(Goal.Control.MOVE, Goal.Control.LOOK));
+            this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
         }
 
-        public boolean canStart() {
+        public boolean canUse() {
             return SpellCastingEntity.this.getSpellTicks() > 0;
         }
 

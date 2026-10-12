@@ -3,6 +3,8 @@ package net.adventurez.entity;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import com.google.common.collect.Lists;
 
@@ -35,10 +37,8 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData.Builder;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.FlyingMob;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.projectile.arrow.Arrow;
@@ -72,7 +72,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.entity.player.Player;
 
-public class VoidShadowEntity extends FlyingMob implements Enemy {
+public class VoidShadowEntity extends AdventureFlyingMob implements Enemy {
 
     public static final EntityDataAccessor<Boolean> HALF_LIFE_CHANGE;
     public static final EntityDataAccessor<Boolean> IS_THROWING_BLOCKS;
@@ -91,7 +91,7 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
     private boolean invisible;
     public int ticksSinceDeath;
 
-    public VoidShadowEntity(EntityType<? extends FlyingMob> entityType, Level world) {
+    public VoidShadowEntity(EntityType<? extends AdventureFlyingMob> entityType, Level world) {
         super(entityType, world);
         this.bossBar = (ServerBossEvent) (new ServerBossEvent(this.getDisplayName(), BossEvent.Color.PURPLE, BossEvent.Style.PROGRESS));
         this.experiencePoints = 100;
@@ -100,21 +100,21 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
     }
 
     @Override
-    public void initGoals() {
-        super.initGoals();
-        this.goalSelector.add(0, new VoidShadowEntity.ThrowBlocks(this));
-        this.goalSelector.add(1, new VoidShadowEntity.DestroyBlocksAttack(this));
-        this.goalSelector.add(2, new VoidShadowEntity.SummonFragment(this));
-        this.goalSelector.add(3, new VoidShadowEntity.SummonShade(this));
-        this.goalSelector.add(4, new VoidShadowEntity.Insanity(this));
-        this.goalSelector.add(6, new VoidShadowEntity.FlyGoal(this));
-        this.goalSelector.add(5, new VoidShadowEntity.LookGoal(this));
+    public void registerGoals() {
+        super.registerGoals();
+        this.goalSelector.addGoal(0, new VoidShadowEntity.ThrowBlocks(this));
+        this.goalSelector.addGoal(1, new VoidShadowEntity.DestroyBlocksAttack(this));
+        this.goalSelector.addGoal(2, new VoidShadowEntity.SummonFragment(this));
+        this.goalSelector.addGoal(3, new VoidShadowEntity.SummonShade(this));
+        this.goalSelector.addGoal(4, new VoidShadowEntity.Insanity(this));
+        this.goalSelector.addGoal(6, new VoidShadowEntity.FlyGoal(this));
+        this.goalSelector.addGoal(5, new VoidShadowEntity.LookGoal(this));
     }
 
     public static AttributeSupplier.Builder createVoidShadowAttributes() {
-        return Monster.createHostileAttributes().add(Attributes.GENERIC_MAX_HEALTH, 1000.0D).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.1D)
-                .add(Attributes.GENERIC_ATTACK_DAMAGE, 10.0D).add(Attributes.GENERIC_ATTACK_KNOCKBACK, 2.0D).add(Attributes.GENERIC_ARMOR, 1.0D)
-                .add(Attributes.GENERIC_KNOCKBACK_RESISTANCE, 10.0D).add(Attributes.GENERIC_FOLLOW_RANGE, 80.0D);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 1000.0D).add(Attributes.MOVEMENT_SPEED, 0.1D)
+                .add(Attributes.ATTACK_DAMAGE, 10.0D).add(Attributes.ATTACK_KNOCKBACK, 2.0D).add(Attributes.ARMOR, 1.0D)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 10.0D).add(Attributes.FOLLOW_RANGE, 80.0D);
     }
 
     @Override
@@ -122,13 +122,13 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
         super.mobTick();
         this.bossBar.setPercent(this.getHealth() / this.getMaxHealth());
         if (this.getHealth() < this.getMaxHealth() / 2) {
-            if (!dataTracker.get(HALF_LIFE_CHANGE)) {
-                dataTracker.set(HALF_LIFE_CHANGE, true);
+            if (!entityData.get(HALF_LIFE_CHANGE)) {
+                entityData.set(HALF_LIFE_CHANGE, true);
             }
             if (!this.isHalfLife) {
-                this.getAttributeInstance(Attributes.GENERIC_ATTACK_KNOCKBACK).setBaseValue((double) (6.0D));
-                this.getAttributeInstance(Attributes.GENERIC_ATTACK_DAMAGE).setBaseValue((double) 14.0D);
-                this.getAttributeInstance(Attributes.GENERIC_ARMOR).setBaseValue((double) 4.0D);
+                this.getAttribute(Attributes.ATTACK_KNOCKBACK).setBaseValue((double) (6.0D));
+                this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue((double) 14.0D);
+                this.getAttribute(Attributes.ARMOR).setBaseValue((double) 4.0D);
                 this.isHalfLife = true;
             }
             if (this.getHealth() < this.getMaxHealth() / 8 && !this.invisible) {
@@ -139,42 +139,42 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
     }
 
     @Override
-    protected void initDataTracker(Builder builder) {
-        super.initDataTracker(builder);
-        builder.add(HALF_LIFE_CHANGE, false);
-        builder.add(IS_THROWING_BLOCKS, false);
-        builder.add(HOVERING_MAGIC_HANDS, false);
-        builder.add(CIRCLING_HANDS, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(HALF_LIFE_CHANGE, false);
+        builder.define(IS_THROWING_BLOCKS, false);
+        builder.define(HOVERING_MAGIC_HANDS, false);
+        builder.define(CIRCLING_HANDS, false);
     }
 
     @Override
-    public void writeCustomDataToNbt(CompoundTag tag) {
-        super.writeCustomDataToNbt(tag);
-        tag.putInt("VoidXPortal", portalX);
-        tag.putInt("VoidYPortal", portalY);
-        tag.putInt("VoidZPortal", portalZ);
-        tag.putBoolean("ShadowCircling", this.circling);
-        tag.putBoolean("ShadowIsHalfLife", this.isHalfLife);
-        tag.putIntArray("ShadowBrokenBlocks", this.blockListTransform(this.blockPosList));
-        tag.putBoolean("ShadowInvisible", this.invisible);
-        tag.putBoolean("ShadowWasCircling", this.wasCircling);
+    public void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putInt("VoidXPortal", portalX);
+        output.putInt("VoidYPortal", portalY);
+        output.putInt("VoidZPortal", portalZ);
+        output.putBoolean("ShadowCircling", this.circling);
+        output.putBoolean("ShadowIsHalfLife", this.isHalfLife);
+        output.putIntArray("ShadowBrokenBlocks", this.blockListTransform(this.blockPosList));
+        output.putBoolean("ShadowInvisible", this.invisible);
+        output.putBoolean("ShadowWasCircling", this.wasCircling);
 
     }
 
     @Override
-    public void readCustomDataFromNbt(CompoundTag tag) {
-        super.readCustomDataFromNbt(tag);
+    public void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
         if (this.hasCustomName()) {
             this.bossBar.setName(this.getDisplayName());
         }
-        this.portalX = tag.getInt("VoidXPortal");
-        this.portalY = tag.getInt("VoidYPortal");
-        this.portalZ = tag.getInt("VoidZPortal");
-        this.circling = tag.getBoolean("ShadowCircling");
-        this.isHalfLife = tag.getBoolean("ShadowIsHalfLife");
-        this.setBlockList(tag.getIntArray("ShadowBrokenBlocks"));
-        this.invisible = tag.getBoolean("ShadowInvisible");
-        this.wasCircling = tag.getBoolean("ShadowWasCircling");
+        this.portalX = input.getIntOr("VoidXPortal", 0);
+        this.portalY = input.getIntOr("VoidYPortal", 0);
+        this.portalZ = input.getIntOr("VoidZPortal", 0);
+        this.circling = input.getBooleanOr("ShadowCircling", false);
+        this.isHalfLife = input.getBooleanOr("ShadowIsHalfLife", false);
+        this.setBlockList(input.getIntArray("ShadowBrokenBlocks").orElse(new int[0]));
+        this.invisible = input.getBooleanOr("ShadowInvisible", false);
+        this.wasCircling = input.getBooleanOr("ShadowWasCircling", false);
         if (!this.circling && this.wasCircling) {
             this.circling = true;
         }
@@ -216,7 +216,7 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
     public SpawnGroupData initialize(ServerLevelAccessor world, DifficultyInstance difficulty, EntitySpawnReason spawnReason, @Nullable SpawnGroupData entityData) {
         if (!this.hasVoidMiddleCoordinates() && FabricLoader.getInstance().isModLoaded("voidz")) {
             // For test purpose, use spawn egg on portal block
-            if (world.getBlockState(this.getBlockPos().down()).getBlock() == BlockInit.PORTAL) {
+            if (world.getBlockState(this.getBlockPos().below()).getBlock() == BlockInit.PORTAL) {
                 this.setVoidMiddle(this.getBlockPos().getX(), this.getBlockPos().getY(), this.getBlockPos().getZ());
             }
         }
@@ -372,7 +372,7 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
                 this.level().syncGlobalEvent(1028, this.getBlockPos(), 0);
             }
             if (this.hasVoidMiddleCoordinates() && this.ticksSinceDeath == 40) {
-                this.teleport(this.getVoidMiddle().getX(), this.getVoidMiddle().up(5).getY(), this.getVoidMiddle().getZ(), false);
+                this.teleport(this.getVoidMiddle().getX(), this.getVoidMiddle().above(5).getY(), this.getVoidMiddle().getZ(), false);
             }
         }
 
@@ -384,7 +384,7 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
         }
         if (this.ticksSinceDeath >= 200 && !this.level().isClientSide()) {
             AABB box = new AABB(this.getBlockPos());
-            List<Player> list = this.level().getEntitiesByClass(Player.class, box.inflate(128D), EntitySelector.EXCEPT_SPECTATOR);
+            List<Player> list = this.level().getEntitiesOfClass(Player.class, box.inflate(128D), EntitySelector.NO_SPECTATORS);
             for (int i = 0; i < list.size(); ++i) {
                 list.get(i).addStatusEffect(new MobEffectInstance(EffectInit.FAME, 48000, 0, false, false, true));
             }
@@ -396,9 +396,9 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
                 this.level().setBlockState(pos, state, 3);
                 state.getBlock().onPlaced(this.level(), pos, state, null, ItemStack.EMPTY);
 
-                if (this.level().getBlockEntity(this.getVoidMiddle().down()) != null
-                        && this.level().getBlockEntity(this.getVoidMiddle().down()) instanceof PortalBlockEntity portalBlockEntity) {
-                    portalBlockEntity.bossTime = (int) this.level().getLevelProperties().getTime();
+                if (this.level().getBlockEntity(this.getVoidMiddle().below()) != null
+                        && this.level().getBlockEntity(this.getVoidMiddle().below()) instanceof PortalBlockEntity portalBlockEntity) {
+                    portalBlockEntity.bossTime = (int) this.level().getGameTime();
                 }
             } else {
                 this.level().setBlockState(this.getBlockPos(), Blocks.DRAGON_EGG.defaultBlockState(), 3);
@@ -408,10 +408,10 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
     }
 
     static {
-        HALF_LIFE_CHANGE = SynchedEntityData.registerData(VoidShadowEntity.class, EntityDataSerializers.BOOLEAN);
-        IS_THROWING_BLOCKS = SynchedEntityData.registerData(VoidShadowEntity.class, EntityDataSerializers.BOOLEAN);
-        HOVERING_MAGIC_HANDS = SynchedEntityData.registerData(VoidShadowEntity.class, EntityDataSerializers.BOOLEAN);
-        CIRCLING_HANDS = SynchedEntityData.registerData(VoidShadowEntity.class, EntityDataSerializers.BOOLEAN);
+        HALF_LIFE_CHANGE = SynchedEntityData.defineId(VoidShadowEntity.class, EntityDataSerializers.BOOLEAN);
+        IS_THROWING_BLOCKS = SynchedEntityData.defineId(VoidShadowEntity.class, EntityDataSerializers.BOOLEAN);
+        HOVERING_MAGIC_HANDS = SynchedEntityData.defineId(VoidShadowEntity.class, EntityDataSerializers.BOOLEAN);
+        CIRCLING_HANDS = SynchedEntityData.defineId(VoidShadowEntity.class, EntityDataSerializers.BOOLEAN);
     }
 
     static class FlyGoal extends Goal {
@@ -419,10 +419,10 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
 
         public FlyGoal(VoidShadowEntity voidShadowEntity) {
             this.voidShadowEntity = voidShadowEntity;
-            this.setControls(EnumSet.of(Goal.Control.MOVE));
+            this.setFlags(EnumSet.of(Goal.Flag.MOVE));
         }
 
-        public boolean canStart() {
+        public boolean canUse() {
             MoveControl moveControl = this.voidShadowEntity.getMoveControl();
             if ((!moveControl.isMoving() || this.voidShadowEntity.getTarget() != null) && !voidShadowEntity.circling) {
                 return true;
@@ -435,7 +435,7 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
             }
         }
 
-        public boolean shouldContinue() {
+        public boolean canContinueToUse() {
             return false;
         }
 
@@ -488,11 +488,11 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
 
         public LookGoal(VoidShadowEntity voidShadowEntity) {
             this.voidShadowEntity = voidShadowEntity;
-            this.setControls(EnumSet.of(Goal.Control.LOOK));
+            this.setFlags(EnumSet.of(Goal.Flag.LOOK));
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             return true;
         }
 
@@ -531,7 +531,7 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             LivingEntity livingEntity = this.voidShadow.getTarget();
             // distance 1F per block :)
             if (livingEntity != null && this.voidShadow.circling && this.voidShadow.distanceTo(livingEntity) > 5.0F && this.voidShadow.distanceTo(livingEntity) < 30.0F) {
@@ -558,9 +558,9 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
                             double anotherExtraXXXRandom = this.voidShadow.level().getRandom().nextDouble() - 0.5D;
                             Block block;
                             if (this.voidShadow.hasVoidMiddleCoordinates()) {
-                                block = this.voidShadow.level().getBlockState(this.voidShadow.getVoidMiddle().north().down()).getBlock();
-                            } else if (!this.voidShadow.level().getBlockState(pos.down(5)).isAir()) {
-                                block = this.voidShadow.level().getBlockState(pos.down(5)).getBlock();
+                                block = this.voidShadow.level().getBlockState(this.voidShadow.getVoidMiddle().north().below()).getBlock();
+                            } else if (!this.voidShadow.level().getBlockState(pos.below(5)).isAir()) {
+                                block = this.voidShadow.level().getBlockState(pos.below(5)).getBlock();
                             } else {
                                 block = Blocks.STONE;
                             }
@@ -583,7 +583,7 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
         }
 
         @Override
-        public boolean shouldContinue() {
+        public boolean canContinueToUse() {
             LivingEntity livingEntity = this.voidShadow.getTarget();
             if (livingEntity == null || !livingEntity.isAlive()) {
                 return false;
@@ -593,14 +593,14 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
 
         @Override
         public void start() {
-            this.voidShadow.dataTracker.set(IS_THROWING_BLOCKS, true);
+            this.voidShadow.entityData.set(IS_THROWING_BLOCKS, true);
             this.voidShadow.getNavigation().stop();
             throwTicker = 0;
         }
 
         @Override
         public void stop() {
-            this.voidShadow.dataTracker.set(IS_THROWING_BLOCKS, false);
+            this.voidShadow.entityData.set(IS_THROWING_BLOCKS, false);
             throwTicker++;
         }
 
@@ -619,7 +619,7 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             LivingEntity livingEntity = this.voidShadow.getTarget();
             if (livingEntity != null && this.voidShadow.isInVoidDungeon) {
                 canStartTicker++;
@@ -638,10 +638,10 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
                 for (int i = 0; i < playerList.size(); ++i) {
                     Player playerEntity = playerList.get(i);
                     if (!playerEntity.isCreative() && !playerEntity.isSpectator()) {
-                        if (!this.voidShadow.level().getBlockState(playerEntity.getBlockPos().down()).isAir()) {
-                            playerBlockPosList.add(playerEntity.getBlockPos().down());
-                        } else if (!this.voidShadow.level().getBlockState(playerEntity.getBlockPos().down(2)).isAir()) {
-                            playerBlockPosList.add(playerEntity.getBlockPos().down(2));
+                        if (!this.voidShadow.level().getBlockState(playerEntity.getBlockPos().below()).isAir()) {
+                            playerBlockPosList.add(playerEntity.getBlockPos().below());
+                        } else if (!this.voidShadow.level().getBlockState(playerEntity.getBlockPos().below(2)).isAir()) {
+                            playerBlockPosList.add(playerEntity.getBlockPos().below(2));
                         }
                     }
                 }
@@ -667,7 +667,7 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
                 ((ServerLevel) this.voidShadow.level()).playSoundFromEntity(null, this.voidShadow, SoundInit.SHADOW_CAST_EVENT, SoundSource.HOSTILE, 20.0F, 1.0F);
             }
             if (destroyBlocksTicker == 120) {
-                this.voidShadow.dataTracker.set(HOVERING_MAGIC_HANDS, false);
+                this.voidShadow.entityData.set(HOVERING_MAGIC_HANDS, false);
             }
             if (destroyBlocksTicker >= 400) {
                 destroyBlocksTicker = 0;
@@ -677,13 +677,13 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
         }
 
         @Override
-        public boolean shouldContinue() {
+        public boolean canContinueToUse() {
             return canStartTicker == 0;
         }
 
         @Override
         public void start() {
-            this.voidShadow.dataTracker.set(HOVERING_MAGIC_HANDS, true);
+            this.voidShadow.entityData.set(HOVERING_MAGIC_HANDS, true);
             canStartTicker = 0;
             ((ServerLevel) this.voidShadow.level()).playSoundFromEntity(null, this.voidShadow, SoundInit.SHADOW_PREPARE_EVENT, SoundSource.HOSTILE, 20.0F, 1.0F);
         }
@@ -715,14 +715,14 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             LivingEntity livingEntity = this.voidShadow.getTarget();
             if (voidShadow.isInVoidDungeon && voidShadow.circling && voidShadow.hasVoidMiddleCoordinates() && livingEntity != null) {
                 summonStartTicker++;
                 if (summonStartTicker >= 200) {
 
                     AABB box = new AABB(voidShadow.getBlockPos());
-                    List<VoidFragmentEntity> list = voidShadow.level().getEntitiesByClass(VoidFragmentEntity.class, box.inflate(120D), EntitySelector.EXCEPT_SPECTATOR);
+                    List<VoidFragmentEntity> list = voidShadow.level().getEntitiesOfClass(VoidFragmentEntity.class, box.inflate(120D), EntitySelector.NO_SPECTATORS);
                     if (list.isEmpty() || list.size() < 2) {
                         return true;
                     }
@@ -752,7 +752,7 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
                         } else {
                             spawnPos = new BlockPos(pos.getX() - 35 + voidShadow.random.nextInt(70), pos.getY(), pos.getZ() - 35 + voidShadow.random.nextInt(70));
                         }
-                        if (!this.voidShadow.level().getBlockState(spawnPos.down()).isAir()) {
+                        if (!this.voidShadow.level().getBlockState(spawnPos.below()).isAir()) {
                             VoidFragmentEntity voidFragmentEntity = (VoidFragmentEntity) EntityInit.VOID_FRAGMENT.create(voidShadow.level());
                             voidFragmentEntity.initialize((ServerLevel) voidShadow.level(), voidShadow.level().getLocalDifficulty(pos), EntitySpawnReason.EVENT, null);
                             voidFragmentEntity.setVoidOrb(isOrb);
@@ -776,13 +776,13 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
 
         @Override
         public void start() {
-            this.voidShadow.dataTracker.set(HOVERING_MAGIC_HANDS, true);
+            this.voidShadow.entityData.set(HOVERING_MAGIC_HANDS, true);
             ((ServerLevel) this.voidShadow.level()).playSoundFromEntity(null, this.voidShadow, SoundInit.SHADOW_PREPARE_EVENT, SoundSource.HOSTILE, 20.0F, 1.0F);
         }
 
         @Override
         public void stop() {
-            this.voidShadow.dataTracker.set(HOVERING_MAGIC_HANDS, false);
+            this.voidShadow.entityData.set(HOVERING_MAGIC_HANDS, false);
             ((ServerLevel) this.voidShadow.level()).playSoundFromEntity(null, this.voidShadow, SoundInit.SHADOW_CAST_EVENT, SoundSource.HOSTILE, 20.0F, 1.0F);
         }
 
@@ -800,7 +800,7 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             if (voidShadow.isInVoidDungeon && voidShadow.circling && this.voidShadow.isHalfLife && voidShadow.hasVoidMiddleCoordinates() && this.voidShadow.blockPosList.isEmpty()) {
                 insanityStartTicker++;
                 if (insanityStartTicker >= 600) {
@@ -826,7 +826,7 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
             }
             if (tick == 100) {
                 int radius = 8;
-                BlockPos pos = this.voidShadow.getVoidMiddle().down();
+                BlockPos pos = this.voidShadow.getVoidMiddle().below();
                 for (int k = -radius; k <= radius; k++) {
                     for (int i = -radius; i <= radius; i++) {
                         BlockPos blockPos = pos.add(k, 0, i);
@@ -860,7 +860,7 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
         }
 
         @Override
-        public boolean shouldContinue() {
+        public boolean canContinueToUse() {
             return insanityStartTicker >= 600;
         }
 
@@ -870,7 +870,7 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
             voidShadow.wasCircling = true;
             this.voidShadow.moveControl.moveTo((double) voidShadow.getVoidMiddle().getX(), (double) voidShadow.getVoidMiddle().getY(), (double) voidShadow.getVoidMiddle().getZ(), 1.0D);
             this.voidShadow.addVelocity(0D, 0.2D, 0D);
-            this.voidShadow.dataTracker.set(CIRCLING_HANDS, true);
+            this.voidShadow.entityData.set(CIRCLING_HANDS, true);
             ((ServerLevel) this.voidShadow.level()).playSoundFromEntity(null, this.voidShadow, SoundInit.SHADOW_PREPARE_EVENT, SoundSource.HOSTILE, 20.0F, 1.0F);
         }
 
@@ -878,7 +878,7 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
         public void stop() {
             voidShadow.circling = true;
             voidShadow.wasCircling = false;
-            this.voidShadow.dataTracker.set(CIRCLING_HANDS, false);
+            this.voidShadow.entityData.set(CIRCLING_HANDS, false);
             ((ServerLevel) this.voidShadow.level()).playSoundFromEntity(null, this.voidShadow, SoundInit.SHADOW_CAST_EVENT, SoundSource.HOSTILE, 20.0F, 1.0F);
             insanityStartTicker = 0;
             for (int u = 0; u < this.voidShadow.blockPosList.size(); ++u) {
@@ -904,13 +904,13 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             LivingEntity livingEntity = this.voidShadow.getTarget();
             if (voidShadow.isInVoidDungeon && voidShadow.hasVoidMiddleCoordinates() && livingEntity != null) {
                 summonStartTicker++;
                 if (summonStartTicker >= 80) {
                     AABB box = new AABB(voidShadow.getBlockPos());
-                    List<VoidShadeEntity> list = voidShadow.level().getEntitiesByClass(VoidShadeEntity.class, box.inflate(120D), EntitySelector.EXCEPT_SPECTATOR);
+                    List<VoidShadeEntity> list = voidShadow.level().getEntitiesOfClass(VoidShadeEntity.class, box.inflate(120D), EntitySelector.NO_SPECTATORS);
                     if (list.size() < 6) {
                         return true;
                     }
@@ -943,13 +943,13 @@ public class VoidShadowEntity extends FlyingMob implements Enemy {
 
         @Override
         public void start() {
-            this.voidShadow.dataTracker.set(HOVERING_MAGIC_HANDS, true);
+            this.voidShadow.entityData.set(HOVERING_MAGIC_HANDS, true);
             ((ServerLevel) this.voidShadow.level()).playSoundFromEntity(null, this.voidShadow, SoundInit.SHADOW_PREPARE_EVENT, SoundSource.HOSTILE, 20.0F, 1.0F);
         }
 
         @Override
         public void stop() {
-            this.voidShadow.dataTracker.set(HOVERING_MAGIC_HANDS, false);
+            this.voidShadow.entityData.set(HOVERING_MAGIC_HANDS, false);
             ((ServerLevel) this.voidShadow.level()).playSoundFromEntity(null, this.voidShadow, SoundInit.SHADOW_CAST_EVENT, SoundSource.HOSTILE, 20.0F, 1.0F);
         }
 

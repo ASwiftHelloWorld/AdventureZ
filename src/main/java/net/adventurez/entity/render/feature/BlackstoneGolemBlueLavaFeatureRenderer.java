@@ -24,7 +24,7 @@ public class BlackstoneGolemBlueLavaFeatureRenderer extends RenderLayer<Blacksto
 
     @Override
     public void render(PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int i, BlackstoneGolemEntity stoneGolemEntity, float f, float g, float h, float j, float k, float l) {
-        if (stoneGolemEntity.getDataTracker().get(BlackstoneGolemEntity.HALF_LIFE_CHANGE)) {
+        if (stoneGolemEntity.getEntityData().get(BlackstoneGolemEntity.HALF_LIFE_CHANGE)) {
             VertexConsumer vertexConsumer = vertexConsumerProvider.getBuffer(BLUE_LAVA_LAYER);
             this.getContextModel().render(matrixStack, vertexConsumer, 15728640, OverlayTexture.DEFAULT_UV);
         }

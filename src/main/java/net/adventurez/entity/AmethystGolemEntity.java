@@ -1,5 +1,8 @@
 package net.adventurez.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+
 import org.jetbrains.annotations.Nullable;
 
 import net.adventurez.entity.nonliving.AmethystShardEntity;
@@ -22,7 +25,6 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData.Builder;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.nbt.CompoundTag;
@@ -50,58 +52,58 @@ public class AmethystGolemEntity extends Monster {
     }
 
     public static AttributeSupplier.Builder createAmethystGolemAttributes() {
-        return Monster.createHostileAttributes().add(Attributes.GENERIC_MAX_HEALTH, 40.0D).add(Attributes.GENERIC_ATTACK_DAMAGE, 8.0D)
-                .add(Attributes.GENERIC_MOVEMENT_SPEED, 0.24D).add(Attributes.GENERIC_FOLLOW_RANGE, 20.0D).add(Attributes.GENERIC_ARMOR, 1.0D);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 40.0D).add(Attributes.ATTACK_DAMAGE, 8.0D)
+                .add(Attributes.MOVEMENT_SPEED, 0.24D).add(Attributes.FOLLOW_RANGE, 20.0D).add(Attributes.ARMOR, 1.0D);
     }
 
     @Override
-    public void initGoals() {
-        super.initGoals();
-        this.goalSelector.add(1, new MeleeAttackGoal(this, 0.85D, false));
-        this.goalSelector.add(2, new ThrowShardGoal(this));
-        this.goalSelector.add(5, new LookAtPlayerGoal(this, Player.class, 8.0F));
-        this.goalSelector.add(6, new RandomLookAroundGoal(this));
-        this.goalSelector.add(7, new RandomStrollGoal(this, 0.9D));
-        this.targetSelector.add(1, new NearestAttackableTargetGoal<>(this, Player.class, true));
+    public void registerGoals() {
+        super.registerGoals();
+        this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 0.85D, false));
+        this.goalSelector.addGoal(2, new ThrowShardGoal(this));
+        this.goalSelector.addGoal(5, new LookAtPlayerGoal(this, Player.class, 8.0F));
+        this.goalSelector.addGoal(6, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal(7, new RandomStrollGoal(this, 0.9D));
+        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, true));
     }
 
     public static boolean canSpawn(EntityType<AmethystGolemEntity> type, ServerLevelAccessor world, EntitySpawnReason spawnReason, BlockPos pos, RandomSource random) {
-        return (canSpawnInDark(type, world, spawnReason, pos, random) && !world.isSkyVisible(pos)) || spawnReason == EntitySpawnReason.SPAWNER;
+        return (Monster.checkMonsterSpawnRules(type, world, spawnReason, pos, random) && !world.isSkyVisible(pos)) || spawnReason == EntitySpawnReason.SPAWNER;
     }
 
     @Override
-    protected void initDataTracker(Builder builder) {
-        super.initDataTracker(builder);
-        builder.add(BACK_CRYSTALS, 4);
-        builder.add(DEEPSLATE_VARIANT, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(BACK_CRYSTALS, 4);
+        builder.define(DEEPSLATE_VARIANT, false);
     }
 
     @Override
-    public void readCustomDataFromNbt(CompoundTag tag) {
-        super.readCustomDataFromNbt(tag);
-        this.dataTracker.set(BACK_CRYSTALS, tag.getInt("Crystals"));
-        this.dataTracker.set(DEEPSLATE_VARIANT, tag.getBoolean("DeepslateGolem"));
-        this.grow = tag.getInt("GrowAmethysts");
-        this.isStronger = tag.getBoolean("StrongerGolem");
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput input) {
+        super.readAdditionalSaveData(input);
+        this.entityData.set(BACK_CRYSTALS, input.getIntOr("Crystals", 0));
+        this.entityData.set(DEEPSLATE_VARIANT, input.getBooleanOr("DeepslateGolem", false));
+        this.grow = input.getIntOr("GrowAmethysts", 0);
+        this.isStronger = input.getBooleanOr("StrongerGolem", false);
     }
 
     @Override
-    public void writeCustomDataToNbt(CompoundTag tag) {
-        super.writeCustomDataToNbt(tag);
-        tag.putInt("Crystals", this.dataTracker.get(BACK_CRYSTALS));
-        tag.putBoolean("DeepslateGolem", this.dataTracker.get(DEEPSLATE_VARIANT));
-        tag.putInt("GrowAmethysts", this.grow);
-        tag.putBoolean("StrongerGolem", this.isStronger);
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putInt("Crystals", this.entityData.get(BACK_CRYSTALS));
+        output.putBoolean("DeepslateGolem", this.entityData.get(DEEPSLATE_VARIANT));
+        output.putInt("GrowAmethysts", this.grow);
+        output.putBoolean("StrongerGolem", this.isStronger);
     }
 
     @Override
     public void tick() {
         super.tick();
-        if (!this.level().isClientSide() && this.dataTracker.get(BACK_CRYSTALS) < 4) {
+        if (!this.level().isClientSide() && this.entityData.get(BACK_CRYSTALS) < 4) {
             this.grow++;
             if (this.grow >= 3600) {
-                this.dataTracker.set(BACK_CRYSTALS, this.dataTracker.get(BACK_CRYSTALS) + 1);
-                this.getAttributeInstance(Attributes.GENERIC_MAX_HEALTH).setBaseValue(this.getAttributeBaseValue(Attributes.GENERIC_MAX_HEALTH) + 10.0D);
+                this.entityData.set(BACK_CRYSTALS, this.entityData.get(BACK_CRYSTALS) + 1);
+                this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(this.getAttributeBaseValue(Attributes.MAX_HEALTH) + 10.0D);
                 this.heal(10F);
                 this.grow = 0;
             }
@@ -111,9 +113,9 @@ public class AmethystGolemEntity extends Monster {
     @Override
     public SpawnGroupData initialize(ServerLevelAccessor world, DifficultyInstance difficulty, EntitySpawnReason spawnReason, @Nullable SpawnGroupData entityData) {
         int random = this.getRandom().nextInt(5);
-        this.dataTracker.set(BACK_CRYSTALS, random);
+        this.entityData.set(BACK_CRYSTALS, random);
         if (random > 0) {
-            this.getAttributeInstance(Attributes.GENERIC_MAX_HEALTH).setBaseValue(this.getAttributeBaseValue(Attributes.GENERIC_MAX_HEALTH) + random * 10.0D);
+            this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(this.getAttributeBaseValue(Attributes.MAX_HEALTH) + random * 10.0D);
         }
         return super.initialize(world, difficulty, spawnReason, entityData);
     }
@@ -152,9 +154,9 @@ public class AmethystGolemEntity extends Monster {
 
     public void amethystGolemRageMode() {
         if (this.level() instanceof ServerLevel serverWorld) {
-            this.getAttributeInstance(Attributes.GENERIC_ARMOR).setBaseValue(this.getAttributeBaseValue(Attributes.GENERIC_ARMOR) + 2.0D);
+            this.getAttribute(Attributes.ARMOR).setBaseValue(this.getAttributeBaseValue(Attributes.ARMOR) + 2.0D);
             if (!this.isStronger) {
-                this.getAttributeInstance(Attributes.GENERIC_MOVEMENT_SPEED).setBaseValue(this.getAttributeBaseValue(Attributes.GENERIC_MOVEMENT_SPEED) + 0.1D);
+                this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED) + 0.1D);
             }
             serverWorld.playSoundFromEntity(null, this, SoundInit.AMETHYST_GOLEM_RAGE_EVENT, SoundSource.HOSTILE, 1.0F, 1.0F);
             for (int i = 0; i < 20; i++) {
@@ -171,8 +173,8 @@ public class AmethystGolemEntity extends Monster {
     }
 
     static {
-        BACK_CRYSTALS = SynchedEntityData.registerData(AmethystGolemEntity.class, EntityDataSerializers.INTEGER);
-        DEEPSLATE_VARIANT = SynchedEntityData.registerData(AmethystGolemEntity.class, EntityDataSerializers.BOOLEAN);
+        BACK_CRYSTALS = SynchedEntityData.defineId(AmethystGolemEntity.class, EntityDataSerializers.INTEGER);
+        DEEPSLATE_VARIANT = SynchedEntityData.defineId(AmethystGolemEntity.class, EntityDataSerializers.BOOLEAN);
     }
 
     public static class ThrowShardGoal extends Goal {
@@ -185,8 +187,8 @@ public class AmethystGolemEntity extends Monster {
         }
 
         @Override
-        public boolean canStart() {
-            long l = this.amethystGolemEntity.level().getTime();
+        public boolean canUse() {
+            long l = this.amethystGolemEntity.level().getGameTime();
             if (l - this.lastUpdateTime < 100L || this.cooldown-- > 0) {
                 return false;
             } else {
@@ -203,7 +205,7 @@ public class AmethystGolemEntity extends Monster {
         }
 
         @Override
-        public boolean shouldContinue() {
+        public boolean canContinueToUse() {
             LivingEntity livingEntity = this.amethystGolemEntity.getTarget();
             if (livingEntity == null) {
                 return false;

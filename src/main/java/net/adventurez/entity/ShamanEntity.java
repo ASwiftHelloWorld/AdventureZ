@@ -49,33 +49,33 @@ public class ShamanEntity extends SpellCastingEntity {
     }
 
     public static AttributeSupplier.Builder createShamanAttributes() {
-        return Monster.createHostileAttributes().add(Attributes.GENERIC_MAX_HEALTH, 40.0D).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.3D)
-                .add(Attributes.GENERIC_ATTACK_DAMAGE, 6.0D).add(Attributes.GENERIC_ATTACK_KNOCKBACK, 1.0D).add(Attributes.GENERIC_FOLLOW_RANGE, 35.0D);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 40.0D).add(Attributes.MOVEMENT_SPEED, 0.3D)
+                .add(Attributes.ATTACK_DAMAGE, 6.0D).add(Attributes.ATTACK_KNOCKBACK, 1.0D).add(Attributes.FOLLOW_RANGE, 35.0D);
     }
 
     @Override
-    public void initGoals() {
-        super.initGoals();
-        this.goalSelector.add(0, new FloatGoal(this));
-        this.goalSelector.add(1, new LookAtTargetGoalShaman());
-        this.goalSelector.add(2, new NormalAttack(this, 1.0D, false));
-        this.goalSelector.add(2, new AvoidEntityGoal<>(this, Player.class, 8.0F, 0.7D, 0.9D));
-        this.goalSelector.add(4, new SummonCompanionsGoal());
-        this.goalSelector.add(5, new ThunderboltSpellGoal());
-        this.goalSelector.add(7, new EffectSpellGoal());
-        this.goalSelector.add(8, new LookAtPlayerGoal(this, Player.class, 7.0F, 1.0F));
-        this.goalSelector.add(9, new RandomStrollGoal(this, 0.9D));
-        this.goalSelector.add(10, new LookAtPlayerGoal(this, Mob.class, 8.0F));
-        this.targetSelector.add(1, (new HurtByTargetGoal(this, new Class[] { Witch.class })));
-        this.targetSelector.add(2, (new HurtByTargetGoal(this, new Class[] { Zombie.class })));
-        this.targetSelector.add(3, (new HurtByTargetGoal(this, new Class[] { Skeleton.class })));
-        this.targetSelector.add(3, (new HurtByTargetGoal(this, new Class[] { Spider.class })));
-        this.targetSelector.add(3, (new HurtByTargetGoal(this, new Class[] { CaveSpider.class })));
-        this.targetSelector.add(4, (new NearestAttackableTargetGoal<>(this, Player.class, true)).setMaxTimeWithoutVisibility(300));
+    public void registerGoals() {
+        super.registerGoals();
+        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new LookAtTargetGoalShaman());
+        this.goalSelector.addGoal(2, new NormalAttack(this, 1.0D, false));
+        this.goalSelector.addGoal(2, new AvoidEntityGoal<>(this, Player.class, 8.0F, 0.7D, 0.9D));
+        this.goalSelector.addGoal(4, new SummonCompanionsGoal());
+        this.goalSelector.addGoal(5, new ThunderboltSpellGoal());
+        this.goalSelector.addGoal(7, new EffectSpellGoal());
+        this.goalSelector.addGoal(8, new LookAtPlayerGoal(this, Player.class, 7.0F, 1.0F));
+        this.goalSelector.addGoal(9, new RandomStrollGoal(this, 0.9D));
+        this.goalSelector.addGoal(10, new LookAtPlayerGoal(this, Mob.class, 8.0F));
+        this.targetSelector.addGoal(1, (new HurtByTargetGoal(this, new Class[] { Witch.class })));
+        this.targetSelector.addGoal(2, (new HurtByTargetGoal(this, new Class[] { Zombie.class })));
+        this.targetSelector.addGoal(3, (new HurtByTargetGoal(this, new Class[] { Skeleton.class })));
+        this.targetSelector.addGoal(3, (new HurtByTargetGoal(this, new Class[] { Spider.class })));
+        this.targetSelector.addGoal(3, (new HurtByTargetGoal(this, new Class[] { CaveSpider.class })));
+        this.targetSelector.addGoal(4, (new NearestAttackableTargetGoal<>(this, Player.class, true)).setMaxTimeWithoutVisibility(300));
     }
 
     public static boolean canSpawn(EntityType<ShamanEntity> type, ServerLevelAccessor world, EntitySpawnReason spawnReason, BlockPos pos, RandomSource random) {
-        return (canSpawnInDark(type, world, spawnReason, pos, random) && world.isSkyVisible(pos)) || spawnReason == EntitySpawnReason.SPAWNER;
+        return (Monster.checkMonsterSpawnRules(type, world, spawnReason, pos, random) && world.isSkyVisible(pos)) || spawnReason == EntitySpawnReason.SPAWNER;
 
     }
 
@@ -110,7 +110,7 @@ public class ShamanEntity extends SpellCastingEntity {
     }
 
     private boolean tooManyCompanions() {
-        List<LivingEntity> list = this.level().getEntitiesByClass(LivingEntity.class, this.getBoundingBox().inflate(40D), EntitySelector.EXCEPT_SPECTATOR);
+        List<LivingEntity> list = this.level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(40D), EntitySelector.NO_SPECTATORS);
         if (!list.isEmpty()) {
             int spiders = 0;
             int othermobs = 0;
@@ -150,9 +150,9 @@ public class ShamanEntity extends SpellCastingEntity {
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             LivingEntity attacker = ShamanEntity.this.getAttacker();
-            if (super.canStart() && attacker != null && attacker.getMainHandItem().getItem() instanceof ProjectileWeaponItem && ShamanEntity.this.squaredDistanceTo(attacker) > 12
+            if (super.canUse() && attacker != null && attacker.getMainHandItem().getItem() instanceof ProjectileWeaponItem && ShamanEntity.this.squaredDistanceTo(attacker) > 12
                     && ShamanEntity.this.level().isRaining()) {
                 return true;
             } else {
@@ -207,8 +207,8 @@ public class ShamanEntity extends SpellCastingEntity {
         }
 
         @Override
-        public boolean canStart() {
-            if (!super.canStart()) {
+        public boolean canUse() {
+            if (!super.canUse()) {
                 return false;
             } else
                 return true;
@@ -246,8 +246,8 @@ public class ShamanEntity extends SpellCastingEntity {
         }
 
         @Override
-        public boolean canStart() {
-            if (!super.canStart() || tooManyCompanions()) {
+        public boolean canUse() {
+            if (!super.canUse() || tooManyCompanions()) {
                 return false;
             } else
                 return true;
@@ -270,7 +270,7 @@ public class ShamanEntity extends SpellCastingEntity {
             for (int i = 0; i < 20; ++i) {
                 BlockPos blockPos = ShamanEntity.this.getBlockPos().add(-3 + ShamanEntity.this.getRandom().nextInt(6), ShamanEntity.this.getRandom().nextInt(3),
                         -3 + ShamanEntity.this.getRandom().nextInt(6));
-                if (SpawnPlacements.canSpawn(EntityType.ZOMBIE, serverWorld, EntitySpawnReason.EVENT, blockPos, serverWorld.getRandom())) {
+                if (SpawnPlacements.checkSpawnRules(EntityType.ZOMBIE, serverWorld, EntitySpawnReason.EVENT, blockPos, serverWorld.getRandom())) {
                     spellCount++;
                     if (ShamanEntity.this.getRandom().nextFloat() < 0.6F) {
                         CaveSpider caveSpiderEntity = EntityType.CAVE_SPIDER.create(serverWorld);
@@ -333,13 +333,13 @@ public class ShamanEntity extends SpellCastingEntity {
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             LivingEntity livingEntity = this.summonerEntity.getTarget();
-            return livingEntity != null && livingEntity.isAlive() && this.summonerEntity.canTarget(livingEntity) && this.summonerEntity.squaredDistanceTo(livingEntity) < 7.0D && super.canStart();
+            return livingEntity != null && livingEntity.isAlive() && this.summonerEntity.canTarget(livingEntity) && this.summonerEntity.squaredDistanceTo(livingEntity) < 7.0D && super.canUse();
         }
 
         @Override
-        public boolean shouldContinue() {
+        public boolean canContinueToUse() {
             LivingEntity livingEntity = this.mob.getTarget();
             if (livingEntity == null || this.summonerEntity.squaredDistanceTo(livingEntity) > 5D) {
                 return false;

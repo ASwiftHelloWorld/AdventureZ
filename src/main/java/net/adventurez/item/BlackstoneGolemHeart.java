@@ -39,7 +39,7 @@ public class BlackstoneGolemHeart extends Item {
 
     @Override
     public void inventoryTick(ItemStack stack, Level world, Entity entity, int slot, boolean selected) {
-        if ((int) world.getTime() % 100 == 0) {
+        if ((int) world.getGameTime() % 100 == 0) {
             world.playSound(null, entity.getBlockPos(), SoundInit.HEART_BEAT_EVENT, SoundSource.AMBIENT, 1F, 1F);
         }
     }

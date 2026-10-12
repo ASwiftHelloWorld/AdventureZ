@@ -10,16 +10,16 @@ public class DragonSitGoal extends Goal {
 
     public DragonSitGoal(DragonEntity dragonEntity) {
         this.dragonEntity = dragonEntity;
-        this.setControls(EnumSet.of(Goal.Control.JUMP, Goal.Control.MOVE));
+        this.setFlags(EnumSet.of(Goal.Flag.JUMP, Goal.Flag.MOVE));
     }
 
     @Override
-    public boolean shouldContinue() {
+    public boolean canContinueToUse() {
         return this.dragonEntity.isInSittingPose();
     }
 
     @Override
-    public boolean canStart() {
+    public boolean canUse() {
         if (!this.dragonEntity.isTamed()) {
             return false;
         } else if (this.dragonEntity.isInsideWaterOrBubbleColumn()) {

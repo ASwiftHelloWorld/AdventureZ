@@ -28,7 +28,7 @@ public class DragonEyesFeatureRenderer extends RenderLayer<DragonEntity, DragonM
     public void render(PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int i, DragonEntity dragonEntity, float f, float g, float h, float j, float k, float l) {
         VertexConsumer vertexConsumer = vertexConsumerProvider.getBuffer(EYE_LAYER);
         if (dragonEntity.isTamed()) {
-            if (dragonEntity.getDataTracker().get(DragonEntity.OTHER_EYES)) {
+            if (dragonEntity.getEntityData().get(DragonEntity.OTHER_EYES)) {
                 vertexConsumer = vertexConsumerProvider.getBuffer(FRIENDLY_ORANGE_EYE_LAYER);
             } else {
                 vertexConsumer = vertexConsumerProvider.getBuffer(FRIENDLY_EYE_LAYER);

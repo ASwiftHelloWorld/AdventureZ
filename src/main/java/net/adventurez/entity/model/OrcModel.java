@@ -93,7 +93,7 @@ public class OrcModel<T extends OrcEntity> extends ListModel<T> {
         float k = Mth.sin(entity.handSwingProgress * 3.1415927F);
         if (k > 0) {
             this.rightArm.pitch = -k;
-            if (entity.getDataTracker().get(OrcEntity.DOUBLE_HAND_ATTACK)) {
+            if (entity.getEntityData().get(OrcEntity.DOUBLE_HAND_ATTACK)) {
                 this.leftArm.pitch = -k;
             }
         }

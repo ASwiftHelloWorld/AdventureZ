@@ -71,18 +71,18 @@ public class SoulReaperEntity extends Monster implements RangedAttackMob {
     }
 
     public static AttributeSupplier.Builder createSoulReaperAttributes() {
-        return Monster.createHostileAttributes().add(Attributes.GENERIC_MOVEMENT_SPEED, 0.25D).add(Attributes.GENERIC_MAX_HEALTH, 120.0D);
+        return Monster.createMonsterAttributes().add(Attributes.MOVEMENT_SPEED, 0.25D).add(Attributes.MAX_HEALTH, 120.0D);
     }
 
     @Override
-    public void initGoals() {
-        this.goalSelector.add(0, new FloatGoal(this));
-        this.goalSelector.add(5, new WaterAvoidingRandomStrollGoal(this, 1.0D));
-        this.goalSelector.add(6, new LookAtPlayerGoal(this, Player.class, 8.0F));
-        this.goalSelector.add(7, new RandomLookAroundGoal(this));
-        this.targetSelector.add(1, (new HurtByTargetGoal(this, new Class[] { SoulReaperEntity.class })));
-        this.targetSelector.add(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
-        this.targetSelector.add(3, new NearestAttackableTargetGoal<>(this, AbstractPiglin.class, true));
+    public void registerGoals() {
+        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 1.0D));
+        this.goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 8.0F));
+        this.goalSelector.addGoal(7, new RandomLookAroundGoal(this));
+        this.targetSelector.addGoal(1, (new HurtByTargetGoal(this, new Class[] { SoulReaperEntity.class })));
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, AbstractPiglin.class, true));
     }
 
     @Override
@@ -93,7 +93,7 @@ public class SoulReaperEntity extends Monster implements RangedAttackMob {
         this.initEquipment(random, difficulty);
         this.updateEnchantments(serverWorldAccess, random, difficulty);
         this.bowAttackGoal.setAttackInterval(40);
-        this.goalSelector.add(4, this.bowAttackGoal);
+        this.goalSelector.addGoal(4, this.bowAttackGoal);
         if (spawnReason.equals(EntitySpawnReason.COMMAND) || spawnReason.equals(EntitySpawnReason.NATURAL) || spawnReason.equals(EntitySpawnReason.CHUNK_GENERATION)) {
             NightmareEntity nightmareEntity = EntityInit.NIGHTMARE.create(this.level());
             nightmareEntity.refreshPositionAndAngles(this.getX(), this.getY(), this.getZ(), this.getYaw(), 0.0F);
@@ -110,8 +110,8 @@ public class SoulReaperEntity extends Monster implements RangedAttackMob {
     }
 
     public static boolean canSpawn(EntityType<SoulReaperEntity> type, ServerLevelAccessor world, EntitySpawnReason spawnReason, BlockPos pos, RandomSource random) {
-        return (canSpawnInDark(type, world, spawnReason, pos, random) && world.getBlockState(pos.up(3)).isAir()
-                && world.getEntitiesByClass(SoulReaperEntity.class, new AABB(pos).inflate(60D), EntitySelector.EXCEPT_SPECTATOR).isEmpty() && random.nextInt(7) == 0)
+        return (Monster.checkMonsterSpawnRules(type, world, spawnReason, pos, random) && world.getBlockState(pos.above(3)).isAir()
+                && world.getEntitiesOfClass(SoulReaperEntity.class, new AABB(pos).inflate(60D), EntitySelector.NO_SPECTATORS).isEmpty() && random.nextInt(7) == 0)
                 || spawnReason == EntitySpawnReason.SPAWNER;
     }
 
@@ -159,19 +159,19 @@ public class SoulReaperEntity extends Monster implements RangedAttackMob {
                         this.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
                         this.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
                     }
-                    this.goalSelector.add(4, this.bowAttackGoal);
+                    this.goalSelector.addGoal(4, this.bowAttackGoal);
                     this.goalSelector.remove(this.meleeAttackGoal);
                 } else {
                     this.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
                     this.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.NETHERITE_SWORD));
-                    this.goalSelector.add(4, this.meleeAttackGoal);
+                    this.goalSelector.addGoal(4, this.meleeAttackGoal);
                     this.goalSelector.remove(this.bowAttackGoal);
                 }
             } else {
                 if (this.getItemBySlot(EquipmentSlot.MAINHAND).getItem().equals(Items.BOW)) {
-                    this.goalSelector.add(4, this.bowAttackGoal);
+                    this.goalSelector.addGoal(4, this.bowAttackGoal);
                 } else {
-                    this.goalSelector.add(4, this.meleeAttackGoal);
+                    this.goalSelector.addGoal(4, this.meleeAttackGoal);
                 }
             }
         }

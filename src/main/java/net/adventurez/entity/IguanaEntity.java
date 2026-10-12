@@ -21,7 +21,6 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData.Builder;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.animal.Animal;
@@ -47,31 +46,31 @@ public class IguanaEntity extends Animal {
     }
 
     public static AttributeSupplier.Builder createIguanaAttributes() {
-        return Mob.createMobAttributes().add(Attributes.GENERIC_MAX_HEALTH, 10.0D).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.22D);
+        return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 10.0D).add(Attributes.MOVEMENT_SPEED, 0.22D);
     }
 
     public static boolean isValidNaturalSpawn(EntityType<? extends Animal> type, LevelAccessor world, EntitySpawnReason spawnReason, BlockPos pos, RandomSource random) {
-        return world.getBlockState(pos.down()).isOf(Blocks.RED_SAND) && world.getBaseLightLevel(pos, 0) > 8;
+        return world.getBlockState(pos.below()).isOf(Blocks.RED_SAND) && world.getBaseLightLevel(pos, 0) > 8;
     }
 
     @Override
-    protected void initGoals() {
-        super.initGoals();
-        this.goalSelector.add(0, new FloatGoal(this));
-        this.goalSelector.add(1, new PanicGoal(this, 1.8D));
-        this.goalSelector.add(2, new BreedGoal(this, 1.0D));
-        this.goalSelector.add(3, new TemptGoal(this, 1.25D, Ingredient.ofItems(Items.DEAD_BUSH), false));
-        this.goalSelector.add(4, new FollowParentGoal(this, 1.25D));
-        this.goalSelector.add(5, new WaterAvoidingRandomStrollGoal(this, 1.0D));
-        this.goalSelector.add(6, new LookAtPlayerGoal(this, Player.class, 5.0F));
-        this.goalSelector.add(7, new RandomLookAroundGoal(this));
-        this.goalSelector.add(8, new EatDeadBushGoal(this, 1.0D));
+    protected void registerGoals() {
+        super.registerGoals();
+        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new PanicGoal(this, 1.8D));
+        this.goalSelector.addGoal(2, new BreedGoal(this, 1.0D));
+        this.goalSelector.addGoal(3, new TemptGoal(this, 1.25D, Ingredient.ofItems(Items.DEAD_BUSH), false));
+        this.goalSelector.addGoal(4, new FollowParentGoal(this, 1.25D));
+        this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 1.0D));
+        this.goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 5.0F));
+        this.goalSelector.addGoal(7, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal(8, new EatDeadBushGoal(this, 1.0D));
     }
 
     @Override
-    protected void initDataTracker(Builder builder) {
-        super.initDataTracker(builder);
-        builder.add(OPEN_MOUTH, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(OPEN_MOUTH, false);
     }
 
     @Override
@@ -105,7 +104,7 @@ public class IguanaEntity extends Animal {
     }
 
     static {
-        OPEN_MOUTH = SynchedEntityData.registerData(IguanaEntity.class, EntityDataSerializers.BOOLEAN);
+        OPEN_MOUTH = SynchedEntityData.defineId(IguanaEntity.class, EntityDataSerializers.BOOLEAN);
     }
 
     private class EatDeadBushGoal extends MoveToBlockGoal {
@@ -117,20 +116,20 @@ public class IguanaEntity extends Animal {
         }
 
         @Override
-        public boolean canStart() {
-            return !this.iguanaEntity.isBaby() && !this.iguanaEntity.isInLove() && super.canStart();
+        public boolean canUse() {
+            return !this.iguanaEntity.isBaby() && !this.iguanaEntity.isInLove() && super.canUse();
         }
 
         @Override
         public void start() {
             super.start();
-            this.iguanaEntity.dataTracker.set(IguanaEntity.OPEN_MOUTH, true);
+            this.iguanaEntity.entityData.set(IguanaEntity.OPEN_MOUTH, true);
         }
 
         @Override
         public void stop() {
             super.stop();
-            this.iguanaEntity.dataTracker.set(IguanaEntity.OPEN_MOUTH, false);
+            this.iguanaEntity.entityData.set(IguanaEntity.OPEN_MOUTH, false);
         }
 
         @Override

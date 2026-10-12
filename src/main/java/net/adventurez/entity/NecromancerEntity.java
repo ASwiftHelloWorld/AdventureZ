@@ -48,29 +48,29 @@ public class NecromancerEntity extends SpellCastingEntity {
     }
 
     public static AttributeSupplier.Builder createNecromancerAttributes() {
-        return Monster.createHostileAttributes().add(Attributes.GENERIC_MAX_HEALTH, 45.0D).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.34D)
-                .add(Attributes.GENERIC_ATTACK_DAMAGE, 5.0D).add(Attributes.GENERIC_ATTACK_KNOCKBACK, 0.1D).add(Attributes.GENERIC_FOLLOW_RANGE, 38.0D);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 45.0D).add(Attributes.MOVEMENT_SPEED, 0.34D)
+                .add(Attributes.ATTACK_DAMAGE, 5.0D).add(Attributes.ATTACK_KNOCKBACK, 0.1D).add(Attributes.FOLLOW_RANGE, 38.0D);
     }
 
     @Override
-    public void initGoals() {
-        super.initGoals();
-        this.goalSelector.add(0, new FloatGoal(this));
-        this.goalSelector.add(1, new LookAtTargetGoalNecro());
-        this.goalSelector.add(2, new AvoidEntityGoal<>(this, Player.class, 8.0F, 0.6D, 1.0D));
-        this.goalSelector.add(4, new SummonPuppetGoal());
-        this.goalSelector.add(5, new MagicWitheringGoal());
-        this.goalSelector.add(7, new RandomStrollGoal(this, 0.9D));
-        this.goalSelector.add(8, new LookAtPlayerGoal(this, Player.class, 5.0F, 1.0F));
-        this.goalSelector.add(9, new LookAtPlayerGoal(this, Mob.class, 8.0F));
-        this.targetSelector.add(1, (new HurtByTargetGoal(this, new Class[] { WitherPuppetEntity.class })));
-        this.targetSelector.add(2, (new HurtByTargetGoal(this, new Class[] { WitherSkeleton.class })));
-        this.targetSelector.add(3, (new NearestAttackableTargetGoal<>(this, Player.class, true)).setMaxTimeWithoutVisibility(300));
+    public void registerGoals() {
+        super.registerGoals();
+        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new LookAtTargetGoalNecro());
+        this.goalSelector.addGoal(2, new AvoidEntityGoal<>(this, Player.class, 8.0F, 0.6D, 1.0D));
+        this.goalSelector.addGoal(4, new SummonPuppetGoal());
+        this.goalSelector.addGoal(5, new MagicWitheringGoal());
+        this.goalSelector.addGoal(7, new RandomStrollGoal(this, 0.9D));
+        this.goalSelector.addGoal(8, new LookAtPlayerGoal(this, Player.class, 5.0F, 1.0F));
+        this.goalSelector.addGoal(9, new LookAtPlayerGoal(this, Mob.class, 8.0F));
+        this.targetSelector.addGoal(1, (new HurtByTargetGoal(this, new Class[] { WitherPuppetEntity.class })));
+        this.targetSelector.addGoal(2, (new HurtByTargetGoal(this, new Class[] { WitherSkeleton.class })));
+        this.targetSelector.addGoal(3, (new NearestAttackableTargetGoal<>(this, Player.class, true)).setMaxTimeWithoutVisibility(300));
     }
 
     public static boolean canSpawn(EntityType<NecromancerEntity> type, ServerLevelAccessor world, EntitySpawnReason spawnReason, BlockPos pos, RandomSource random) {
-        return (canSpawnInDark(type, world, spawnReason, pos, random) && world.getBlockState(pos.down()).equals(Blocks.NETHER_BRICKS.defaultBlockState())
-                && world.getEntitiesByClass(NecromancerEntity.class, new AABB(pos).inflate(60D), EntitySelector.EXCEPT_SPECTATOR).isEmpty()) || spawnReason == EntitySpawnReason.SPAWNER;
+        return (Monster.checkMonsterSpawnRules(type, world, spawnReason, pos, random) && world.getBlockState(pos.below()).equals(Blocks.NETHER_BRICKS.defaultBlockState())
+                && world.getEntitiesOfClass(NecromancerEntity.class, new AABB(pos).inflate(60D), EntitySelector.NO_SPECTATORS).isEmpty()) || spawnReason == EntitySpawnReason.SPAWNER;
     }
 
     @Override
@@ -155,9 +155,9 @@ public class NecromancerEntity extends SpellCastingEntity {
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             LivingEntity livingEntity = NecromancerEntity.this.getTarget();
-            if (!super.canStart()) {
+            if (!super.canUse()) {
                 return false;
             } else if (NecromancerEntity.this.squaredDistanceTo(livingEntity) < 15.0D && NecromancerEntity.this.age >= this.startTime) {
                 return true;
@@ -199,8 +199,8 @@ public class NecromancerEntity extends SpellCastingEntity {
         }
 
         @Override
-        public boolean canStart() {
-            if (!super.canStart() || arePuppetsNearby()) {
+        public boolean canUse() {
+            if (!super.canUse() || arePuppetsNearby()) {
                 return false;
             } else {
                 int i = NecromancerEntity.this.level()
@@ -225,7 +225,7 @@ public class NecromancerEntity extends SpellCastingEntity {
             int spellCount = 0;
             for (int i = 0; i < 20; ++i) {
                 BlockPos blockPos = NecromancerEntity.this.getBlockPos().add(-2 + NecromancerEntity.this.getRandom().nextInt(5), 1, -2 + NecromancerEntity.this.getRandom().nextInt(5));
-                if (SpawnPlacements.canSpawn(EntityInit.WITHER_PUPPET, serverWorld, EntitySpawnReason.EVENT, blockPos, serverWorld.getRandom())) {
+                if (SpawnPlacements.checkSpawnRules(EntityInit.WITHER_PUPPET, serverWorld, EntitySpawnReason.EVENT, blockPos, serverWorld.getRandom())) {
                     spellCount++;
                     WitherPuppetEntity puppet = EntityInit.WITHER_PUPPET.create(serverWorld);
                     puppet.initialize(serverWorld, serverWorld.getLocalDifficulty(blockPos), EntitySpawnReason.EVENT, null);
@@ -273,7 +273,7 @@ public class NecromancerEntity extends SpellCastingEntity {
     }
 
     private boolean arePuppetsNearby() {
-        List<LivingEntity> list = this.level().getEntitiesByClass(LivingEntity.class, this.getBoundingBox().inflate(40D), EntitySelector.EXCEPT_SPECTATOR);
+        List<LivingEntity> list = this.level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(40D), EntitySelector.NO_SPECTATORS);
         if (!list.isEmpty()) {
             for (int i = 0; i < list.size(); i++) {
                 LivingEntity entity = (LivingEntity) list.get(i);

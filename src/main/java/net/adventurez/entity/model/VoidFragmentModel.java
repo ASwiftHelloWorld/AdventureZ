@@ -73,7 +73,7 @@ public class VoidFragmentModel<T extends Entity> extends ListModel<T> {
 
     @Override
     public void setAngles(T entity, float limbAngle, float limbDistance, float animationProgress, float headYaw, float headPitch) {
-        if (entity.getDataTracker().get(VoidFragmentEntity.IS_VOID_ORB)) {
+        if (entity.getEntityData().get(VoidFragmentEntity.IS_VOID_ORB)) {
             big.visible = true;
             small.visible = false;
             this.big.pivotY = 6.0F + Mth.cos(animationProgress * 0.1662F) * 0.6F;

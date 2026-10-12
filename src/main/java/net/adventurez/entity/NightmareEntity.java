@@ -43,7 +43,7 @@ public class NightmareEntity extends SkeletonHorse {
     }
 
     public static AttributeSupplier.Builder createNightmareAttributes() {
-        return createBaseHorseAttributes().add(Attributes.GENERIC_MAX_HEALTH, 40.0D).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.215D).add(Attributes.GENERIC_ATTACK_DAMAGE, 7.0D);
+        return createBaseHorseAttributes().add(Attributes.MAX_HEALTH, 40.0D).add(Attributes.MOVEMENT_SPEED, 0.215D).add(Attributes.ATTACK_DAMAGE, 7.0D);
     }
 
     @Override
@@ -54,7 +54,7 @@ public class NightmareEntity extends SkeletonHorse {
             }
 
             if (this.eatsGrass()) {
-                if (!this.isEatingGrass() && !this.hasPassengers() && this.random.nextInt(500) == 0 && this.level().getBlockState(this.getBlockPos().down()).isOf(Blocks.SOUL_SAND)) {
+                if (!this.isEatingGrass() && !this.hasPassengers() && this.random.nextInt(500) == 0 && this.level().getBlockState(this.getBlockPos().below()).isOf(Blocks.SOUL_SAND)) {
                     this.setEatingGrass(true);
                 }
 
@@ -88,10 +88,10 @@ public class NightmareEntity extends SkeletonHorse {
             }
         }
 
-        if (this.isOnSoulSpeedBlock() && !this.getAttributes().hasModifierForAttribute(Attributes.GENERIC_MOVEMENT_SPEED, WALKING_SPEED_INCREASE_ID)) {
-            this.getAttributeInstance(Attributes.GENERIC_MOVEMENT_SPEED).addTemporaryModifier(WALKING_SPEED_INCREASE);
-        } else if (!this.isOnSoulSpeedBlock() && this.getAttributes().hasModifierForAttribute(Attributes.GENERIC_MOVEMENT_SPEED, WALKING_SPEED_INCREASE_ID)) {
-            this.getAttributeInstance(Attributes.GENERIC_MOVEMENT_SPEED).removeModifier(WALKING_SPEED_INCREASE_ID);
+        if (this.isOnSoulSpeedBlock() && !this.getAttributes().hasModifierForAttribute(Attributes.MOVEMENT_SPEED, WALKING_SPEED_INCREASE_ID)) {
+            this.getAttribute(Attributes.MOVEMENT_SPEED).addTemporaryModifier(WALKING_SPEED_INCREASE);
+        } else if (!this.isOnSoulSpeedBlock() && this.getAttributes().hasModifierForAttribute(Attributes.MOVEMENT_SPEED, WALKING_SPEED_INCREASE_ID)) {
+            this.getAttribute(Attributes.MOVEMENT_SPEED).removeModifier(WALKING_SPEED_INCREASE_ID);
         }
         super.tickMovement();
     }

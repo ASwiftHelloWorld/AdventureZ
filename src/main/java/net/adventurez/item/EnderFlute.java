@@ -43,10 +43,10 @@ public class EnderFlute extends Item {
     @Override
     public InteractionResult<ItemStack> use(Level world, Player user, InteractionHand hand) {
         ItemStack itemStack = user.getItemInHand(hand);
-        world.playSound(null, user.getX(), user.getY(), user.getZ(), SoundInit.FLUTE_CALL_EVENT, SoundSource.PLAYERS, 1.0F, world.random.nextFloat() * 0.2F + 0.9F);
+        world.playSound(null, user.getX(), user.getY(), user.getZ(), SoundInit.FLUTE_CALL_EVENT, SoundSource.PLAYERS, 1.0F, world.getRandom().nextFloat() * 0.2F + 0.9F);
         if (!world.isClientSide()) {
             itemStack.damage(1, user, LivingEntity.getSlotForHand(hand));
-            List<EnderWhaleEntity> list = world.getEntitiesByClass(EnderWhaleEntity.class, new AABB(user.getBlockPos()).inflate(100D), EntitySelector.EXCEPT_SPECTATOR);
+            List<EnderWhaleEntity> list = world.getEntitiesOfClass(EnderWhaleEntity.class, new AABB(user.getBlockPos()).inflate(100D), EntitySelector.NO_SPECTATORS);
             if (!list.isEmpty()) {
                 list.get(0).getMoveControl().moveTo(user.getX(), user.getY(), user.getZ(), 1.0D);
             }
@@ -62,9 +62,9 @@ public class EnderFlute extends Item {
             Player playerEntity = (Player) entity;
             float cooldownProgress = playerEntity.getItemCooldownManager().getCooldownProgress(stack.getItem(), 0.0F);
             if (cooldownProgress > 0.0F) {
-                world.addParticle(ParticleTypes.NOTE, (double) playerEntity.getX() + playerEntity.getRotationVecClient().getX() + world.random.nextDouble() * 0.4D,
-                        (double) playerEntity.getY() + playerEntity.getHeight() * 0.8D, (double) playerEntity.getZ() + playerEntity.getRotationVecClient().getZ() + world.random.nextDouble() * 0.4D,
-                        playerEntity.getRotationVecClient().getX() * world.random.nextDouble(), 0.0D, 0.0D);
+                world.addParticle(ParticleTypes.NOTE, (double) playerEntity.getX() + playerEntity.getRotationVecClient().getX() + world.getRandom().nextDouble() * 0.4D,
+                        (double) playerEntity.getY() + playerEntity.getHeight() * 0.8D, (double) playerEntity.getZ() + playerEntity.getRotationVecClient().getZ() + world.getRandom().nextDouble() * 0.4D,
+                        playerEntity.getRotationVecClient().getX() * world.getRandom().nextDouble(), 0.0D, 0.0D);
             }
         }
     }

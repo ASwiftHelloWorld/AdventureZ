@@ -75,7 +75,7 @@ public class SourceStone extends Item {
         if (!world.getBlockState(blockPos).isAir()) {
             for (int i = 2; i < 6; i++) {
                 BlockPos newBlockPos = new BlockPos(blockPos).offset(direction.getOpposite(), i);
-                BlockPos upperBlockPos = newBlockPos.up();
+                BlockPos upperBlockPos = newBlockPos.above();
                 if (!world.getBlockState(newBlockPos).isSolidBlock(world, newBlockPos) && !world.getBlockState(upperBlockPos).isSolidBlock(world, upperBlockPos)) {
                     playerEntity
                             .teleportTo(new TeleportTransition(world, newBlockPos.toBottomCenterPos(), playerEntity.getVelocity(), playerEntity.getYaw(), playerEntity.getPitch(), TeleportTransition.NO_OP));

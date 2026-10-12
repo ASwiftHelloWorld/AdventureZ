@@ -1,5 +1,8 @@
 package net.adventurez.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -32,9 +35,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData.Builder;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.entity.FlyingMob;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
@@ -70,7 +71,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("deprecation")
-public class TheEyeEntity extends FlyingMob implements Enemy {
+public class TheEyeEntity extends AdventureFlyingMob implements Enemy {
     private static final EntityDataAccessor<Integer> BEAM_TARGET_ID;
     public static final EntityDataAccessor<Integer> INVUL_TIMER;
     private int field_7082;
@@ -97,45 +98,45 @@ public class TheEyeEntity extends FlyingMob implements Enemy {
     }
 
     public static AttributeSupplier.Builder createTheEntityAttributes() {
-        return Monster.createHostileAttributes().add(Attributes.GENERIC_MAX_HEALTH, 800.0D).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.35D)
-                .add(Attributes.GENERIC_FOLLOW_RANGE, 60.0D).add(Attributes.GENERIC_ARMOR, 5.0D);
+        return Monster.createMonsterAttributes().add(Attributes.MAX_HEALTH, 800.0D).add(Attributes.MOVEMENT_SPEED, 0.35D)
+                .add(Attributes.FOLLOW_RANGE, 60.0D).add(Attributes.ARMOR, 5.0D);
     }
 
     @Override
-    protected void initGoals() {
-        this.goalSelector.add(0, new ShootBulletGoal(this));
-        this.goalSelector.add(1, new FireBeamGoal(this));
-        this.goalSelector.add(2, new DuplicateAttack(this));
-        this.goalSelector.add(3, new FlyRandomlyGoal(this));
-        this.goalSelector.add(2, new LookAtTargetGoal(this));
-        this.goalSelector.add(8, new RandomLookAroundGoal(this));
-        this.targetSelector.add(1, new NearestAttackableTargetGoal<>(this, Player.class, true));
+    protected void registerGoals() {
+        this.goalSelector.addGoal(0, new ShootBulletGoal(this));
+        this.goalSelector.addGoal(1, new FireBeamGoal(this));
+        this.goalSelector.addGoal(2, new DuplicateAttack(this));
+        this.goalSelector.addGoal(3, new FlyRandomlyGoal(this));
+        this.goalSelector.addGoal(2, new LookAtTargetGoal(this));
+        this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
+        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, true));
     }
 
     @Override
-    protected void initDataTracker(Builder builder) {
-        super.initDataTracker(builder);
-        builder.add(INVUL_TIMER, 0);
-        builder.add(BEAM_TARGET_ID, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(INVUL_TIMER, 0);
+        builder.define(BEAM_TARGET_ID, 0);
     }
 
     @Override
-    public void writeCustomDataToNbt(CompoundTag tag) {
-        super.writeCustomDataToNbt(tag);
-        tag.putInt("Invul", this.getInvulnerableTimer());
-        tag.putInt("DeathTimer", this.deathTimer);
-        tag.putInt("DuplicationTimer", this.duplicationTimer);
+    public void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putInt("Invul", this.getInvulnerableTimer());
+        output.putInt("DeathTimer", this.deathTimer);
+        output.putInt("DuplicationTimer", this.duplicationTimer);
     }
 
     @Override
-    public void readCustomDataFromNbt(CompoundTag tag) {
-        super.readCustomDataFromNbt(tag);
-        this.setInvulTimer(tag.getInt("Invul"));
+    public void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput input) {
+        super.readAdditionalSaveData(input);
+        this.setInvulTimer(input.getIntOr("Invul", 0));
         if (this.hasCustomName() && this.bossBar != null) {
             this.bossBar.setName(this.getDisplayName());
         }
-        this.deathTimer = tag.getInt("DeathTimer");
-        this.duplicationTimer = tag.getInt("DuplicationTimer");
+        this.deathTimer = input.getIntOr("DeathTimer", 0);
+        this.duplicationTimer = input.getIntOr("DuplicationTimer", 0);
     }
 
     @Override
@@ -209,7 +210,7 @@ public class TheEyeEntity extends FlyingMob implements Enemy {
                         float randomFloat = this.level().getRandom().nextFloat() * 6.2831855F;
                         int posX = livingEntity.getBlockPos().getX() + Mth.floor(Mth.cos(randomFloat) * 9.0F + livingEntity.level().getRandom().nextInt(12));
                         int posZ = livingEntity.getBlockPos().getZ() + Mth.floor(Mth.sin(randomFloat) * 9.0F + livingEntity.level().getRandom().nextInt(12));
-                        int posY = livingEntity.level().getTopY(Heightmap.Type.WORLD_SURFACE, posX, posZ) + 10 + livingEntity.level().getRandom().nextInt(12);
+                        int posY = livingEntity.level().getTopY(Heightmap.Types.WORLD_SURFACE, posX, posZ) + 10 + livingEntity.level().getRandom().nextInt(12);
                         BlockPos teleportPos = new BlockPos(posX, posY, posZ);
                         if (livingEntity.level().isRegionLoaded(teleportPos.getX() - 4, teleportPos.getY() - 4, teleportPos.getZ() - 4, teleportPos.getX() + 4, teleportPos.getY() + 4,
                                 teleportPos.getZ() + 4)) {
@@ -369,11 +370,11 @@ public class TheEyeEntity extends FlyingMob implements Enemy {
     }
 
     public int getInvulnerableTimer() {
-        return (Integer) this.dataTracker.get(INVUL_TIMER);
+        return (Integer) this.entityData.get(INVUL_TIMER);
     }
 
     public void setInvulTimer(int ticks) {
-        this.dataTracker.set(INVUL_TIMER, ticks);
+        this.entityData.set(INVUL_TIMER, ticks);
     }
 
     @Override
@@ -392,11 +393,11 @@ public class TheEyeEntity extends FlyingMob implements Enemy {
     }
 
     private void setBeamTarget(int entityId) {
-        this.dataTracker.set(BEAM_TARGET_ID, entityId);
+        this.entityData.set(BEAM_TARGET_ID, entityId);
     }
 
     public boolean hasBeamTarget() {
-        return (Integer) this.dataTracker.get(BEAM_TARGET_ID) != 0;
+        return (Integer) this.entityData.get(BEAM_TARGET_ID) != 0;
     }
 
     @Nullable
@@ -407,7 +408,7 @@ public class TheEyeEntity extends FlyingMob implements Enemy {
             if (this.cachedBeamTarget != null) {
                 return this.cachedBeamTarget;
             } else {
-                Entity entity = this.level().getEntityById((Integer) this.dataTracker.get(BEAM_TARGET_ID));
+                Entity entity = this.level().getEntityById((Integer) this.entityData.get(BEAM_TARGET_ID));
                 if (entity instanceof LivingEntity) {
                     this.cachedBeamTarget = (LivingEntity) entity;
                     return this.cachedBeamTarget;
@@ -454,7 +455,7 @@ public class TheEyeEntity extends FlyingMob implements Enemy {
                 BlockPos deathPos = BlockPos.ofFloored(this.getX(), this.getY() - 1, this.getZ());
                 if (deathTimer == 20 && !this.isVoidZLoaded) {
                     AABB box = new AABB(this.getBlockPos());
-                    List<Player> list = this.level().getEntitiesByClass(Player.class, box.inflate(128D), EntitySelector.EXCEPT_SPECTATOR);
+                    List<Player> list = this.level().getEntitiesOfClass(Player.class, box.inflate(128D), EntitySelector.NO_SPECTATORS);
                     for (int i = 0; i < list.size(); ++i) {
                         Player playerEntity = (Player) list.get(i);
                         if (playerEntity instanceof Player) {
@@ -473,12 +474,12 @@ public class TheEyeEntity extends FlyingMob implements Enemy {
                     }
                     // Platform
                     if (this.level().getHeight() - 10 < deathPos.getY())
-                        deathPos = deathPos.down(deathPos.getY() - this.level().getHeight() + 10);
+                        deathPos = deathPos.below(deathPos.getY() - this.level().getHeight() + 10);
                     this.placeDeathStructure(deathPos);
                     if (this.isVoidZLoaded) {
-                        this.level().setBlockState(deathPos.up(8).north().west(), BuiltInRegistries.BLOCK.get(Identifier.of("voidz", "void_portal")).defaultBlockState(), 3);
+                        this.level().setBlockState(deathPos.above(8).north().west(), BuiltInRegistries.BLOCK.get(Identifier.of("voidz", "void_portal")).defaultBlockState(), 3);
                     } else {
-                        this.level().setBlockState(deathPos.up(8).north().west(), Blocks.DRAGON_EGG.defaultBlockState(), 3);
+                        this.level().setBlockState(deathPos.above(8).north().west(), Blocks.DRAGON_EGG.defaultBlockState(), 3);
                     }
                     if (this.level().getRandom().nextFloat() <= 0.01F) {
                         this.dropItem(ItemInit.PRIME_EYE);
@@ -516,8 +517,8 @@ public class TheEyeEntity extends FlyingMob implements Enemy {
     }
 
     static {
-        INVUL_TIMER = SynchedEntityData.registerData(TheEyeEntity.class, EntityDataSerializers.INTEGER);
-        BEAM_TARGET_ID = SynchedEntityData.registerData(TheEyeEntity.class, EntityDataSerializers.INTEGER);
+        INVUL_TIMER = SynchedEntityData.defineId(TheEyeEntity.class, EntityDataSerializers.INTEGER);
+        BEAM_TARGET_ID = SynchedEntityData.defineId(TheEyeEntity.class, EntityDataSerializers.INTEGER);
     }
 
     private class FireBeamGoal extends Goal {
@@ -529,18 +530,18 @@ public class TheEyeEntity extends FlyingMob implements Enemy {
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             LivingEntity livingEntity = this.theEye.getTarget();
             return livingEntity != null && livingEntity.isAlive();
         }
 
         @Override
-        public boolean shouldContinue() {
+        public boolean canContinueToUse() {
             LivingEntity livingEntity = this.theEye.getTarget();
             if (this.theEye.gotDamage()) {
                 return false;
             }
-            return super.shouldContinue() && this.theEye.squaredDistanceTo(this.theEye.getTarget()) > 8.0D && livingEntity != null && livingEntity.getY() < this.theEye.getY();
+            return super.canContinueToUse() && this.theEye.squaredDistanceTo(this.theEye.getTarget()) > 8.0D && livingEntity != null && livingEntity.getY() < this.theEye.getY();
         }
 
         @Override
@@ -573,7 +574,7 @@ public class TheEyeEntity extends FlyingMob implements Enemy {
                         f += 1.0F;
                     }
                     livingEntity.damage(this.theEye.getDamageSources().magic(), f);
-                    livingEntity.damage(this.theEye.getDamageSources().mobAttack(this.theEye), (float) this.theEye.getAttributeValue(Attributes.GENERIC_ATTACK_DAMAGE));
+                    livingEntity.damage(this.theEye.getDamageSources().mobAttack(this.theEye), (float) this.theEye.getAttributeValue(Attributes.ATTACK_DAMAGE));
                     this.theEye.setTarget((LivingEntity) null);
                 }
 
@@ -587,12 +588,12 @@ public class TheEyeEntity extends FlyingMob implements Enemy {
         private final TheEyeEntity theEyeEntity;
 
         public ShootBulletGoal(TheEyeEntity theEyeEntity) {
-            this.setControls(EnumSet.of(Goal.Control.MOVE, Goal.Control.LOOK));
+            this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
             this.theEyeEntity = theEyeEntity;
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             this.counter++;
             LivingEntity livingEntity = theEyeEntity.getTarget();
             if (livingEntity != null && livingEntity.isAlive() && theEyeEntity.getHealth() < theEyeEntity.getMaxHealth() / 2 && this.counter >= 400) {
@@ -625,11 +626,11 @@ public class TheEyeEntity extends FlyingMob implements Enemy {
 
         public FlyRandomlyGoal(TheEyeEntity theEyeEntity) {
             this.theEyeEntity = theEyeEntity;
-            this.setControls(EnumSet.of(Goal.Control.MOVE));
+            this.setFlags(EnumSet.of(Goal.Flag.MOVE));
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             MoveControl moveControl = this.theEyeEntity.getMoveControl();
             if (!moveControl.isMoving()) {
                 return true;
@@ -643,7 +644,7 @@ public class TheEyeEntity extends FlyingMob implements Enemy {
         }
 
         @Override
-        public boolean shouldContinue() {
+        public boolean canContinueToUse() {
             return false;
         }
 
@@ -662,11 +663,11 @@ public class TheEyeEntity extends FlyingMob implements Enemy {
 
         public LookAtTargetGoal(TheEyeEntity theEyeEntity) {
             this.theEyeEntity = theEyeEntity;
-            this.setControls(EnumSet.of(Goal.Control.LOOK));
+            this.setFlags(EnumSet.of(Goal.Flag.LOOK));
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             return theEyeEntity.getInvulnerableTimer() <= 0;
         }
 
@@ -742,12 +743,12 @@ public class TheEyeEntity extends FlyingMob implements Enemy {
         }
 
         @Override
-        public boolean canStart() {
+        public boolean canUse() {
             this.cooldown++;
             LivingEntity livingEntity = theEyeEntity.getTarget();
 
             if (livingEntity != null && livingEntity.isAlive() && theEyeEntity.duplicationTimer <= 0 && this.cooldown >= 600) {
-                List<TheEyeEntity> list = theEyeEntity.level().getEntitiesByClass(TheEyeEntity.class, theEyeEntity.getBoundingBox().inflate(120D), EntitySelector.EXCEPT_CREATIVE_OR_SPECTATOR);
+                List<TheEyeEntity> list = theEyeEntity.level().getEntitiesOfClass(TheEyeEntity.class, theEyeEntity.getBoundingBox().inflate(120D), EntitySelector.EXCEPT_CREATIVE_OR_SPECTATOR);
                 if (!list.isEmpty())
                     for (int i = 0; i < list.size(); i++)
                         if (list.get(i).duplicationTimer > 0) {
@@ -769,13 +770,13 @@ public class TheEyeEntity extends FlyingMob implements Enemy {
                         pos = pos.add(pos.getX() - livingEntity.getBlockPos().getX() + theEyeEntity.level().getRandom().nextInt(6) * 5, 0,
                                 pos.getZ() - livingEntity.getBlockPos().getZ() + theEyeEntity.level().getRandom().nextInt(6) * 5);
                         if (theEyeEntity.level().getBlockState(pos).isAir()
-                                && SpawnPlacements.canSpawn(EntityInit.THE_EYE, (ServerLevel) theEyeEntity.level(), EntitySpawnReason.EVENT, pos, theEyeEntity.level().getRandom())) {
+                                && SpawnPlacements.checkSpawnRules(EntityInit.THE_EYE, (ServerLevel) theEyeEntity.level(), EntitySpawnReason.EVENT, pos, theEyeEntity.level().getRandom())) {
                             TheEyeEntity theEyeEntityDuplicate = EntityInit.THE_EYE.create(theEyeEntity.level());
                             theEyeEntityDuplicate.refreshPositionAndAngles(pos, theEyeEntity.level().getRandom().nextFloat() * 360F, 0.0F);
                             theEyeEntityDuplicate.initialize((ServerLevel) theEyeEntity.level(), theEyeEntity.level().getLocalDifficulty(pos), EntitySpawnReason.EVENT, null);
                             theEyeEntityDuplicate.duplicationTimer = 800;
                             theEyeEntityDuplicate.setAttacker(livingEntity);
-                            theEyeEntityDuplicate.getAttributeInstance(Attributes.GENERIC_MAX_HEALTH).setBaseValue(100.0D);
+                            theEyeEntityDuplicate.getAttribute(Attributes.MAX_HEALTH).setBaseValue(100.0D);
                             theEyeEntity.level().spawnEntity(theEyeEntityDuplicate);
                             for (int u = 0; u < 50; u++) {
                                 double d = (double) theEyeEntityDuplicate.getX() - 1.5F + theEyeEntity.level().getRandom().nextFloat() * 3.0F;

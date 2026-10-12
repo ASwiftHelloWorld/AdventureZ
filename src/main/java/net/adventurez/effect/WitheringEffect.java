@@ -31,7 +31,7 @@ public class WitheringEffect extends MobEffect {
     @Override
     public void onApplied(AttributeMap attributeContainer, int amplifier) {
         super.onApplied(attributeContainer, amplifier);
-        AttributeInstance entityAttributeInstance = attributeContainer.getCustomInstance((Attributes.GENERIC_MOVEMENT_SPEED));
+        AttributeInstance entityAttributeInstance = attributeContainer.getCustomInstance((Attributes.MOVEMENT_SPEED));
         if (entityAttributeInstance != null) {
             entityAttributeInstance.removeModifier(WITHERING);
             entityAttributeInstance.addPersistentModifier(WITHERING);
@@ -42,7 +42,7 @@ public class WitheringEffect extends MobEffect {
     @Override
     public void onRemoved(AttributeMap attributeContainer) {
         super.onRemoved(attributeContainer);
-        AttributeInstance entityAttributeInstance = attributeContainer.getCustomInstance(Attributes.GENERIC_MOVEMENT_SPEED);
+        AttributeInstance entityAttributeInstance = attributeContainer.getCustomInstance(Attributes.MOVEMENT_SPEED);
         if (entityAttributeInstance != null) {
             entityAttributeInstance.removeModifier(WITHERING);
         }

@@ -22,9 +22,9 @@ public class ChiseledPolishedBlackstoneHolderRenderer implements BlockEntityRend
     public void render(ChiseledPolishedBlackstoneHolderEntity blockEntity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
         if (!blockEntity.isEmpty()) {
             matrices.push();
-            double offset = Math.sin((blockEntity.getLevel().getTime() + tickDelta) / 8.0D) / 4.5D;
+            double offset = Math.sin((blockEntity.getLevel().getGameTime() + tickDelta) / 8.0D) / 4.5D;
             matrices.translate(0.5D, 1.3D + offset, 0.5D);
-            matrices.multiply(Axis.POSITIVE_Y.rotationDegrees((blockEntity.getLevel().getTime() + tickDelta) * 4F));
+            matrices.multiply(Axis.POSITIVE_Y.rotationDegrees((blockEntity.getLevel().getGameTime() + tickDelta) * 4F));
             Minecraft.getInstance().getItemRenderer().renderItem(blockEntity.getStack(0), ItemDisplayContext.GROUND, light, overlay, matrices, vertexConsumers, blockEntity.getLevel(),
                     (int) blockEntity.getBlockPos().asLong());
             matrices.pop();
