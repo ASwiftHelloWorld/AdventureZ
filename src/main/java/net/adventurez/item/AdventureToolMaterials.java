@@ -1,15 +1,15 @@
 package net.adventurez.item;
 
 import net.adventurez.init.ItemInit;
-import net.minecraft.block.Block;
-import net.minecraft.item.ToolMaterial;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.registry.tag.BlockTags;
-import net.minecraft.registry.tag.TagKey;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
 
-public class AdventureToolMaterials implements ToolMaterial {
+public class AdventureToolMaterials implements Tier {
 
-    public static final ToolMaterial GILDED_NETHERITE = new AdventureToolMaterials(BlockTags.INCORRECT_FOR_WOODEN_TOOL, 2331, 9.0F, 4.0F, 15, Ingredient.ofItems(ItemInit.GILDED_NETHERITE_FRAGMENT),
+    public static final Tier GILDED_NETHERITE = new AdventureToolMaterials(BlockTags.INCORRECT_FOR_WOODEN_TOOL, 2331, 9.0F, 4.0F, 15, Ingredient.ofItems(ItemInit.GILDED_NETHERITE_FRAGMENT),
             "gilded_netherite");
 
     private final TagKey<Block> inverseTag;

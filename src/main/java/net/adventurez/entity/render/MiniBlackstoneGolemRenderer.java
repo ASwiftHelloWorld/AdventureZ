@@ -6,15 +6,15 @@ import net.adventurez.entity.model.MiniBlackstoneGolemModel;
 import net.adventurez.init.RenderInit;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.render.entity.EntityRendererFactory;
-import net.minecraft.client.render.entity.MobEntityRenderer;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.MobRenderer;
+import net.minecraft.resources.Identifier;
 
 @Environment(EnvType.CLIENT)
-public class MiniBlackstoneGolemRenderer extends MobEntityRenderer<MiniBlackstoneGolemEntity, MiniBlackstoneGolemModel<MiniBlackstoneGolemEntity>> {
+public class MiniBlackstoneGolemRenderer extends MobRenderer<MiniBlackstoneGolemEntity, MiniBlackstoneGolemModel<MiniBlackstoneGolemEntity>> {
     private static final Identifier TEXTURE = AdventureMain.identifierOf("textures/entity/mini_blackstone_golem.png");
 
-    public MiniBlackstoneGolemRenderer(EntityRendererFactory.Context context) {
+    public MiniBlackstoneGolemRenderer(EntityRendererProvider.Context context) {
         super(context, new MiniBlackstoneGolemModel<>(context.getPart(RenderInit.MINI_BLACKSTONE_GOLEM_LAYER)), 0.7F);
     }
 

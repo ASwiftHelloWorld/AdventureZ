@@ -5,17 +5,17 @@ import com.google.common.collect.ImmutableList;
 import net.adventurez.entity.OrcEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.model.ModelData;
-import net.minecraft.client.model.ModelPart;
-import net.minecraft.client.model.ModelPartBuilder;
-import net.minecraft.client.model.ModelPartData;
-import net.minecraft.client.model.ModelTransform;
-import net.minecraft.client.model.TexturedModelData;
-import net.minecraft.client.render.entity.model.CompositeEntityModel;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.builders.CubeListBuilder;
+import net.minecraft.client.model.geom.builders.PartDefinition;
+import net.minecraft.client.model.geom.PartPose;
+import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.client.model.ListModel;
+import net.minecraft.util.Mth;
 
 @Environment(EnvType.CLIENT)
-public class OrcModel<T extends OrcEntity> extends CompositeEntityModel<T> {
+public class OrcModel<T extends OrcEntity> extends ListModel<T> {
     private final ModelPart leftLeg;
     private final ModelPart rightLeg;
     private final ModelPart torso;
@@ -42,27 +42,27 @@ public class OrcModel<T extends OrcEntity> extends CompositeEntityModel<T> {
         this.ear2 = this.earLeft.getChild("ear2");
     }
 
-    public static TexturedModelData getTexturedModelData() {
-        ModelData modelData = new ModelData();
-        ModelPartData modelPartData = modelData.getRoot();
-        modelPartData.addChild("leftLeg", ModelPartBuilder.create().uv(54, 0).cuboid(-3.5F, 6.0F, -3.0F, 6.0F, 6.0F, 6.0F).uv(60, 35).cuboid(-3.0F, -1.0F, -2.5F, 5.0F, 7.0F, 5.0F),
-                ModelTransform.pivot(-3.0F, 12.0F, 0.0F));
-        modelPartData.addChild("rightLeg", ModelPartBuilder.create().uv(42, 50).cuboid(-2.5F, 6.0F, -3.0F, 6.0F, 6.0F, 6.0F).uv(0, 57).cuboid(-2.0F, -1.0F, -2.5F, 5.0F, 7.0F, 5.0F),
-                ModelTransform.pivot(3.0F, 12.0F, 0.0F));
-        modelPartData.addChild("torso", ModelPartBuilder.create().uv(0, 17).cuboid(-7.0F, 5.0F, -4.0F, 14.0F, 7.0F, 8.0F).uv(0, 0).cuboid(-7.0F, -5.0F, -3.0F, 14.0F, 10.0F, 7.0F),
-                ModelTransform.pivot(0.0F, 0.0F, 0.0F));
-        modelPartData.addChild("leftArm", ModelPartBuilder.create().uv(18, 50).cuboid(-3.0F, -2.0F, -3.0F, 6.0F, 6.0F, 6.0F).uv(61, 61).cuboid(-2.5F, 4.0F, -2.5F, 5.0F, 6.0F, 5.0F).uv(44, 23)
-                .cuboid(-3.0F, 10.0F, -3.0F, 6.0F, 6.0F, 6.0F), ModelTransform.pivot(-10.0F, -2.0F, 1.0F));
-        modelPartData.addChild("rightArm", ModelPartBuilder.create().uv(0, 44).cuboid(-3.0F, -2.0F, -3.0F, 6.0F, 6.0F, 6.0F).uv(60, 12).cuboid(-2.5F, 4.0F, -2.5F, 5.0F, 6.0F, 5.0F).uv(36, 11)
-                .cuboid(-3.0F, 10.0F, -3.0F, 6.0F, 6.0F, 6.0F), ModelTransform.pivot(10.0F, -2.0F, 1.0F));
-        ModelPartData modelPartData1 = modelPartData.addChild("head", ModelPartBuilder.create().uv(0, 32).cuboid(-4.5F, 0.0F, -8.0F, 9.0F, 3.0F, 9.0F).uv(0, 2)
-                .cuboid(2.5F, -1.0F, -7.5F, 1.0F, 1.0F, 1.0F).uv(0, 0).cuboid(-3.5F, -1.0F, -7.5F, 1.0F, 1.0F, 1.0F), ModelTransform.pivot(0.0F, -4.0F, 0.0F));
-        ModelPartData modelPartData2 = modelPartData1.addChild("header", ModelPartBuilder.create().uv(28, 36).cuboid(-4.0F, 0.0F, 0.2F, 8.0F, 6.0F, 8.0F), ModelTransform.pivot(0.0F, -6.0F, -7.0F));
-        ModelPartData modelPartData3 = modelPartData2.addChild("earLeft", ModelPartBuilder.create(), ModelTransform.pivot(0.0F, 2.0F, 7.0F));
-        modelPartData3.addChild("ear2", ModelPartBuilder.create().uv(42, 0).cuboid(-1.0F, 0.0F, 0.0F, 1.0F, 4.0F, 4.0F), ModelTransform.pivot(-2.0F, -2.0F, -1.0F));
-        ModelPartData modelPartData4 = modelPartData2.addChild("earRight", ModelPartBuilder.create(), ModelTransform.pivot(0.0F, -4.0F, 7.0F));
-        modelPartData4.addChild("ear", ModelPartBuilder.create().uv(60, 47).cuboid(0.0F, 0.0F, 0.0F, 1.0F, 4.0F, 4.0F), ModelTransform.pivot(2.0F, 4.0F, -1.0F));
-        return TexturedModelData.of(modelData, 128, 128);
+    public static LayerDefinition getTexturedModelData() {
+        MeshDefinition modelData = new MeshDefinition();
+        PartDefinition modelPartData = modelData.getRoot();
+        modelPartData.addChild("leftLeg", CubeListBuilder.create().uv(54, 0).cuboid(-3.5F, 6.0F, -3.0F, 6.0F, 6.0F, 6.0F).uv(60, 35).cuboid(-3.0F, -1.0F, -2.5F, 5.0F, 7.0F, 5.0F),
+                PartPose.pivot(-3.0F, 12.0F, 0.0F));
+        modelPartData.addChild("rightLeg", CubeListBuilder.create().uv(42, 50).cuboid(-2.5F, 6.0F, -3.0F, 6.0F, 6.0F, 6.0F).uv(0, 57).cuboid(-2.0F, -1.0F, -2.5F, 5.0F, 7.0F, 5.0F),
+                PartPose.pivot(3.0F, 12.0F, 0.0F));
+        modelPartData.addChild("torso", CubeListBuilder.create().uv(0, 17).cuboid(-7.0F, 5.0F, -4.0F, 14.0F, 7.0F, 8.0F).uv(0, 0).cuboid(-7.0F, -5.0F, -3.0F, 14.0F, 10.0F, 7.0F),
+                PartPose.pivot(0.0F, 0.0F, 0.0F));
+        modelPartData.addChild("leftArm", CubeListBuilder.create().uv(18, 50).cuboid(-3.0F, -2.0F, -3.0F, 6.0F, 6.0F, 6.0F).uv(61, 61).cuboid(-2.5F, 4.0F, -2.5F, 5.0F, 6.0F, 5.0F).uv(44, 23)
+                .cuboid(-3.0F, 10.0F, -3.0F, 6.0F, 6.0F, 6.0F), PartPose.pivot(-10.0F, -2.0F, 1.0F));
+        modelPartData.addChild("rightArm", CubeListBuilder.create().uv(0, 44).cuboid(-3.0F, -2.0F, -3.0F, 6.0F, 6.0F, 6.0F).uv(60, 12).cuboid(-2.5F, 4.0F, -2.5F, 5.0F, 6.0F, 5.0F).uv(36, 11)
+                .cuboid(-3.0F, 10.0F, -3.0F, 6.0F, 6.0F, 6.0F), PartPose.pivot(10.0F, -2.0F, 1.0F));
+        PartDefinition modelPartData1 = modelPartData.addChild("head", CubeListBuilder.create().uv(0, 32).cuboid(-4.5F, 0.0F, -8.0F, 9.0F, 3.0F, 9.0F).uv(0, 2)
+                .cuboid(2.5F, -1.0F, -7.5F, 1.0F, 1.0F, 1.0F).uv(0, 0).cuboid(-3.5F, -1.0F, -7.5F, 1.0F, 1.0F, 1.0F), PartPose.pivot(0.0F, -4.0F, 0.0F));
+        PartDefinition modelPartData2 = modelPartData1.addChild("header", CubeListBuilder.create().uv(28, 36).cuboid(-4.0F, 0.0F, 0.2F, 8.0F, 6.0F, 8.0F), PartPose.pivot(0.0F, -6.0F, -7.0F));
+        PartDefinition modelPartData3 = modelPartData2.addChild("earLeft", CubeListBuilder.create(), PartPose.pivot(0.0F, 2.0F, 7.0F));
+        modelPartData3.addChild("ear2", CubeListBuilder.create().uv(42, 0).cuboid(-1.0F, 0.0F, 0.0F, 1.0F, 4.0F, 4.0F), PartPose.pivot(-2.0F, -2.0F, -1.0F));
+        PartDefinition modelPartData4 = modelPartData2.addChild("earRight", CubeListBuilder.create(), PartPose.pivot(0.0F, -4.0F, 7.0F));
+        modelPartData4.addChild("ear", CubeListBuilder.create().uv(60, 47).cuboid(0.0F, 0.0F, 0.0F, 1.0F, 4.0F, 4.0F), PartPose.pivot(2.0F, 4.0F, -1.0F));
+        return LayerDefinition.of(modelData, 128, 128);
     }
 
     @Override
@@ -85,12 +85,12 @@ public class OrcModel<T extends OrcEntity> extends CompositeEntityModel<T> {
         this.head.yaw = headYaw * 0.0089453292F;
         this.head.pitch = headPitch * 0.0047453292F;
 
-        this.rightLeg.pitch = MathHelper.cos(limbAngle * 0.6662F + 3.1415927F) * 1.4F * limbDistance;
-        this.leftLeg.pitch = MathHelper.cos(limbAngle * 0.6662F) * 1.4F * limbDistance;
+        this.rightLeg.pitch = Mth.cos(limbAngle * 0.6662F + 3.1415927F) * 1.4F * limbDistance;
+        this.leftLeg.pitch = Mth.cos(limbAngle * 0.6662F) * 1.4F * limbDistance;
 
-        this.rightArm.pitch = -MathHelper.cos(limbAngle * 0.6662F + 3.1415927F) * 2.0F * limbDistance * 0.32F;
-        this.leftArm.pitch = MathHelper.cos(limbAngle * 0.6662F + 3.1415927F) * 2.0F * limbDistance * 0.32F;
-        float k = MathHelper.sin(entity.handSwingProgress * 3.1415927F);
+        this.rightArm.pitch = -Mth.cos(limbAngle * 0.6662F + 3.1415927F) * 2.0F * limbDistance * 0.32F;
+        this.leftArm.pitch = Mth.cos(limbAngle * 0.6662F + 3.1415927F) * 2.0F * limbDistance * 0.32F;
+        float k = Mth.sin(entity.handSwingProgress * 3.1415927F);
         if (k > 0) {
             this.rightArm.pitch = -k;
             if (entity.getDataTracker().get(OrcEntity.DOUBLE_HAND_ATTACK)) {

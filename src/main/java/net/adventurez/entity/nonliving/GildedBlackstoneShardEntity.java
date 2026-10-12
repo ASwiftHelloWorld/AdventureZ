@@ -4,31 +4,31 @@ import net.adventurez.init.EntityInit;
 import net.adventurez.init.ItemInit;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.mob.SilverfishEntity;
-import net.minecraft.entity.projectile.thrown.ThrownItemEntity;
-import net.minecraft.item.Item;
-import net.minecraft.particle.ItemStackParticleEffect;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.monster.Silverfish;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
+import net.minecraft.world.item.Item;
+import net.minecraft.core.particles.ItemParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.level.Level;
 
-public class GildedBlackstoneShardEntity extends ThrownItemEntity {
-    public GildedBlackstoneShardEntity(EntityType<? extends GildedBlackstoneShardEntity> entityType, World world) {
+public class GildedBlackstoneShardEntity extends ThrowableItemProjectile {
+    public GildedBlackstoneShardEntity(EntityType<? extends GildedBlackstoneShardEntity> entityType, Level world) {
         super(entityType, world);
     }
 
-    public GildedBlackstoneShardEntity(World world, LivingEntity owner) {
+    public GildedBlackstoneShardEntity(Level world, LivingEntity owner) {
         super(EntityInit.GILDED_BLACKSTONE_SHARD, owner, world);
     }
 
-    public GildedBlackstoneShardEntity(World world, double x, double y, double z) {
+    public GildedBlackstoneShardEntity(Level world, double x, double y, double z) {
         super(EntityInit.GILDED_BLACKSTONE_SHARD, x, y, z, world);
     }
 
@@ -37,9 +37,9 @@ public class GildedBlackstoneShardEntity extends ThrownItemEntity {
     public void handleStatus(byte status) {
         if (status == 3) {
             for (int i = 0; i < 22; ++i) {
-                this.getWorld().addParticle(new ItemStackParticleEffect(ParticleTypes.ITEM, this.getStack()), this.getX(), this.getY(), this.getZ(),
-                        (this.getWorld().getRandom().nextDouble() - 0.5D) * 0.08D, (this.getWorld().getRandom().nextDouble() - 0.5D) * 0.08D,
-                        (this.getWorld().getRandom().nextDouble() - 0.5D) * 0.08D);
+                this.level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, this.getStack()), this.getX(), this.getY(), this.getZ(),
+                        (this.level().getRandom().nextDouble() - 0.5D) * 0.08D, (this.level().getRandom().nextDouble() - 0.5D) * 0.08D,
+                        (this.level().getRandom().nextDouble() - 0.5D) * 0.08D);
             }
         }
 
@@ -51,29 +51,29 @@ public class GildedBlackstoneShardEntity extends ThrownItemEntity {
         entityHitResult.getEntity().damage(this.getDamageSources().mobProjectile(this, this.getOwner() instanceof LivingEntity ? (LivingEntity) this.getOwner() : null), 1.0F);
         if (entityHitResult.getEntity().getType() == EntityInit.BLACKSTONE_GOLEM) {
             entityHitResult.getEntity().damage(this.getDamageSources().mobProjectile(this, this.getOwner() instanceof LivingEntity ? (LivingEntity) this.getOwner() : null), 10.0F);
-            ((LivingEntity) entityHitResult.getEntity()).addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 600, 0));
+            ((LivingEntity) entityHitResult.getEntity()).addStatusEffect(new MobEffectInstance(MobEffects.WEAKNESS, 600, 0));
         }
     }
 
     @Override
     protected void onCollision(HitResult hitResult) {
         super.onCollision(hitResult);
-        if (!this.getWorld().isClient()) {
-            this.getWorld().playSound(null, this.getBlockPos(), SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.BLOCKS, 0.7F, 1F);
-            if (this.getWorld().getRandom().nextInt(8) == 0) {
+        if (!this.level().isClientSide()) {
+            this.level().playSound(null, this.getBlockPos(), SoundEvents.BLOCK_GLASS_BREAK, SoundSource.BLOCKS, 0.7F, 1F);
+            if (this.level().getRandom().nextInt(8) == 0) {
                 int i = 1;
-                if (this.getWorld().getRandom().nextInt(32) == 0) {
+                if (this.level().getRandom().nextInt(32) == 0) {
                     i = 4;
                 }
 
                 for (int j = 0; j < i; ++j) {
-                    SilverfishEntity silverfishEntity = (SilverfishEntity) EntityType.SILVERFISH.create(this.getWorld());
+                    Silverfish silverfishEntity = (Silverfish) EntityType.SILVERFISH.create(this.level());
                     silverfishEntity.refreshPositionAndAngles(this.getX(), this.getY(), this.getZ(), this.getYaw(), 0.0F);
-                    this.getWorld().spawnEntity(silverfishEntity);
+                    this.level().spawnEntity(silverfishEntity);
                 }
             }
 
-            this.getWorld().sendEntityStatus(this, (byte) 3);
+            this.level().sendEntityStatus(this, (byte) 3);
             this.discard();
         }
 

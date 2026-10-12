@@ -8,27 +8,27 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.At;
 
 import net.adventurez.init.EffectInit;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.passive.MerchantEntity;
-import net.minecraft.entity.passive.VillagerEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.village.TradeOffer;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.npc.villager.AbstractVillager;
+import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.trading.MerchantOffer;
+import net.minecraft.world.level.Level;
 
-@Mixin(VillagerEntity.class)
-public abstract class VillagerEntityMixin extends MerchantEntity {
-    public VillagerEntityMixin(EntityType<? extends MerchantEntity> entityType, World world) {
+@Mixin(Villager.class)
+public abstract class VillagerEntityMixin extends AbstractVillager {
+    public VillagerEntityMixin(EntityType<? extends AbstractVillager> entityType, Level world) {
         super(entityType, world);
     }
 
     @Inject(method = "prepareOffersFor", at = @At(value = "TAIL"))
-    private void prepareOffersForMixin(PlayerEntity player, CallbackInfo info) {
-        if (player.hasStatusEffect(EffectInit.FAME) && !player.hasStatusEffect(StatusEffects.HERO_OF_THE_VILLAGE)) {
-            Iterator<TradeOffer> var5 = this.getOffers().iterator();
+    private void prepareOffersForMixin(Player player, CallbackInfo info) {
+        if (player.hasStatusEffect(EffectInit.FAME) && !player.hasStatusEffect(MobEffects.HERO_OF_THE_VILLAGE)) {
+            Iterator<MerchantOffer> var5 = this.getOffers().iterator();
 
             while (var5.hasNext()) {
-                TradeOffer tradeOffer2 = (TradeOffer) var5.next();
+                MerchantOffer tradeOffer2 = (MerchantOffer) var5.next();
                 int k = (int) Math.floor(0.5D * (double) tradeOffer2.getOriginalFirstBuyItem().getCount());
                 tradeOffer2.increaseSpecialPrice(-Math.max(k, 1));
             }

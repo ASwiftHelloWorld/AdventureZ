@@ -3,17 +3,17 @@ package net.adventurez.entity.goal;
 import java.util.EnumSet;
 
 import net.adventurez.entity.DragonEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.ai.pathing.EntityNavigation;
-import net.minecraft.entity.ai.pathing.PathNodeType;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
+import net.minecraft.world.level.pathfinder.PathType;
+import net.minecraft.world.phys.Vec3;
 
 public class DragonFindOwnerGoal extends Goal {
     private final DragonEntity dragonEntity;
     private LivingEntity owner;
     private final double speed;
-    private final EntityNavigation navigation;
+    private final PathNavigation navigation;
     private int updateCountdownTicks;
     private final float maxDistance;
     private final float minDistance;
@@ -65,15 +65,15 @@ public class DragonFindOwnerGoal extends Goal {
     @Override
     public void start() {
         this.updateCountdownTicks = 0;
-        this.oldWaterPathfindingPenalty = this.dragonEntity.getPathfindingPenalty(PathNodeType.WATER);
-        this.dragonEntity.setPathfindingPenalty(PathNodeType.WATER, 0.0F);
+        this.oldWaterPathfindingPenalty = this.dragonEntity.getPathfindingPenalty(PathType.WATER);
+        this.dragonEntity.setPathfindingPenalty(PathType.WATER, 0.0F);
     }
 
     @Override
     public void stop() {
         this.owner = null;
         this.navigation.stop();
-        this.dragonEntity.setPathfindingPenalty(PathNodeType.WATER, this.oldWaterPathfindingPenalty);
+        this.dragonEntity.setPathfindingPenalty(PathType.WATER, this.oldWaterPathfindingPenalty);
     }
 
     @Override
@@ -83,7 +83,7 @@ public class DragonFindOwnerGoal extends Goal {
             this.updateCountdownTicks = 10;
             if (!this.dragonEntity.isLeashed() && !this.dragonEntity.hasVehicle()) {
                 if (this.dragonEntity.squaredDistanceTo(this.owner) <= 800.0D) {
-                    Vec3d vec3d = new Vec3d(this.owner.getX() - this.dragonEntity.getX(), this.owner.getY() - this.dragonEntity.getY(), this.owner.getZ() - this.dragonEntity.getZ());
+                    Vec3 vec3d = new Vec3(this.owner.getX() - this.dragonEntity.getX(), this.owner.getY() - this.dragonEntity.getY(), this.owner.getZ() - this.dragonEntity.getZ());
                     vec3d = vec3d.normalize();
                     this.dragonEntity.setVelocity(this.dragonEntity.getVelocity().add(vec3d.multiply(this.speed)));
                 }

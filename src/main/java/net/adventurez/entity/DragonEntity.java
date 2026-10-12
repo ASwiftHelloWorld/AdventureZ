@@ -23,85 +23,85 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.entity.Dismounting;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityData;
-import net.minecraft.entity.EntityDimensions;
-import net.minecraft.entity.EntityPose;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.MovementType;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.Tameable;
-import net.minecraft.entity.ai.goal.LookAroundGoal;
-import net.minecraft.entity.ai.goal.LookAtEntityGoal;
-import net.minecraft.entity.ai.goal.SwimGoal;
-import net.minecraft.entity.ai.goal.WanderAroundGoal;
-import net.minecraft.entity.attribute.DefaultAttributeContainer;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.entity.data.TrackedDataHandlerRegistry;
-import net.minecraft.entity.data.DataTracker.Builder;
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.entity.mob.PathAwareEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.InventoryChangedListener;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.particle.ParticleEffect;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.tag.FluidTags;
-import net.minecraft.screen.GenericContainerScreenHandler;
-import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
-import net.minecraft.server.ServerConfigHandler;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Arm;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameRules;
-import net.minecraft.world.LocalDifficulty;
-import net.minecraft.world.ServerWorldAccess;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.world.entity.vehicle.DismountHelper;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.entity.EntityDimensions;
+import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.OwnableEntity;
+import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
+import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData.Builder;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.ContainerListener;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.tags.FluidTags;
+import net.minecraft.world.inventory.ChestMenu;
+import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.server.players.OldUsersConverter;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.resources.Identifier;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.gamerules.GameRules;
+import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.Level;
 
-public class DragonEntity extends PathAwareEntity implements InventoryChangedListener, Tameable {
+public class DragonEntity extends PathfinderMob implements ContainerListener, OwnableEntity {
 
-    public static final TrackedData<Boolean> IS_FLYING;
-    public static final TrackedData<Boolean> IS_START_FLYING;
-    public static final TrackedData<Boolean> CLIENT_START_FLYING;
-    public static final TrackedData<Boolean> CLIENT_END_FLYING;
-    public static final TrackedData<Byte> TAMEABLE_FLAGS;
-    public static final TrackedData<Optional<UUID>> OWNER_UUID;
-    public static final TrackedData<Boolean> HAS_SADDLE;
-    public static final TrackedData<Boolean> HAS_CHEST;
-    public static final TrackedData<Boolean> OTHER_EARS;
-    public static final TrackedData<Boolean> OTHER_TAIL;
-    public static final TrackedData<Boolean> OTHER_EYES;
-    public static final TrackedData<Integer> DRAGON_SIZE;
-    public static final TrackedData<Boolean> FIRE_BREATH;
-    public static final TrackedData<Boolean> RED_DRAGON;
+    public static final EntityDataAccessor<Boolean> IS_FLYING;
+    public static final EntityDataAccessor<Boolean> IS_START_FLYING;
+    public static final EntityDataAccessor<Boolean> CLIENT_START_FLYING;
+    public static final EntityDataAccessor<Boolean> CLIENT_END_FLYING;
+    public static final EntityDataAccessor<Byte> TAMEABLE_FLAGS;
+    public static final EntityDataAccessor<Optional<UUID>> OWNER_UUID;
+    public static final EntityDataAccessor<Boolean> HAS_SADDLE;
+    public static final EntityDataAccessor<Boolean> HAS_CHEST;
+    public static final EntityDataAccessor<Boolean> OTHER_EARS;
+    public static final EntityDataAccessor<Boolean> OTHER_TAIL;
+    public static final EntityDataAccessor<Boolean> OTHER_EYES;
+    public static final EntityDataAccessor<Integer> DRAGON_SIZE;
+    public static final EntityDataAccessor<Boolean> FIRE_BREATH;
+    public static final EntityDataAccessor<Boolean> RED_DRAGON;
 
     private boolean sitting;
     public boolean isFlying;
@@ -112,7 +112,7 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
     private float turningFloat;
     private boolean hasSaddle;
     private int healingFood;
-    private SimpleInventory inventory;
+    private SimpleContainer inventory;
     private int onGroundTicker;
     private int dragonAge;
     private int dragonAgeFoodBonus;
@@ -122,28 +122,28 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
     private int fluidTicker = 0;
 
     @SuppressWarnings("deprecation")
-    public DragonEntity(EntityType<? extends PathAwareEntity> entityType, World world) {
+    public DragonEntity(EntityType<? extends PathfinderMob> entityType, Level world) {
         super(entityType, world);
         this.onChestedStatusChanged();
         this.reinitDimensions();
         this.experiencePoints = 10;
     }
 
-    public static DefaultAttributeContainer.Builder createDragonAttributes() {
-        return MobEntity.createMobAttributes().add(EntityAttributes.GENERIC_MAX_HEALTH, 60.0D).add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 9.0D).add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.28D)
-                .add(EntityAttributes.GENERIC_ARMOR, 6.0D).add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE, 0.5D);
+    public static AttributeSupplier.Builder createDragonAttributes() {
+        return Mob.createMobAttributes().add(Attributes.GENERIC_MAX_HEALTH, 60.0D).add(Attributes.GENERIC_ATTACK_DAMAGE, 9.0D).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.28D)
+                .add(Attributes.GENERIC_ARMOR, 6.0D).add(Attributes.GENERIC_KNOCKBACK_RESISTANCE, 0.5D);
     }
 
     @Override
     public void initGoals() {
         super.initGoals();
-        this.goalSelector.add(0, new SwimGoal(this));
+        this.goalSelector.add(0, new FloatGoal(this));
         this.goalSelector.add(1, new DragonSitGoal(this));
         this.goalSelector.add(2, new DragonFindOwnerGoal(this, 0.1D, 10.0F, 2.0F));
         this.goalSelector.add(3, new DragonFlyRandomlyGoal(this));
-        this.goalSelector.add(4, new WanderAroundGoal(this, 0.9D));
-        this.goalSelector.add(5, new LookAtEntityGoal(this, PlayerEntity.class, 10.0F, 0.8F));
-        this.goalSelector.add(6, new LookAroundGoal(this));
+        this.goalSelector.add(4, new RandomStrollGoal(this, 0.9D));
+        this.goalSelector.add(5, new LookAtPlayerGoal(this, Player.class, 10.0F, 0.8F));
+        this.goalSelector.add(6, new RandomLookAroundGoal(this));
     }
 
     @Override
@@ -166,7 +166,7 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
     }
 
     @Override
-    public void writeCustomDataToNbt(NbtCompound tag) {
+    public void writeCustomDataToNbt(CompoundTag tag) {
         super.writeCustomDataToNbt(tag);
         if (this.getOwnerUuid() != null) {
             tag.putUuid("DragonOwner", this.getOwnerUuid());
@@ -176,11 +176,11 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
         tag.putBoolean("HasSaddle", this.hasSaddle);
         tag.putBoolean("HasChest", this.hasChest());
         if (this.hasChest()) {
-            NbtList listTag = new NbtList();
+            ListTag listTag = new ListTag();
             for (int i = 0; i < this.inventory.size(); ++i) {
                 ItemStack itemStack = this.inventory.getStack(i);
                 if (!itemStack.isEmpty()) {
-                    NbtCompound compoundTag = new NbtCompound();
+                    CompoundTag compoundTag = new CompoundTag();
                     compoundTag.putByte("Slot", (byte) i);
                     compoundTag.put("OrcItem", this.inventory.getStack(0).encode(this.getRegistryManager()));
                     listTag.add(compoundTag);
@@ -198,14 +198,14 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
     }
 
     @Override
-    public void readCustomDataFromNbt(NbtCompound tag) {
+    public void readCustomDataFromNbt(CompoundTag tag) {
         super.readCustomDataFromNbt(tag);
         UUID uUID2;
         if (tag.containsUuid("DragonOwner")) {
             uUID2 = tag.getUuid("DragonOwner");
         } else {
             String string = tag.getString("DragonOwner");
-            uUID2 = ServerConfigHandler.getPlayerUuidByName(this.getServer(), string);
+            uUID2 = OldUsersConverter.getPlayerUuidByName(this.getServer(), string);
         }
         if (uUID2 != null) {
             try {
@@ -223,11 +223,11 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
         this.dataTracker.set(HAS_SADDLE, this.hasSaddle);
         this.setHasChest(tag.getBoolean("HasChest"));
         if (this.hasChest()) {
-            NbtList listTag = tag.getList("Items", 10);
+            ListTag listTag = tag.getList("Items", 10);
             this.onChestedStatusChanged();
 
             for (int i = 0; i < listTag.size(); ++i) {
-                NbtCompound compoundTag = listTag.getCompound(i);
+                CompoundTag compoundTag = listTag.getCompound(i);
                 int j = compoundTag.getByte("Slot") & 255;
                 if (j >= 0 && j < this.inventory.size()) {
                     this.inventory.setStack(j, ItemStack.fromNbt(this.getRegistryManager(), compoundTag).get());
@@ -246,11 +246,11 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
     }
 
     @Override
-    public void travel(Vec3d movementInput) {
+    public void travel(Vec3 movementInput) {
         if (this.isAlive()) {
             if (this.hasPassengers() && this.canBeControlledByRider()) {
                 LivingEntity livingEntity = (LivingEntity) this.getControllingPassenger();
-                double wrapper = MathHelper.wrapDegrees(this.bodyYaw - (double) this.getYaw());
+                double wrapper = Mth.wrapDegrees(this.bodyYaw - (double) this.getYaw());
                 this.setYaw((float) ((double) this.getYaw() + wrapper));
                 this.prevYaw = this.getYaw();
                 this.setPitch(livingEntity.getPitch() * 0.5F);
@@ -259,9 +259,9 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
                 boolean shouldFlyUp = false;
                 boolean shouldFlyDown = false;
                 shouldFlyUp = ((LivingEntityAccessor) livingEntity).jumping(); // Pressing jump button for going upwards
-                if (this.getWorld().isClient() && livingEntity instanceof ClientPlayerEntity) {
-                    ClientPlayerEntity clientPlayerEntity = (ClientPlayerEntity) livingEntity;
-                    shouldFlyDown = InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), this.keyBind);
+                if (this.level().isClientSide() && livingEntity instanceof LocalPlayer) {
+                    LocalPlayer clientPlayerEntity = (LocalPlayer) livingEntity;
+                    shouldFlyDown = InputConstants.isKeyPressed(Minecraft.getInstance().getWindow().getHandle(), this.keyBind);
                     if (clientPlayerEntity.input.pressingLeft) {
                         turningFloat -= 0.05F;
                     }
@@ -276,7 +276,7 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
                     }
                 }
 
-                this.setYaw(ConfigInit.CONFIG.heavy_dragon_flight ? this.getYaw() + MathHelper.wrapDegrees(turningFloat) : livingEntity.getYaw());
+                this.setYaw(ConfigInit.CONFIG.heavy_dragon_flight ? this.getYaw() + Mth.wrapDegrees(turningFloat) : livingEntity.getYaw());
 
                 float f = livingEntity.sidewaysSpeed * 0.1F;
                 float g = livingEntity.forwardSpeed * 0.5F;
@@ -302,8 +302,8 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
                 // To do, set proper sit position
                 if (shouldFlyUp && !this.isFlying && this.startFlyingTimer < 10) {
                     if (this.isTouchingWater() && this.getFluidHeight(FluidTags.WATER) > 0.5D) {
-                        if (!this.getWorld().isClient() && this.getFirstPassenger() instanceof ServerPlayerEntity) {
-                            ServerPlayNetworking.send((ServerPlayerEntity) this.getFirstPassenger(), new VelocityPacket(this.getId(), 0.05F));
+                        if (!this.level().isClientSide() && this.getFirstPassenger() instanceof ServerPlayer) {
+                            ServerPlayNetworking.send((ServerPlayer) this.getFirstPassenger(), new VelocityPacket(this.getId(), 0.05F));
                         }
                     } else {
                         this.startFlyingTimer++;
@@ -323,7 +323,7 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
                     this.isFlying = true;
                     this.getDataTracker().set(IS_FLYING, true);
                     this.startFlyingTimer = 0;
-                    this.startFlyingTime = (int) this.getWorld().getTime();
+                    this.startFlyingTime = (int) this.level().getTime();
                 }
                 if (this.isFlying && this.isOnGround()) {// && shouldFlyDown only client: bad
                     this.onGroundTicker++;
@@ -346,15 +346,15 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
                 }
 
                 if (this.isLogicalSideForUpdatingMovement()) {
-                    this.setMovementSpeed((float) this.getAttributeValue(EntityAttributes.GENERIC_MOVEMENT_SPEED));
+                    this.setMovementSpeed((float) this.getAttributeValue(Attributes.GENERIC_MOVEMENT_SPEED));
                     if ((!this.getDataTracker().get(IS_FLYING) && !this.isFlying) || (this.isTouchingWater() && this.getFluidHeight(FluidTags.WATER) > 0.2D)) {
-                        super.travel(new Vec3d((double) f, movementInput.y, (double) g));
+                        super.travel(new Vec3((double) f, movementInput.y, (double) g));
                     } else {
-                        Vec3d vec3d;
+                        Vec3 vec3d;
                         if (ConfigInit.CONFIG.heavy_dragon_flight)
-                            vec3d = new Vec3d((double) this.dragonSideSpeed, movementInput.y + flySpeed, (double) this.dragonForwardSpeed);
+                            vec3d = new Vec3((double) this.dragonSideSpeed, movementInput.y + flySpeed, (double) this.dragonForwardSpeed);
                         else {
-                            vec3d = new Vec3d(livingEntity.sidewaysSpeed * 0.7D, movementInput.y + flySpeed, livingEntity.forwardSpeed * 0.7D);
+                            vec3d = new Vec3(livingEntity.sidewaysSpeed * 0.7D, movementInput.y + flySpeed, livingEntity.forwardSpeed * 0.7D);
                         }
                         // vec3d x,y,z
                         // x is used when left or right key
@@ -365,22 +365,22 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
                             }
                         }
                         this.updateVelocity(0.05F, vec3d);
-                        this.move(MovementType.SELF, this.getVelocity());
+                        this.move(MoverType.SELF, this.getVelocity());
                         this.setVelocity(this.getVelocity());
                     }
-                } else if (livingEntity instanceof PlayerEntity) {
-                    this.setVelocity(Vec3d.ZERO);
+                } else if (livingEntity instanceof Player) {
+                    this.setVelocity(Vec3.ZERO);
                 }
                 this.updateLimbs(false);
             } else {
                 if (this.isFlying || this.getDataTracker().get(IS_FLYING)) {
                     this.updateVelocity(0.03F, movementInput);
-                    this.move(MovementType.SELF, this.getVelocity());
+                    this.move(MoverType.SELF, this.getVelocity());
                     this.setVelocity(this.getVelocity().multiply((0.91F)));
-                    double wrapper = MathHelper.wrapDegrees(this.headYaw - (double) this.getYaw());
+                    double wrapper = Mth.wrapDegrees(this.headYaw - (double) this.getYaw());
                     this.setYaw((float) ((double) this.getYaw() + wrapper));
                     BlockPos blockPos = this.getBlockPos().down(2);
-                    if (this.getWorld().getBlockState(blockPos).isSolidBlock(this.getWorld(), blockPos)) {
+                    if (this.level().getBlockState(blockPos).isSolidBlock(this.level(), blockPos)) {
                         this.setVelocity(this.getVelocity().add(0.0D, -0.005D, 0.0D));
                     }
                     if (this.isOnGround()) {
@@ -393,7 +393,7 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
                 }
             }
         }
-        if (this.isFlying && this.startFlyingTime != 0 && (int) (this.getWorld().getTime() - this.startFlyingTime) % 25 == 0) {
+        if (this.isFlying && this.startFlyingTime != 0 && (int) (this.level().getTime() - this.startFlyingTime) % 25 == 0) {
             this.playWingFlapSound();
         }
 
@@ -420,28 +420,28 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
     }
 
     @Nullable
-    private Vec3d method_27930(Vec3d vec3d, LivingEntity livingEntity) {
+    private Vec3 method_27930(Vec3 vec3d, LivingEntity livingEntity) {
         double d = this.getX() + vec3d.x;
         double e = this.getBoundingBox().minY;
         double f = this.getZ() + vec3d.z;
         BlockPos.Mutable mutable = new BlockPos.Mutable();
-        UnmodifiableIterator<EntityPose> var10 = livingEntity.getPoses().iterator();
+        UnmodifiableIterator<Pose> var10 = livingEntity.getPoses().iterator();
 
         while (var10.hasNext()) {
-            EntityPose entityPose = (EntityPose) var10.next();
+            Pose entityPose = (Pose) var10.next();
             mutable.set(d, e, f);
             double g = this.getBoundingBox().maxY + 0.75D;
 
             while (true) {
-                double h = this.getWorld().getDismountHeight(mutable);
+                double h = this.level().getDismountHeight(mutable);
                 if ((double) mutable.getY() + h > g) {
                     break;
                 }
 
-                if (Dismounting.canDismountInBlock(h)) {
-                    Box box = livingEntity.getBoundingBox(entityPose);
-                    Vec3d vec3d2 = new Vec3d(d, (double) mutable.getY() + h, f);
-                    if (Dismounting.canPlaceEntityAt(this.getWorld(), livingEntity, box.offset(vec3d2))) {
+                if (DismountHelper.canDismountInBlock(h)) {
+                    AABB box = livingEntity.getBoundingBox(entityPose);
+                    Vec3 vec3d2 = new Vec3(d, (double) mutable.getY() + h, f);
+                    if (DismountHelper.canPlaceEntityAt(this.level(), livingEntity, box.offset(vec3d2))) {
                         livingEntity.setPose(entityPose);
                         return vec3d2;
                     }
@@ -458,20 +458,20 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
     }
 
     @Override
-    public Vec3d updatePassengerForDismount(LivingEntity passenger) {
-        Vec3d vec3d = getPassengerDismountOffset((double) this.getWidth(), (double) passenger.getWidth(), this.getYaw() + (passenger.getMainArm() == Arm.RIGHT ? 90.0F : -90.0F));
-        Vec3d vec3d2 = this.method_27930(vec3d, passenger);
+    public Vec3 updatePassengerForDismount(LivingEntity passenger) {
+        Vec3 vec3d = getPassengerDismountOffset((double) this.getWidth(), (double) passenger.getWidth(), this.getYaw() + (passenger.getMainArm() == HumanoidArm.RIGHT ? 90.0F : -90.0F));
+        Vec3 vec3d2 = this.method_27930(vec3d, passenger);
         if (vec3d2 != null) {
             return vec3d2;
         } else {
-            Vec3d vec3d3 = getPassengerDismountOffset((double) this.getWidth(), (double) passenger.getWidth(), this.getYaw() + (passenger.getMainArm() == Arm.LEFT ? 90.0F : -90.0F));
-            Vec3d vec3d4 = this.method_27930(vec3d3, passenger);
-            return vec3d4 != null ? vec3d4 : this.getPos();
+            Vec3 vec3d3 = getPassengerDismountOffset((double) this.getWidth(), (double) passenger.getWidth(), this.getYaw() + (passenger.getMainArm() == HumanoidArm.LEFT ? 90.0F : -90.0F));
+            Vec3 vec3d4 = this.method_27930(vec3d3, passenger);
+            return vec3d4 != null ? vec3d4 : this.position();
         }
     }
 
-    private void putPlayerOnBack(PlayerEntity player) {
-        if (!this.getWorld().isClient()) {
+    private void putPlayerOnBack(Player player) {
+        if (!this.level().isClientSide()) {
             player.setYaw(this.getYaw());
             player.setPitch(this.getPitch());
             player.startRiding(this);
@@ -481,20 +481,20 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
     public void dragonFireBreath() {
         if (this.fireBreathCooldown <= 60) {
             this.fireBreathCooldown++;
-            if (!this.getWorld().isClient()) {
+            if (!this.level().isClientSide()) {
                 if (this.fireBreathCooldown == 1) {
-                    this.getWorld().playSoundFromEntity((PlayerEntity) null, this, SoundInit.DRAGON_BREATH_EVENT, SoundCategory.HOSTILE, 1.0F, 1.0F);
+                    this.level().playSoundFromEntity((Player) null, this, SoundInit.DRAGON_BREATH_EVENT, SoundSource.HOSTILE, 1.0F, 1.0F);
                 }
                 if (this.fireBreathCooldown % 3 == 0) {
-                    Vec3d vec3d = this.getRotationVector(prevPitch, headYaw);
-                    Vec3d otherVec3d = this.getRotationVector(prevPitch, bodyYaw);
+                    Vec3 vec3d = this.getRotationVector(prevPitch, headYaw);
+                    Vec3 otherVec3d = this.getRotationVector(prevPitch, bodyYaw);
                     vec3d = vec3d.add(otherVec3d);
-                    FireBreathEntity fireBreathEntity = new FireBreathEntity(this.getWorld(), this, vec3d);
+                    FireBreathEntity fireBreathEntity = new FireBreathEntity(this.level(), this, vec3d);
                     fireBreathEntity.refreshPositionAndAngles(this.getX() + vec3d.x * 3D,
                             this.getY() + this.getBoundingBox().getLengthY() * 0.65D + (this.getPitch() > 0F ? -this.getPitch() / 40F : -this.getPitch() / 80F), this.getZ() + vec3d.z * 3D,
                             this.getYaw(), this.getPitch());
 
-                    this.getWorld().spawnEntity(fireBreathEntity);
+                    this.level().spawnEntity(fireBreathEntity);
                 }
             } else {
                 if (!this.getDataTracker().get(FIRE_BREATH)) {
@@ -507,56 +507,56 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
     }
 
     @Override
-    public ActionResult interactMob(PlayerEntity player, Hand hand) {
-        ItemStack itemStack = player.getStackInHand(hand);
+    public InteractionResult interactMob(Player player, InteractionHand hand) {
+        ItemStack itemStack = player.getItemInHand(hand);
         Item item = itemStack.getItem();
         if (!this.isBaby() && this.hasPassengers())
             return super.interactMob(player, hand);
 
-        if (this.getWorld().isClient()) {
+        if (this.level().isClientSide()) {
             boolean bl = this.isOwner(player) || this.isTamed() || this.dragonFood(item) && !this.isTamed();
-            return bl ? ActionResult.CONSUME : ActionResult.PASS;
+            return bl ? InteractionResult.CONSUME : InteractionResult.PASS;
         } else {
             // Check for owner
             if (this.isTamed() && this.getSize() > 1 && this.isOwner(player)) {
                 if (item == Items.CHEST && !this.hasChest() && this.getSize() > 2) {
-                    this.getWorld().playSoundFromEntity((PlayerEntity) null, this, SoundInit.EQUIP_CHEST_EVENT, SoundCategory.NEUTRAL, 0.5F, 1.0F);
+                    this.level().playSoundFromEntity((Player) null, this, SoundInit.EQUIP_CHEST_EVENT, SoundSource.NEUTRAL, 0.5F, 1.0F);
                     this.setHasChest(true);
                     if (!player.isCreative()) {
                         itemStack.decrement(1);
                     }
-                    return ActionResult.SUCCESS;
+                    return InteractionResult.SUCCESS;
                 }
                 if (this.dragonFood(item) && this.getHealth() < this.getMaxHealth() && player.isSneaking()) {
                     if (!player.isCreative()) {
                         itemStack.decrement(1);
                     }
                     this.heal((float) this.healingFood);
-                    return ActionResult.SUCCESS;
+                    return InteractionResult.SUCCESS;
                 } else if (!player.isSneaking()) {
                     if (!this.hasSaddle) {
                         if (item == ItemInit.DRAGON_SADDLE) {
-                            this.getWorld().playSoundFromEntity((PlayerEntity) null, this, SoundEvents.ENTITY_HORSE_SADDLE, SoundCategory.NEUTRAL, 0.8F, 1.0F);
+                            this.level().playSoundFromEntity((Player) null, this, SoundEvents.ENTITY_HORSE_SADDLE, SoundSource.NEUTRAL, 0.8F, 1.0F);
                             if (!player.isCreative()) {
                                 itemStack.decrement(1);
                             }
                             this.hasSaddle = true;
                             this.getDataTracker().set(HAS_SADDLE, true);
-                            return ActionResult.SUCCESS;
+                            return InteractionResult.SUCCESS;
                         }
-                        return ActionResult.FAIL;
+                        return InteractionResult.FAIL;
                     }
                     this.setSitting(false);
                     this.putPlayerOnBack(player);
-                    return ActionResult.SUCCESS;
+                    return InteractionResult.SUCCESS;
                 } else if (this.isInSittingPose()) {
                     this.setSitting(false);
-                    return ActionResult.SUCCESS;
+                    return InteractionResult.SUCCESS;
                 } else if (this.isOnGround()) {
                     this.setSitting(true);
-                    return ActionResult.SUCCESS;
+                    return InteractionResult.SUCCESS;
                 } else
-                    return ActionResult.PASS;
+                    return InteractionResult.PASS;
             } else if (this.dragonFood(item)) {
                 if (!this.isTamed()) {
                     if (!player.isCreative()) {
@@ -572,21 +572,21 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
                         this.setOwner(player);
                         this.navigation.stop();
                         this.setTarget((LivingEntity) null);
-                        this.getWorld().sendEntityStatus(this, (byte) 7);
+                        this.level().sendEntityStatus(this, (byte) 7);
                     } else {
-                        this.getWorld().sendEntityStatus(this, (byte) 6);
+                        this.level().sendEntityStatus(this, (byte) 6);
                     }
 
-                    return ActionResult.SUCCESS;
+                    return InteractionResult.SUCCESS;
                 } else {
                     if (this.canEatFood(this.dragonAge, 3, 13)) {
                         if (!player.isCreative()) {
                             itemStack.decrement(1);
                         }
                         dragonAgeFoodBonus++;
-                        return ActionResult.SUCCESS;
+                        return InteractionResult.SUCCESS;
                     } else {
-                        return ActionResult.PASS;
+                        return InteractionResult.PASS;
                     }
 
                 }
@@ -624,7 +624,7 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
     @Override
     public void tick() {
         super.tick();
-        if (!this.getWorld().isClient()) {
+        if (!this.level().isClientSide()) {
             if (this.getSize() < 3) {
                 if (this.age % 1200 == 0) {
                     this.dragonAge++;
@@ -640,7 +640,7 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
                 if (this.dragonAgeFoodBonus > 5) {
                     this.dragonAgeFoodBonus = 0;
                     this.dragonAge++;
-                    this.getWorld().sendEntityStatus(this, (byte) 9);
+                    this.level().sendEntityStatus(this, (byte) 9);
                 }
             }
             if (this.isTouchingWater() || this.isInLava()) {
@@ -655,7 +655,7 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
                         this.startFlyingTimer = 0;
                         this.fluidTicker = 0;
                     }
-                } else if (this.getWorld().isClient() && this.hasPassengers() && !this.isFlying && this.getFluidHeight(FluidTags.WATER) > 1.0D) {
+                } else if (this.level().isClientSide() && this.hasPassengers() && !this.isFlying && this.getFluidHeight(FluidTags.WATER) > 1.0D) {
                     this.addVelocity(0.0D, 0.05D, 0.0D);
                 }
             } else if (this.fluidTicker != 0)
@@ -694,7 +694,7 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
 
     @Environment(EnvType.CLIENT)
     protected void showEmoteParticle(boolean positive) {
-        ParticleEffect particleEffect = ParticleTypes.HEART;
+        ParticleOptions particleEffect = ParticleTypes.HEART;
         if (!positive) {
             particleEffect = ParticleTypes.SMOKE;
         }
@@ -703,7 +703,7 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
             double d = this.random.nextGaussian() * 0.02D;
             double e = this.random.nextGaussian() * 0.02D;
             double f = this.random.nextGaussian() * 0.02D;
-            this.getWorld().addParticle(particleEffect, this.getParticleX(1.0D), this.getRandomBodyY() + 0.5D, this.getParticleZ(1.0D), d, e, f);
+            this.level().addParticle(particleEffect, this.getParticleX(1.0D), this.getRandomBodyY() + 0.5D, this.getParticleZ(1.0D), d, e, f);
         }
 
     }
@@ -744,7 +744,7 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
         this.dataTracker.set(OWNER_UUID, Optional.ofNullable(uuid));
     }
 
-    public void setOwner(PlayerEntity player) {
+    public void setOwner(Player player) {
         this.setTamed(true);
         this.setOwnerUuid(player.getUuid());
     }
@@ -754,7 +754,7 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
     public LivingEntity getOwner() {
         try {
             UUID uUID = this.getOwnerUuid();
-            return uUID == null ? null : this.getWorld().getPlayerByUuid(uUID);
+            return uUID == null ? null : this.level().getPlayerByUuid(uUID);
         } catch (IllegalArgumentException var2) {
             return null;
         }
@@ -787,12 +787,12 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
 
     @Override
     public void onDeath(DamageSource source) {
-        if (!this.getWorld().isClient()) {
-            if (this.getWorld().getGameRules().getBoolean(GameRules.SHOW_DEATH_MESSAGES) && this.getOwner() instanceof ServerPlayerEntity) {
+        if (!this.level().isClientSide()) {
+            if (this.level().getGameRules().getBoolean(GameRules.SHOW_DEATH_MESSAGES) && this.getOwner() instanceof ServerPlayer) {
                 this.getOwner().sendMessage(this.getDamageTracker().getDeathMessage());
             }
             if (FabricLoader.getInstance().isModLoaded("dragonloot")) {
-                this.dropStack(new ItemStack(Registries.ITEM.get(Identifier.of("dragonloot", "dragon_scale")), (int) (this.getSize() * this.getWorld().getRandom().nextFloat())));
+                this.dropStack(new ItemStack(BuiltInRegistries.ITEM.get(Identifier.of("dragonloot", "dragon_scale")), (int) (this.getSize() * this.level().getRandom().nextFloat())));
             }
         }
 
@@ -834,7 +834,7 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
 
     @Override
     protected void fall(double heightDifference, boolean onGround, BlockState landedState, BlockPos landedPosition) {
-        if (!this.getWorld().isClient() && !this.isFlying && !onGround && heightDifference < -0.7D) {
+        if (!this.level().isClientSide() && !this.isFlying && !onGround && heightDifference < -0.7D) {
             if (this.sitting)
                 this.setSitting(false);
             if (!this.hasPassengers()) {
@@ -842,18 +842,18 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
                 this.getDataTracker().set(IS_FLYING, true);
                 this.getDataTracker().set(IS_START_FLYING, false);
                 this.getDataTracker().set(CLIENT_START_FLYING, false);
-                this.startFlyingTime = (int) this.getWorld().getTime();
+                this.startFlyingTime = (int) this.level().getTime();
             }
         }
         super.fall(heightDifference, onGround, landedState, landedPosition);
     }
 
     private void playWingFlapSound() {
-        this.getWorld().playSoundFromEntity(null, this, SoundEvents.ENTITY_ENDER_DRAGON_FLAP, this.getSoundCategory(), 5.0f, 0.8f + this.random.nextFloat() * 0.3f);
+        this.level().playSoundFromEntity(null, this, SoundEvents.ENTITY_ENDER_DRAGON_FLAP, this.getSoundCategory(), 5.0f, 0.8f + this.random.nextFloat() * 0.3f);
     }
 
     public void setKeyBind(String key) {
-        this.keyBind = InputUtil.fromTranslationKey(key).getCode();
+        this.keyBind = InputConstants.fromTranslationKey(key).getCode();
     }
 
     @Override
@@ -887,12 +887,12 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
     }
 
     @Override
-    public void onInventoryChanged(Inventory sender) {
+    public void onInventoryChanged(Container sender) {
     }
 
     private void onChestedStatusChanged() {
-        SimpleInventory simpleInventory = this.inventory;
-        this.inventory = new SimpleInventory(27);
+        SimpleContainer simpleInventory = this.inventory;
+        this.inventory = new SimpleContainer(27);
         if (simpleInventory != null) {
             simpleInventory.removeListener(this);
             int i = Math.min(simpleInventory.size(), this.inventory.size());
@@ -921,7 +921,7 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
 
         }
         if (this.hasChest()) {
-            if (!this.getWorld().isClient()) {
+            if (!this.level().isClientSide()) {
                 this.dropItem(Blocks.CHEST);
             }
 
@@ -937,23 +937,23 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
         this.dataTracker.set(HAS_CHEST, hasChest);
     }
 
-    public void openInventory(PlayerEntity player) {
-        if (!this.getWorld().isClient() && (!this.hasPassengers() || this.hasPassenger(player)) && this.isTamed()) {
-            player.openHandledScreen(new SimpleNamedScreenHandlerFactory(
-                    (syncId, inv, p) -> new GenericContainerScreenHandler(ScreenHandlerType.GENERIC_9X3, syncId, p.getInventory(), this.inventory, 27 / 9), this.getName()));
+    public void openInventory(Player player) {
+        if (!this.level().isClientSide() && (!this.hasPassengers() || this.hasPassenger(player)) && this.isTamed()) {
+            player.openHandledScreen(new SimpleMenuProvider(
+                    (syncId, inv, p) -> new ChestMenu(MenuType.GENERIC_9X3, syncId, p.getInventory(), this.inventory, 27 / 9), this.getName()));
         }
 
     }
 
     @Nullable
     @Override
-    public EntityData initialize(ServerWorldAccess world, LocalDifficulty difficulty, SpawnReason spawnReason, @Nullable EntityData entityData) {
+    public SpawnGroupData initialize(ServerLevelAccessor world, DifficultyInstance difficulty, EntitySpawnReason spawnReason, @Nullable SpawnGroupData entityData) {
         this.getDataTracker().set(OTHER_EARS, world.getRandom().nextBoolean());
         this.getDataTracker().set(OTHER_TAIL, world.getRandom().nextBoolean());
         this.getDataTracker().set(OTHER_EYES, world.getRandom().nextBoolean());
         if (world.getDimension().ultrawarm())
             this.getDataTracker().set(RED_DRAGON, world.getRandom().nextBoolean());
-        if (spawnReason.equals(SpawnReason.COMMAND)) {
+        if (spawnReason.equals(EntitySpawnReason.COMMAND)) {
             this.setSize(3);
         } else {
             this.setSize(1);
@@ -962,7 +962,7 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
     }
 
     @Override
-    protected EntityDimensions getBaseDimensions(EntityPose pose) {
+    protected EntityDimensions getBaseDimensions(Pose pose) {
         return super.getBaseDimensions(pose).scaled((float) this.getSize() / 3.0F);
     }
 
@@ -974,13 +974,13 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
         this.dataTracker.set(DRAGON_SIZE, size);
         this.refreshPosition();
         this.calculateDimensions();
-        this.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue((double) (size * 20));
-        this.getAttributeInstance(EntityAttributes.GENERIC_ATTACK_DAMAGE).setBaseValue((double) size * 3);
-        this.getAttributeInstance(EntityAttributes.GENERIC_ARMOR).setBaseValue((double) size * 2);
+        this.getAttributeInstance(Attributes.GENERIC_MAX_HEALTH).setBaseValue((double) (size * 20));
+        this.getAttributeInstance(Attributes.GENERIC_ATTACK_DAMAGE).setBaseValue((double) size * 3);
+        this.getAttributeInstance(Attributes.GENERIC_ARMOR).setBaseValue((double) size * 2);
     }
 
     @Override
-    public void onTrackedDataSet(TrackedData<?> data) {
+    public void onTrackedDataSet(EntityDataAccessor<?> data) {
         if (DRAGON_SIZE.equals(data)) {
             this.calculateDimensions();
             this.setYaw(this.headYaw);
@@ -1009,7 +1009,7 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
     }
 
     // @Override
-    // protected float getActiveEyeHeight(EntityPose pose, EntityDimensions dimensions) {
+    // protected float getActiveEyeHeight(Pose pose, EntityDimensions dimensions) {
     // if (this.getSize() == 1) {
     // return 0.80F * dimensions.height;
     // }
@@ -1030,20 +1030,20 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
         // public void updatePassengerPosition(Entity passenger) {
         // super.updatePassengerPosition(passenger);
         super.updatePassengerPosition(passenger, positionUpdater);
-        if (passenger instanceof MobEntity) {
-            MobEntity mobEntity = (MobEntity) passenger;
+        if (passenger instanceof Mob) {
+            Mob mobEntity = (Mob) passenger;
             this.bodyYaw = mobEntity.bodyYaw;
-            // float slowlyIncreasingFloat = ((float) Math.floorMod(this.getWorld().getTime(), 100L) + animationProgress) / 100.0F;
-            // float mediumSpeedSin = MathHelper.cos(12.566370614F * slowlyIncreasingFloat );
+            // float slowlyIncreasingFloat = ((float) Math.floorMod(this.level().getTime(), 100L) + animationProgress) / 100.0F;
+            // float mediumSpeedSin = Mth.cos(12.566370614F * slowlyIncreasingFloat );
             // float bodyFloating = -mediumSpeedSin - 4.0F;
             // this.body.pivotY = bodyFloating;
-            if (this.getWorld().isClient()) {
+            if (this.level().isClientSide()) {
                 float offSet = 12F;
                 if (passenger.equals(this.getControllingPassenger())) {
                     offSet = 1F;
                 }
-                float f = MathHelper.sin(this.bodyYaw * 0.017453292F) * offSet;
-                float g = MathHelper.cos(this.bodyYaw * 0.017453292F) * offSet;
+                float f = Mth.sin(this.bodyYaw * 0.017453292F) * offSet;
+                float g = Mth.cos(this.bodyYaw * 0.017453292F) * offSet;
 
                 passenger.setPosition(this.getX() + (double) (0.1F * f), this.getBodyY(0.66F), this.getZ() - (double) (0.1F * g));
                 // passenger.setPosition(this.getX() + (double) (0.1F * f), this.getBodyY(0.66F) + passenger.getHeightOffset(), this.getZ() - (double) (0.1F * g));
@@ -1054,40 +1054,40 @@ public class DragonEntity extends PathAwareEntity implements InventoryChangedLis
 
     @Override
     public boolean damage(DamageSource source, float amount) {
-        if (source.isIn(TagInit.IS_WALL)) {
+        if (source.is(TagInit.IS_WALL)) {
             return false;
         }
-        if (!this.getWorld().isClient()) {
+        if (!this.level().isClientSide()) {
             this.setSitting(false);
         }
         return !this.isInvulnerableTo(source) && super.damage(source, amount);
     }
 
     static {
-        IS_FLYING = DataTracker.registerData(DragonEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-        IS_START_FLYING = DataTracker.registerData(DragonEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-        CLIENT_START_FLYING = DataTracker.registerData(DragonEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-        CLIENT_END_FLYING = DataTracker.registerData(DragonEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-        TAMEABLE_FLAGS = DataTracker.registerData(DragonEntity.class, TrackedDataHandlerRegistry.BYTE);
-        OWNER_UUID = DataTracker.registerData(DragonEntity.class, TrackedDataHandlerRegistry.OPTIONAL_UUID);
-        HAS_SADDLE = DataTracker.registerData(DragonEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-        HAS_CHEST = DataTracker.registerData(DragonEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-        OTHER_EARS = DataTracker.registerData(DragonEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-        OTHER_TAIL = DataTracker.registerData(DragonEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-        OTHER_EYES = DataTracker.registerData(DragonEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-        DRAGON_SIZE = DataTracker.registerData(DragonEntity.class, TrackedDataHandlerRegistry.INTEGER);
-        FIRE_BREATH = DataTracker.registerData(DragonEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-        RED_DRAGON = DataTracker.registerData(DragonEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+        IS_FLYING = SynchedEntityData.registerData(DragonEntity.class, EntityDataSerializers.BOOLEAN);
+        IS_START_FLYING = SynchedEntityData.registerData(DragonEntity.class, EntityDataSerializers.BOOLEAN);
+        CLIENT_START_FLYING = SynchedEntityData.registerData(DragonEntity.class, EntityDataSerializers.BOOLEAN);
+        CLIENT_END_FLYING = SynchedEntityData.registerData(DragonEntity.class, EntityDataSerializers.BOOLEAN);
+        TAMEABLE_FLAGS = SynchedEntityData.registerData(DragonEntity.class, EntityDataSerializers.BYTE);
+        OWNER_UUID = SynchedEntityData.registerData(DragonEntity.class, EntityDataSerializers.OPTIONAL_UUID);
+        HAS_SADDLE = SynchedEntityData.registerData(DragonEntity.class, EntityDataSerializers.BOOLEAN);
+        HAS_CHEST = SynchedEntityData.registerData(DragonEntity.class, EntityDataSerializers.BOOLEAN);
+        OTHER_EARS = SynchedEntityData.registerData(DragonEntity.class, EntityDataSerializers.BOOLEAN);
+        OTHER_TAIL = SynchedEntityData.registerData(DragonEntity.class, EntityDataSerializers.BOOLEAN);
+        OTHER_EYES = SynchedEntityData.registerData(DragonEntity.class, EntityDataSerializers.BOOLEAN);
+        DRAGON_SIZE = SynchedEntityData.registerData(DragonEntity.class, EntityDataSerializers.INTEGER);
+        FIRE_BREATH = SynchedEntityData.registerData(DragonEntity.class, EntityDataSerializers.BOOLEAN);
+        RED_DRAGON = SynchedEntityData.registerData(DragonEntity.class, EntityDataSerializers.BOOLEAN);
     }
 
     @Environment(EnvType.CLIENT)
-    public static void flyDragonDown(ClientPlayerEntity player, String keyString) {
+    public static void flyDragonDown(LocalPlayer player, String keyString) {
         if (player.getVehicle() != null && player.getVehicle() instanceof DragonEntity)
             ((DragonEntity) player.getVehicle()).setKeyBind(keyString);
     }
 
     @Environment(EnvType.CLIENT)
-    public static void dragonFireBreath(ClientPlayerEntity player) {
+    public static void dragonFireBreath(LocalPlayer player) {
         if (player.getVehicle() != null && player.getVehicle() instanceof DragonEntity dragonEntity && player.getVehicle().isAlive()) {
             if (dragonEntity.getDataTracker().get(DragonEntity.DRAGON_SIZE) >= 3) {
                 ClientPlayNetworking.send(new DragonFireBreathPacket());

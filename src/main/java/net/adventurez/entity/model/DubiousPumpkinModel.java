@@ -6,11 +6,11 @@ import net.adventurez.entity.DubiousPumpkinEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.model.*;
-import net.minecraft.client.render.entity.model.CompositeEntityModel;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.model.ListModel;
+import net.minecraft.util.Mth;
 
 @Environment(EnvType.CLIENT)
-public class DubiousPumpkinModel<T extends DubiousPumpkinEntity> extends CompositeEntityModel<T> {
+public class DubiousPumpkinModel<T extends DubiousPumpkinEntity> extends ListModel<T> {
     private final ModelPart root;
     private final ModelPart waist;
     private final ModelPart body;
@@ -60,13 +60,13 @@ public class DubiousPumpkinModel<T extends DubiousPumpkinEntity> extends Composi
 //        this.tail.pitch = -1.0F;
 //        this.head.pitch = headPitch * 0.010453292F;
 //        this.head.yaw = headYaw * 0.010453292F;
-        this.body.roll = MathHelper.cos(limbAngle * 0.6662F) * 1.4F * limbDistance*0.04f;
-        this.rightLeg.pitch = MathHelper.cos(limbAngle * 0.6662F) * 1.4F * limbDistance;
-        this.leftLeg.pitch = MathHelper.cos(limbAngle * 0.6662F + 3.1415927F) * 1.4F * limbDistance;
-        this.rightArm.roll = MathHelper.cos(limbAngle * 0.6662F + 3.1415927F) * 1.4F * limbDistance * 0.2f;
-        this.leftArm.roll = MathHelper.cos(limbAngle * 0.6662F+ 3.1415927F) * 1.4F * limbDistance * 0.2f;
+        this.body.roll = Mth.cos(limbAngle * 0.6662F) * 1.4F * limbDistance*0.04f;
+        this.rightLeg.pitch = Mth.cos(limbAngle * 0.6662F) * 1.4F * limbDistance;
+        this.leftLeg.pitch = Mth.cos(limbAngle * 0.6662F + 3.1415927F) * 1.4F * limbDistance;
+        this.rightArm.roll = Mth.cos(limbAngle * 0.6662F + 3.1415927F) * 1.4F * limbDistance * 0.2f;
+        this.leftArm.roll = Mth.cos(limbAngle * 0.6662F+ 3.1415927F) * 1.4F * limbDistance * 0.2f;
 
-//        float k = MathHelper.sin(this.handSwingProgress * 3.1415927F);
+//        float k = Mth.sin(this.handSwingProgress * 3.1415927F);
 //
 //        if (k > 0.0F)
 //            this.head.pitch = -k * 0.8F;

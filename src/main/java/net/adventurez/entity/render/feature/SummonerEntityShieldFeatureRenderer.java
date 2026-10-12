@@ -4,24 +4,24 @@ import net.adventurez.entity.SummonerEntity;
 import net.adventurez.entity.model.SummonerModel;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.entity.feature.FeatureRenderer;
-import net.minecraft.client.render.entity.feature.FeatureRendererContext;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.RenderType;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.renderer.entity.RenderLayerParent;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 @Environment(EnvType.CLIENT)
-public class SummonerEntityShieldFeatureRenderer extends FeatureRenderer<SummonerEntity, SummonerModel<SummonerEntity>> {
-    private static final RenderLayer SHIELD_LAYER = RenderLayer.getEntityGlint();
+public class SummonerEntityShieldFeatureRenderer extends RenderLayer<SummonerEntity, SummonerModel<SummonerEntity>> {
+    private static final RenderType SHIELD_LAYER = RenderType.getEntityGlint();
 
-    public SummonerEntityShieldFeatureRenderer(FeatureRendererContext<SummonerEntity, SummonerModel<SummonerEntity>> featureRendererContext) {
+    public SummonerEntityShieldFeatureRenderer(RenderLayerParent<SummonerEntity, SummonerModel<SummonerEntity>> featureRendererContext) {
         super(featureRendererContext);
     }
 
     @Override
-    public void render(MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i, SummonerEntity summonerEntity, float f, float g, float h, float j, float k, float l) {
+    public void render(PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int i, SummonerEntity summonerEntity, float f, float g, float h, float j, float k, float l) {
         if (summonerEntity.getDataTracker().get(SummonerEntity.INVULNERABLE_SHIELD)) {
             VertexConsumer vertexConsumer = vertexConsumerProvider.getBuffer(SHIELD_LAYER);
             this.getContextModel().render(matrixStack, vertexConsumer, 15728640, OverlayTexture.DEFAULT_UV);

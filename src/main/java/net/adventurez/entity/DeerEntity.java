@@ -4,56 +4,56 @@ import java.util.EnumSet;
 
 import net.adventurez.init.EntityInit;
 import net.adventurez.init.SoundInit;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ai.NoPenaltyTargeting;
-import net.minecraft.entity.ai.goal.AnimalMateGoal;
-import net.minecraft.entity.ai.goal.EscapeDangerGoal;
-import net.minecraft.entity.ai.goal.FollowParentGoal;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.ai.goal.LookAroundGoal;
-import net.minecraft.entity.ai.goal.LookAtEntityGoal;
-import net.minecraft.entity.ai.goal.SwimGoal;
-import net.minecraft.entity.ai.goal.TemptGoal;
-import net.minecraft.entity.ai.goal.WanderAroundFarGoal;
-import net.minecraft.entity.attribute.DefaultAttributeContainer;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.entity.passive.AnimalEntity;
-import net.minecraft.entity.passive.PassiveEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ai.util.DefaultRandomPos;
+import net.minecraft.world.entity.ai.goal.BreedGoal;
+import net.minecraft.world.entity.ai.goal.PanicGoal;
+import net.minecraft.world.entity.ai.goal.FollowParentGoal;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
+import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.TemptGoal;
+import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.AgeableMob;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
 
-public class DeerEntity extends AnimalEntity {
+public class DeerEntity extends Animal {
 
-    public DeerEntity(EntityType<? extends DeerEntity> entityType, World world) {
+    public DeerEntity(EntityType<? extends DeerEntity> entityType, Level world) {
         super(entityType, world);
     }
 
-    public static DefaultAttributeContainer.Builder createDeerAttributes() {
-        return MobEntity.createMobAttributes().add(EntityAttributes.GENERIC_MAX_HEALTH, 10.0D).add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.215D);
+    public static AttributeSupplier.Builder createDeerAttributes() {
+        return Mob.createMobAttributes().add(Attributes.GENERIC_MAX_HEALTH, 10.0D).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.215D);
     }
 
     @Override
     protected void initGoals() {
-        this.goalSelector.add(0, new SwimGoal(this));
-        this.goalSelector.add(1, new EscapeDangerGoal(this, 2.0D));
-        this.goalSelector.add(2, new AnimalMateGoal(this, 1.0D));
+        this.goalSelector.add(0, new FloatGoal(this));
+        this.goalSelector.add(1, new PanicGoal(this, 2.0D));
+        this.goalSelector.add(2, new BreedGoal(this, 1.0D));
         this.goalSelector.add(3, new TemptGoal(this, 1.22D, Ingredient.ofItems(Items.SHORT_GRASS, Items.TALL_GRASS, Items.FERN), true));
         this.goalSelector.add(4, new FollowParentGoal(this, 1.25D));
         this.goalSelector.add(5, new EscapePlayerGoal(this, 2.0D));
-        this.goalSelector.add(6, new WanderAroundFarGoal(this, 1.0D));
-        this.goalSelector.add(7, new LookAtEntityGoal(this, PlayerEntity.class, 6.0F));
-        this.goalSelector.add(8, new LookAroundGoal(this));
+        this.goalSelector.add(6, new WaterAvoidingRandomStrollGoal(this, 1.0D));
+        this.goalSelector.add(7, new LookAtPlayerGoal(this, Player.class, 6.0F));
+        this.goalSelector.add(8, new RandomLookAroundGoal(this));
     }
 
     @Override
@@ -77,13 +77,13 @@ public class DeerEntity extends AnimalEntity {
     }
 
     @Override
-    public DeerEntity createChild(ServerWorld serverWorld, PassiveEntity passiveEntity) {
+    public DeerEntity createChild(ServerLevel serverWorld, AgeableMob passiveEntity) {
         return EntityInit.DEER.create(serverWorld);
     }
 
     @Override
     public boolean isBreedingItem(ItemStack stack) {
-        return stack.isOf(Items.SHORT_GRASS) || stack.isOf(Items.FERN) || stack.isOf(Items.TALL_GRASS);
+        return net.adventurez.util.MinecraftCompat.isItem(stack, Items.SHORT_GRASS) || net.adventurez.util.MinecraftCompat.isItem(stack, Items.FERN) || net.adventurez.util.MinecraftCompat.isItem(stack, Items.TALL_GRASS);
     }
 
     private class EscapePlayerGoal extends Goal {
@@ -101,7 +101,7 @@ public class DeerEntity extends AnimalEntity {
 
         @Override
         public boolean canStart() {
-            if (this.deerEntity.getWorld().getClosestPlayer(this.deerEntity, 4.0D) == null) {
+            if (this.deerEntity.level().getClosestPlayer(this.deerEntity, 4.0D) == null) {
                 return false;
             } else {
                 return this.findTarget();
@@ -109,7 +109,7 @@ public class DeerEntity extends AnimalEntity {
         }
 
         private boolean findTarget() {
-            Vec3d vec3d = NoPenaltyTargeting.find(this.deerEntity, 12, 4);
+            Vec3 vec3d = DefaultRandomPos.find(this.deerEntity, 12, 4);
             if (vec3d == null) {
                 return false;
             } else {

@@ -6,16 +6,16 @@ import net.adventurez.entity.model.DubiousPumpkinModel;
 import net.adventurez.init.RenderInit;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.render.entity.EntityRendererFactory;
-import net.minecraft.client.render.entity.MobEntityRenderer;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.MobRenderer;
+import net.minecraft.resources.Identifier;
 
 @Environment(EnvType.CLIENT)
-public class DubiousPumpkinRenderer extends MobEntityRenderer<DubiousPumpkinEntity, DubiousPumpkinModel<DubiousPumpkinEntity>> {
+public class DubiousPumpkinRenderer extends MobRenderer<DubiousPumpkinEntity, DubiousPumpkinModel<DubiousPumpkinEntity>> {
     private static final Identifier TEXTURE = AdventureMain.identifierOf("textures/entity/dubious_pumpkin.png");
     private static final Identifier TEXTURE_ANGRY = AdventureMain.identifierOf("textures/entity/dubious_pumpkin_angry.png");
 
-    public DubiousPumpkinRenderer(EntityRendererFactory.Context context) {
+    public DubiousPumpkinRenderer(EntityRendererProvider.Context context) {
         super(context, new DubiousPumpkinModel<>(context.getPart(RenderInit.DUBIOUS_PUMPKIN_LAYER)), 0.5F);
     }
 

@@ -8,31 +8,31 @@ import net.adventurez.entity.render.feature.DragonSaddleFeatureRenderer;
 import net.adventurez.init.RenderInit;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.entity.EntityRendererFactory;
-import net.minecraft.client.render.entity.MobEntityRenderer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.MobRenderer;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.resources.Identifier;
 
 @Environment(EnvType.CLIENT)
-public class DragonRenderer extends MobEntityRenderer<DragonEntity, DragonModel<DragonEntity>> {
+public class DragonRenderer extends MobRenderer<DragonEntity, DragonModel<DragonEntity>> {
     private static final Identifier TEXTURE = AdventureMain.identifierOf("textures/entity/dragon.png");
     private static final Identifier RED_DRAGON_TEXTURE = AdventureMain.identifierOf("textures/entity/red_dragon.png");
 
-    public DragonRenderer(EntityRendererFactory.Context context) {
+    public DragonRenderer(EntityRendererProvider.Context context) {
         super(context, new DragonModel<>(context.getPart(RenderInit.DRAGON_LAYER)), 0.4F);
         this.addFeature(new DragonEyesFeatureRenderer(this));
         this.addFeature(new DragonSaddleFeatureRenderer(this));
     }
 
     @Override
-    public void render(DragonEntity dragonEntity, float f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i) {
+    public void render(DragonEntity dragonEntity, float f, float g, PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int i) {
         this.shadowRadius = 0.6F * (float) dragonEntity.getSize();
         super.render(dragonEntity, f, g, matrixStack, vertexConsumerProvider, i);
     }
 
     @Override
-    public void scale(DragonEntity dragonEntity, MatrixStack matrixStack, float f) {
+    public void scale(DragonEntity dragonEntity, PoseStack matrixStack, float f) {
         matrixStack.scale((float) dragonEntity.getSize() / 3.0F, (float) dragonEntity.getSize() / 3.0F, (float) dragonEntity.getSize() / 3.0F);
     }
 

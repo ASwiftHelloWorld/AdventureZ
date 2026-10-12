@@ -11,33 +11,33 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.adventurez.init.ConfigInit;
 import net.adventurez.init.EntityInit;
-import net.minecraft.entity.SpawnGroup;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.collection.Pool;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.SpawnHelper;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.SpawnSettings;
-import net.minecraft.world.gen.StructureAccessor;
-import net.minecraft.world.gen.chunk.ChunkGenerator;
-import net.minecraft.world.gen.structure.NetherFortressStructure;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.core.Holder;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.random.WeightedList;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.NaturalSpawner;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.MobSpawnSettings;
+import net.minecraft.world.level.StructureManager;
+import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.structure.structures.NetherFortressStructure;
 
-@Mixin(SpawnHelper.class)
+@Mixin(NaturalSpawner.class)
 public class SpawnHelperMixin {
 
-    private static final Pool<SpawnSettings.SpawnEntry> ADDED_SPAWNS;
+    private static final WeightedList<MobSpawnSettings.SpawnEntry> ADDED_SPAWNS;
 
-    @Inject(method = "getSpawnEntries", at = @At(value = "FIELD", target = "Lnet/minecraft/world/gen/structure/NetherFortressStructure;MONSTER_SPAWNS:Lnet/minecraft/util/collection/Pool;", ordinal = 0), cancellable = true)
-    private static void getSpawnEntriesMixin(ServerWorld world, StructureAccessor structureAccessor, ChunkGenerator chunkGenerator, SpawnGroup spawnGroup, BlockPos pos,
-            @Nullable RegistryEntry<Biome> biomeEntry, CallbackInfoReturnable<Pool<SpawnSettings.SpawnEntry>> info) {
-        List<SpawnSettings.SpawnEntry> spawnersList = new ArrayList<>(NetherFortressStructure.MONSTER_SPAWNS.getEntries());
+    @Inject(method = "getSpawnEntries", at = @At(value = "FIELD", target = "Lnet/minecraft/world/level/levelgen/structure/structures/NetherFortressStructure;MONSTER_SPAWNS:Lnet/minecraft/util/random/WeightedList;", ordinal = 0), cancellable = true)
+    private static void getSpawnEntriesMixin(ServerLevel world, StructureManager structureAccessor, ChunkGenerator chunkGenerator, MobCategory spawnGroup, BlockPos pos,
+            @Nullable Holder<Biome> biomeEntry, CallbackInfoReturnable<WeightedList<MobSpawnSettings.SpawnEntry>> info) {
+        List<MobSpawnSettings.SpawnEntry> spawnersList = new ArrayList<>(NetherFortressStructure.MONSTER_SPAWNS.getEntries());
         spawnersList.addAll(ADDED_SPAWNS.getEntries());
-        info.setReturnValue(Pool.of(spawnersList));
+        info.setReturnValue(WeightedList.of(spawnersList));
     }
 
     static {
-        ADDED_SPAWNS = Pool.of(new SpawnSettings.SpawnEntry(EntityInit.NECROMANCER, ConfigInit.CONFIG.necromancer_spawn_weight, 1, 1),
-                new SpawnSettings.SpawnEntry(EntityInit.BLAZE_GUARDIAN, ConfigInit.CONFIG.blaze_guardian_spawn_weight, 1, 1));
+        ADDED_SPAWNS = WeightedList.of(new MobSpawnSettings.SpawnEntry(EntityInit.NECROMANCER, ConfigInit.CONFIG.necromancer_spawn_weight, 1, 1),
+                new MobSpawnSettings.SpawnEntry(EntityInit.BLAZE_GUARDIAN, ConfigInit.CONFIG.blaze_guardian_spawn_weight, 1, 1));
     }
 }

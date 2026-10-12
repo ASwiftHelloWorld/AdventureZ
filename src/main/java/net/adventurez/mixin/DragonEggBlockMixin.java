@@ -9,29 +9,29 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import net.adventurez.block.entity.DragonEggEntity;
 import net.adventurez.init.BlockInit;
 import net.adventurez.init.ConfigInit;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntityTicker;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Items;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.block.BlockEntityProvider;
-import net.minecraft.block.DragonEggBlock;
-import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Items;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.DragonEggBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 @Mixin(DragonEggBlock.class)
-public class DragonEggBlockMixin implements BlockEntityProvider {
+public class DragonEggBlockMixin implements EntityBlock {
 
     @Inject(method = "onUse", at = @At("HEAD"), cancellable = true)
-    private void onUseMixin(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit, CallbackInfoReturnable<ActionResult> info) {
-        if (ConfigInit.CONFIG.allow_other_dragon_hatching && player.getMainHandStack().isOf(Items.DRAGON_BREATH) && player.getEquippedStack(EquipmentSlot.HEAD).isOf(Items.DRAGON_HEAD)) {
+    private void onUseMixin(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit, CallbackInfoReturnable<InteractionResult> info) {
+        if (ConfigInit.CONFIG.allow_other_dragon_hatching && net.adventurez.util.MinecraftCompat.isItem(player.getMainHandItem(), Items.DRAGON_BREATH) && net.adventurez.util.MinecraftCompat.isItem(player.getItemBySlot(EquipmentSlot.HEAD), Items.DRAGON_HEAD)) {
             if (!world.isClient) {
-                player.getMainHandStack().decrement(1);
+                player.getMainHandItem().decrement(1);
                 if (state.hasBlockEntity()) {
                     ((DragonEggEntity) world.getBlockEntity(pos)).enableEggHatching();
                 }
@@ -40,7 +40,7 @@ public class DragonEggBlockMixin implements BlockEntityProvider {
                     world.addParticle(ParticleTypes.HAPPY_VILLAGER, pos.getX() + world.random.nextDouble(), pos.getY() + world.random.nextDouble(), pos.getZ() + world.random.nextDouble(), 0.0D, 0.0D,
                             0.0D);
             }
-            info.setReturnValue(ActionResult.success(true));
+            info.setReturnValue(InteractionResult.success(true));
         }
     }
 
@@ -51,7 +51,7 @@ public class DragonEggBlockMixin implements BlockEntityProvider {
 
     @Nullable
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level world, BlockState state, BlockEntityType<T> type) {
         return checkType(type, BlockInit.DRAGON_EGG_ENTITY, world.isClient ? DragonEggEntity::clientTick : DragonEggEntity::serverTick);
     }
 

@@ -9,21 +9,21 @@ import org.spongepowered.asm.mixin.injection.At;
 
 import net.adventurez.entity.DragonEntity;
 import net.adventurez.entity.EnderWhaleEntity;
-import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.server.level.ServerPlayer;
 
-@Mixin(ServerPlayNetworkHandler.class)
+@Mixin(ServerGamePacketListenerImpl.class)
 public class ServerPlayNetworkHandlerMixin {
 
     @Shadow
-    public ServerPlayerEntity player;
+    public ServerPlayer player;
 
     @Shadow
     private int vehicleFloatingTicks;
 
-    @Inject(method = "onClientCommand", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerPlayerEntity;updateLastActionTime()V"))
-    private void onClientCommandMixin(ClientCommandC2SPacket packet, CallbackInfo info) {
+    @Inject(method = "onClientCommand", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;updateLastActionTime()V"))
+    private void onClientCommandMixin(ServerboundPlayerCommandPacket packet, CallbackInfo info) {
         if (player.getVehicle() != null && player.getVehicle() instanceof DragonEntity && ((DragonEntity) this.player.getVehicle()).hasChest()) {
             ((DragonEntity) this.player.getVehicle()).openInventory(this.player);
         }

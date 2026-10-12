@@ -5,17 +5,17 @@ import com.google.common.collect.ImmutableList;
 import net.adventurez.entity.MammothEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.model.ModelData;
-import net.minecraft.client.model.ModelPart;
-import net.minecraft.client.model.ModelPartBuilder;
-import net.minecraft.client.model.ModelPartData;
-import net.minecraft.client.model.ModelTransform;
-import net.minecraft.client.model.TexturedModelData;
-import net.minecraft.client.render.entity.model.CompositeEntityModel;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.builders.CubeListBuilder;
+import net.minecraft.client.model.geom.builders.PartDefinition;
+import net.minecraft.client.model.geom.PartPose;
+import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.client.model.ListModel;
+import net.minecraft.util.Mth;
 
 @Environment(EnvType.CLIENT)
-public class MammothModel<T extends MammothEntity> extends CompositeEntityModel<T> {
+public class MammothModel<T extends MammothEntity> extends ListModel<T> {
     private final ModelPart body;
     private final ModelPart humpRight;
     private final ModelPart tail;
@@ -72,43 +72,43 @@ public class MammothModel<T extends MammothEntity> extends CompositeEntityModel<
         this.headRight = this.head.getChild("headRight");
     }
 
-    public static TexturedModelData getTexturedModelData() {
-        ModelData modelData = new ModelData();
-        ModelPartData modelPartData = modelData.getRoot();
-        ModelPartData modelPartData1 = modelPartData.addChild("body",
-                ModelPartBuilder.create().uv(0, 0).cuboid(-8.0F, -9.0F, -11.0F, 16.0F, 15.0F, 13.0F).uv(80, 0).cuboid(-7.0F, -6.0F, 2.0F, 14.0F, 12.0F, 10.0F).uv(0, 23)
+    public static LayerDefinition getTexturedModelData() {
+        MeshDefinition modelData = new MeshDefinition();
+        PartDefinition modelPartData = modelData.getRoot();
+        PartDefinition modelPartData1 = modelPartData.addChild("body",
+                CubeListBuilder.create().uv(0, 0).cuboid(-8.0F, -9.0F, -11.0F, 16.0F, 15.0F, 13.0F).uv(80, 0).cuboid(-7.0F, -6.0F, 2.0F, 14.0F, 12.0F, 10.0F).uv(0, 23)
                         .cuboid(-7.0F, 6.0F, 2.0F, 0.0F, 2.0F, 10.0F).uv(0, 15).cuboid(-8.0F, 6.0F, -11.0F, 0.0F, 3.0F, 13.0F).uv(0, 15).cuboid(8.0F, 6.0F, -11.0F, 0.0F, 3.0F, 13.0F).uv(0, 35)
                         .cuboid(-8.0F, 6.0F, -11.0F, 16.0F, 3.0F, 0.0F).uv(0, 23).cuboid(7.0F, 6.0F, 2.0F, 0.0F, 2.0F, 10.0F).uv(0, 31).cuboid(-7.0F, 6.0F, 12.0F, 14.0F, 2.0F, 0.0F),
-                ModelTransform.pivot(0.0F, 7.0F, 0.0F));
-        modelPartData1.addChild("humpRight", ModelPartBuilder.create().uv(45, 0).cuboid(-5.0F, 0.0F, -7.0F, 10.0F, 6.0F, 7.0F), ModelTransform.pivot(0.0F, -9.0F, -1.0F));
-        modelPartData1.addChild("tail", ModelPartBuilder.create().uv(5, 5).cuboid(-1.0F, 0.0F, -2.0F, 2.0F, 6.0F, 2.0F), ModelTransform.pivot(0.0F, -1.0F, 12.0F));
-        modelPartData.addChild("legBackLeft", ModelPartBuilder.create().uv(59, 14).cuboid(-3.0F, 0.0F, -3.0F, 5.0F, 11.0F, 5.0F), ModelTransform.pivot(-3.0F, 13.0F, 9.0F));
-        modelPartData.addChild("legBackRight", ModelPartBuilder.create().uv(59, 14).cuboid(-2.0F, 0.0F, -3.0F, 5.0F, 11.0F, 5.0F), ModelTransform.pivot(3.0F, 13.0F, 9.0F));
-        modelPartData.addChild("legFrontLeft", ModelPartBuilder.create().uv(59, 14).cuboid(-2.0F, 0.0F, -2.0F, 5.0F, 11.0F, 5.0F), ModelTransform.pivot(-5.0F, 13.0F, -8.0F));
-        modelPartData.addChild("legFrontRight", ModelPartBuilder.create().uv(59, 14).cuboid(-2.0F, 0.0F, -2.0F, 5.0F, 11.0F, 5.0F), ModelTransform.pivot(4.0F, 13.0F, -8.0F));
-        ModelPartData modelPartData2 = modelPartData.addChild("head", ModelPartBuilder.create().uv(92, 22).cuboid(-4.5F, -5.316F, -5.8794F, 9.0F, 12.0F, 9.0F),
-                ModelTransform.pivot(0.0F, 1.0F, -11.0F));
-        modelPartData2.addChild("headRight", ModelPartBuilder.create().uv(92, 23).cuboid(-3.0F, 0.0F, 0.0F, 3.0F, 6.0F, 1.0F), ModelTransform.pivot(-4.5F, -3.316F, -2.8794F));
-        modelPartData2.addChild("headLeft", ModelPartBuilder.create().uv(92, 23).cuboid(0.0F, 0.0F, 0.0F, 3.0F, 6.0F, 1.0F), ModelTransform.pivot(4.5F, -3.316F, -2.8794F));
-        ModelPartData modelPartData3 = modelPartData2.addChild("trunk", ModelPartBuilder.create(), ModelTransform.pivot(0.0F, 6.684F, -3.8794F));
-        modelPartData3.addChild("trunk_r1", ModelPartBuilder.create().uv(112, 43).cuboid(-2.0F, 0.0F, 0.0F, 4.0F, 8.0F, 4.0F), ModelTransform.pivot(0.0F, 0.5176F, -1.9319F));
-        ModelPartData modelPartData4 = modelPartData3.addChild("trunkOne", ModelPartBuilder.create(), ModelTransform.pivot(0.0F, 6.4458F, 3.0681F));
-        modelPartData4.addChild("trunkOne_r1", ModelPartBuilder.create().uv(100, 43).cuboid(-1.5F, 0.0F, 0.0F, 3.0F, 7.0F, 3.0F), ModelTransform.pivot(0.0F, 0.909F, -1.0834F));
-        ModelPartData modelPartData5 = modelPartData4.addChild("trunkTwo", ModelPartBuilder.create(), ModelTransform.pivot(0.0F, 4.8588F, 4.8663F));
-        modelPartData5.addChild("trunkTwo_r1", ModelPartBuilder.create().uv(92, 43).cuboid(-1.0F, 0.0F, 0.0F, 2.0F, 5.0F, 2.0F), ModelTransform.pivot(0.0F, 0.8609F, -1.1219F));
-        ModelPartData modelPartData6 = modelPartData2.addChild("tuskRight", ModelPartBuilder.create(), ModelTransform.pivot(4.5F, 2.684F, -3.8794F));
-        modelPartData6.addChild("tuskTipRight_r1", ModelPartBuilder.create().uv(102, 53).cuboid(-2.0F, 0.0F, -2.0F, 2.0F, 7.0F, 2.0F), ModelTransform.pivot(7.907F, 12.1641F, -1.8623F));
-        modelPartData6.addChild("tuskMidRight_r1", ModelPartBuilder.create().uv(110, 55).cuboid(-2.0F, 0.0F, -2.0F, 2.0F, 7.0F, 2.0F), ModelTransform.pivot(5.3262F, 8.4783F, 3.5F));
-        modelPartData6.addChild("tuskBackRight_r1", ModelPartBuilder.create().uv(118, 55).cuboid(-2.0F, -1.0F, 0.0F, 2.0F, 6.0F, 3.0F), ModelTransform.pivot(2.4583F, 4.3826F, 0.5F));
-        modelPartData6.addChild("tuskFurOverlay_r1", ModelPartBuilder.create().uv(46, 28).cuboid(-3.0F, 4.0F, 0.0F, 3.0F, 2.0F, 4.0F).uv(32, 28).cuboid(-3.0F, 0.0F, 0.0F, 3.0F, 4.0F, 4.0F),
-                ModelTransform.pivot(0.0F, 0.0F, 0.0F));
-        ModelPartData modelPartData7 = modelPartData2.addChild("tuskLeft", ModelPartBuilder.create(), ModelTransform.pivot(-5.5F, 1.684F, -3.8794F));
-        modelPartData7.addChild("tuskTipLeft_r1", ModelPartBuilder.create().uv(102, 53).cuboid(0.0F, 0.0F, -2.0F, 2.0F, 7.0F, 2.0F), ModelTransform.pivot(-4.6746F, 14.3523F, -1.8623F));
-        modelPartData7.addChild("tuskMidLeft_r1", ModelPartBuilder.create().uv(110, 55).cuboid(0.0F, 0.0F, -2.0F, 2.0F, 7.0F, 2.0F), ModelTransform.pivot(-2.773F, 10.2744F, 3.5F));
-        modelPartData7.addChild("tuskBackLeft_r1", ModelPartBuilder.create().uv(118, 55).cuboid(0.0F, -1.0F, -3.0F, 2.0F, 6.0F, 3.0F), ModelTransform.pivot(-0.6599F, 5.7428F, 3.5F));
-        modelPartData7.addChild("tuskBaseLeft_r1", ModelPartBuilder.create().uv(46, 28).cuboid(0.0F, 4.0F, 0.0F, 3.0F, 2.0F, 4.0F).uv(32, 28).cuboid(0.0F, 0.0F, 0.0F, 3.0F, 4.0F, 4.0F),
-                ModelTransform.pivot(1.0F, 1.0F, 0.0F));
-        return TexturedModelData.of(modelData, 128, 128);
+                PartPose.pivot(0.0F, 7.0F, 0.0F));
+        modelPartData1.addChild("humpRight", CubeListBuilder.create().uv(45, 0).cuboid(-5.0F, 0.0F, -7.0F, 10.0F, 6.0F, 7.0F), PartPose.pivot(0.0F, -9.0F, -1.0F));
+        modelPartData1.addChild("tail", CubeListBuilder.create().uv(5, 5).cuboid(-1.0F, 0.0F, -2.0F, 2.0F, 6.0F, 2.0F), PartPose.pivot(0.0F, -1.0F, 12.0F));
+        modelPartData.addChild("legBackLeft", CubeListBuilder.create().uv(59, 14).cuboid(-3.0F, 0.0F, -3.0F, 5.0F, 11.0F, 5.0F), PartPose.pivot(-3.0F, 13.0F, 9.0F));
+        modelPartData.addChild("legBackRight", CubeListBuilder.create().uv(59, 14).cuboid(-2.0F, 0.0F, -3.0F, 5.0F, 11.0F, 5.0F), PartPose.pivot(3.0F, 13.0F, 9.0F));
+        modelPartData.addChild("legFrontLeft", CubeListBuilder.create().uv(59, 14).cuboid(-2.0F, 0.0F, -2.0F, 5.0F, 11.0F, 5.0F), PartPose.pivot(-5.0F, 13.0F, -8.0F));
+        modelPartData.addChild("legFrontRight", CubeListBuilder.create().uv(59, 14).cuboid(-2.0F, 0.0F, -2.0F, 5.0F, 11.0F, 5.0F), PartPose.pivot(4.0F, 13.0F, -8.0F));
+        PartDefinition modelPartData2 = modelPartData.addChild("head", CubeListBuilder.create().uv(92, 22).cuboid(-4.5F, -5.316F, -5.8794F, 9.0F, 12.0F, 9.0F),
+                PartPose.pivot(0.0F, 1.0F, -11.0F));
+        modelPartData2.addChild("headRight", CubeListBuilder.create().uv(92, 23).cuboid(-3.0F, 0.0F, 0.0F, 3.0F, 6.0F, 1.0F), PartPose.pivot(-4.5F, -3.316F, -2.8794F));
+        modelPartData2.addChild("headLeft", CubeListBuilder.create().uv(92, 23).cuboid(0.0F, 0.0F, 0.0F, 3.0F, 6.0F, 1.0F), PartPose.pivot(4.5F, -3.316F, -2.8794F));
+        PartDefinition modelPartData3 = modelPartData2.addChild("trunk", CubeListBuilder.create(), PartPose.pivot(0.0F, 6.684F, -3.8794F));
+        modelPartData3.addChild("trunk_r1", CubeListBuilder.create().uv(112, 43).cuboid(-2.0F, 0.0F, 0.0F, 4.0F, 8.0F, 4.0F), PartPose.pivot(0.0F, 0.5176F, -1.9319F));
+        PartDefinition modelPartData4 = modelPartData3.addChild("trunkOne", CubeListBuilder.create(), PartPose.pivot(0.0F, 6.4458F, 3.0681F));
+        modelPartData4.addChild("trunkOne_r1", CubeListBuilder.create().uv(100, 43).cuboid(-1.5F, 0.0F, 0.0F, 3.0F, 7.0F, 3.0F), PartPose.pivot(0.0F, 0.909F, -1.0834F));
+        PartDefinition modelPartData5 = modelPartData4.addChild("trunkTwo", CubeListBuilder.create(), PartPose.pivot(0.0F, 4.8588F, 4.8663F));
+        modelPartData5.addChild("trunkTwo_r1", CubeListBuilder.create().uv(92, 43).cuboid(-1.0F, 0.0F, 0.0F, 2.0F, 5.0F, 2.0F), PartPose.pivot(0.0F, 0.8609F, -1.1219F));
+        PartDefinition modelPartData6 = modelPartData2.addChild("tuskRight", CubeListBuilder.create(), PartPose.pivot(4.5F, 2.684F, -3.8794F));
+        modelPartData6.addChild("tuskTipRight_r1", CubeListBuilder.create().uv(102, 53).cuboid(-2.0F, 0.0F, -2.0F, 2.0F, 7.0F, 2.0F), PartPose.pivot(7.907F, 12.1641F, -1.8623F));
+        modelPartData6.addChild("tuskMidRight_r1", CubeListBuilder.create().uv(110, 55).cuboid(-2.0F, 0.0F, -2.0F, 2.0F, 7.0F, 2.0F), PartPose.pivot(5.3262F, 8.4783F, 3.5F));
+        modelPartData6.addChild("tuskBackRight_r1", CubeListBuilder.create().uv(118, 55).cuboid(-2.0F, -1.0F, 0.0F, 2.0F, 6.0F, 3.0F), PartPose.pivot(2.4583F, 4.3826F, 0.5F));
+        modelPartData6.addChild("tuskFurOverlay_r1", CubeListBuilder.create().uv(46, 28).cuboid(-3.0F, 4.0F, 0.0F, 3.0F, 2.0F, 4.0F).uv(32, 28).cuboid(-3.0F, 0.0F, 0.0F, 3.0F, 4.0F, 4.0F),
+                PartPose.pivot(0.0F, 0.0F, 0.0F));
+        PartDefinition modelPartData7 = modelPartData2.addChild("tuskLeft", CubeListBuilder.create(), PartPose.pivot(-5.5F, 1.684F, -3.8794F));
+        modelPartData7.addChild("tuskTipLeft_r1", CubeListBuilder.create().uv(102, 53).cuboid(0.0F, 0.0F, -2.0F, 2.0F, 7.0F, 2.0F), PartPose.pivot(-4.6746F, 14.3523F, -1.8623F));
+        modelPartData7.addChild("tuskMidLeft_r1", CubeListBuilder.create().uv(110, 55).cuboid(0.0F, 0.0F, -2.0F, 2.0F, 7.0F, 2.0F), PartPose.pivot(-2.773F, 10.2744F, 3.5F));
+        modelPartData7.addChild("tuskBackLeft_r1", CubeListBuilder.create().uv(118, 55).cuboid(0.0F, -1.0F, -3.0F, 2.0F, 6.0F, 3.0F), PartPose.pivot(-0.6599F, 5.7428F, 3.5F));
+        modelPartData7.addChild("tuskBaseLeft_r1", CubeListBuilder.create().uv(46, 28).cuboid(0.0F, 4.0F, 0.0F, 3.0F, 2.0F, 4.0F).uv(32, 28).cuboid(0.0F, 0.0F, 0.0F, 3.0F, 4.0F, 4.0F),
+                PartPose.pivot(1.0F, 1.0F, 0.0F));
+        return LayerDefinition.of(modelData, 128, 128);
     }
 
     @Override
@@ -148,14 +148,14 @@ public class MammothModel<T extends MammothEntity> extends CompositeEntityModel<
         if (entity.isBaby()) {
             slowerWalking = 0.1F;
         }
-        this.legBackRight.pitch = MathHelper.cos(limbAngle * slowerWalking + 3.1415927F) * 0.7F * limbDistance;
-        this.legBackLeft.pitch = MathHelper.cos(limbAngle * slowerWalking) * 0.7F * limbDistance;
-        this.legFrontLeft.pitch = MathHelper.cos(limbAngle * slowerWalking + 3.1415927F) * 0.7F * limbDistance;
-        this.legFrontRight.pitch = MathHelper.cos(limbAngle * slowerWalking) * 0.7F * limbDistance;
+        this.legBackRight.pitch = Mth.cos(limbAngle * slowerWalking + 3.1415927F) * 0.7F * limbDistance;
+        this.legBackLeft.pitch = Mth.cos(limbAngle * slowerWalking) * 0.7F * limbDistance;
+        this.legFrontLeft.pitch = Mth.cos(limbAngle * slowerWalking + 3.1415927F) * 0.7F * limbDistance;
+        this.legFrontRight.pitch = Mth.cos(limbAngle * slowerWalking) * 0.7F * limbDistance;
 
         int i = entity.getDataTracker().get(MammothEntity.ATTACK_TICKS);
         if (i > 0) {
-            this.head.pitch = -0.3491F + MathHelper.sin((3.14159265358F / 10F) * ((float) i - 9)) * 0.4F;
+            this.head.pitch = -0.3491F + Mth.sin((3.14159265358F / 10F) * ((float) i - 9)) * 0.4F;
         }
 
     }

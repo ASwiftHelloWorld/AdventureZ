@@ -7,33 +7,33 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.At;
 
 import net.adventurez.init.ItemInit;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.projectile.thrown.EnderPearlEntity;
-import net.minecraft.entity.projectile.thrown.ThrownItemEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrownEnderpearl;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
 
-@Mixin(EnderPearlEntity.class)
-public abstract class EnderPearlEntityMixin extends ThrownItemEntity {
+@Mixin(ThrownEnderpearl.class)
+public abstract class EnderPearlEntityMixin extends ThrowableItemProjectile {
 
-    public EnderPearlEntityMixin(EntityType<? extends ThrownItemEntity> entityType, World world) {
+    public EnderPearlEntityMixin(EntityType<? extends ThrowableItemProjectile> entityType, Level world) {
         super(entityType, world);
     }
 
     @Inject(method = "onCollision", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/Entity;damage(Lnet/minecraft/entity/damage/DamageSource;F)Z"), cancellable = true)
     protected void onCollisionMixin(HitResult hitResult, CallbackInfo info) {
-        if (this.getStack().isOf(ItemInit.PRIME_EYE)) {
+        if (net.adventurez.util.MinecraftCompat.isItem(this.getStack(), ItemInit.PRIME_EYE)) {
             this.getOwner().damage(this.getDamageSources().fall(), 2.0F);
             this.discard();
-            this.playTeleportSound((ServerWorld) this.getWorld(), this.getPos());
+            this.playTeleportSound((ServerLevel) this.level(), this.position());
             info.cancel();
 
         }
     }
 
     @Shadow
-    private void playTeleportSound(World world, Vec3d pos) {
+    private void playTeleportSound(Level world, Vec3 pos) {
     }
 }

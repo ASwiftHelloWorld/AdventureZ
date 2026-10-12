@@ -7,17 +7,17 @@ import net.adventurez.init.ConfigInit;
 import net.adventurez.init.EffectInit;
 import net.adventurez.init.EntityInit;
 import net.adventurez.init.TagInit;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.registry.RegistryWrapper.WrapperLookup;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.HolderLookup.Provider;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 public class DragonEggEntity extends BlockEntity {
     private int overallSummoningTick;
@@ -31,7 +31,7 @@ public class DragonEggEntity extends BlockEntity {
     }
 
     @Override
-    protected void readNbt(NbtCompound nbt, WrapperLookup registryLookup) {
+    protected void readNbt(CompoundTag nbt, Provider registryLookup) {
         super.readNbt(nbt, registryLookup);
         hatchTick = nbt.getInt("Hatch_Tick");
         isHatchAble = nbt.getBoolean("Hatch_Able");
@@ -39,35 +39,35 @@ public class DragonEggEntity extends BlockEntity {
     }
 
     @Override
-    protected void writeNbt(NbtCompound nbt, WrapperLookup registryLookup) {
+    protected void writeNbt(CompoundTag nbt, Provider registryLookup) {
         super.writeNbt(nbt, registryLookup);
         nbt.putBoolean("Hatch_Able", isHatchAble);
         nbt.putInt("Hatch_Tick", hatchTick);
         nbt.putInt("Summoning_Tick", summoningTick);
     }
 
-    public static void clientTick(World world, BlockPos pos, BlockState state, DragonEggEntity blockEntity) {
+    public static void clientTick(Level world, BlockPos pos, BlockState state, DragonEggEntity blockEntity) {
         blockEntity.tick();
     }
 
-    public static void serverTick(World world, BlockPos pos, BlockState state, DragonEggEntity blockEntity) {
+    public static void serverTick(Level world, BlockPos pos, BlockState state, DragonEggEntity blockEntity) {
         blockEntity.tick();
     }
 
     @Override
     public void markDirty() {
-        super.markDirty();
+        super.setChanged();
         sendUpdate();
     }
 
     private void sendUpdate() {
-        if (this.getWorld() != null) {
-            BlockState state = this.getWorld().getBlockState(this.pos);
-            (this.getWorld()).updateListeners(this.pos, state, state, 3);
+        if (this.getLevel() != null) {
+            BlockState state = this.getLevel().getBlockState(this.pos);
+            (this.getLevel()).updateListeners(this.pos, state, state, 3);
         }
     }
 
-    private boolean isValid(World world, BlockPos pos, BlockState state) {
+    private boolean isValid(Level world, BlockPos pos, BlockState state) {
         int stoneCounter;
         int stoneCounter2;
         int stoneCounter3 = 0;
@@ -77,8 +77,8 @@ public class DragonEggEntity extends BlockEntity {
         BlockState rod_2 = world.getBlockState(pos.north().west());
         BlockState rod_3 = world.getBlockState(pos.south().east());
         BlockState rod_4 = world.getBlockState(pos.south().west());
-        if (rod_1.equals(Blocks.END_ROD.getDefaultState()) && rod_2.equals(Blocks.END_ROD.getDefaultState()) && rod_3.equals(Blocks.END_ROD.getDefaultState())
-                && rod_4.equals(Blocks.END_ROD.getDefaultState())) {
+        if (rod_1.equals(Blocks.END_ROD.defaultBlockState()) && rod_2.equals(Blocks.END_ROD.defaultBlockState()) && rod_3.equals(Blocks.END_ROD.defaultBlockState())
+                && rod_4.equals(Blocks.END_ROD.defaultBlockState())) {
             for (stoneCounter4 = -1; stoneCounter4 < 2; stoneCounter4++) {
                 for (stoneCounter5 = -1; stoneCounter5 < 2; stoneCounter5++) {
                     BlockState middleState = world.getBlockState(pos.north(stoneCounter4).east(stoneCounter5).down());
@@ -90,7 +90,7 @@ public class DragonEggEntity extends BlockEntity {
             for (stoneCounter = -2; stoneCounter < 3; stoneCounter++) {
                 for (stoneCounter2 = -2; stoneCounter2 < 3; stoneCounter2++) {
                     BlockState baseState = world.getBlockState(pos.north(stoneCounter).east(stoneCounter2).down(2));
-                    if (baseState.isIn(TagInit.PLATFORM_END_BLOCKS)) {
+                    if (net.adventurez.util.MinecraftCompat.isBlockInTag(baseState, TagInit.PLATFORM_END_BLOCKS)) {
                         stoneCounter3++;
                     }
                 }
@@ -109,32 +109,32 @@ public class DragonEggEntity extends BlockEntity {
     }
 
     private void updateDragonHatching() {
-        if (ConfigInit.CONFIG.allow_dragon_hatching && !this.getWorld().isClient()) {
+        if (ConfigInit.CONFIG.allow_dragon_hatching && !this.getLevel().isClientSide()) {
             overallHatchingTick++;
             if (overallHatchingTick == 20) {
                 if (!this.isHatchAble) {
-                    if (((ServerWorld) this.getWorld()).getEnderDragonFight() != null && !((ServerWorld) this.getWorld()).getEnderDragonFight().hasPreviouslyKilled())
+                    if (((ServerLevel) this.getLevel()).getEnderDragonFight() != null && !((ServerLevel) this.getLevel()).getEnderDragonFight().hasPreviouslyKilled())
                         return;
-                    PlayerEntity playerEntity = this.getWorld().getClosestPlayer(this.getPos().getX() + 0.5D, this.getPos().getY(), this.getPos().getZ() + 0.5D, 2.5D, true);
+                    Player playerEntity = this.getLevel().getClosestPlayer(this.getBlockPos().getX() + 0.5D, this.getBlockPos().getY(), this.getBlockPos().getZ() + 0.5D, 2.5D, true);
                     if (playerEntity != null && playerEntity.hasStatusEffect(EffectInit.FAME))
                         enableEggHatching();
                 } else {
                     this.hatchTick++;
                     if (this.hatchTick % 60 == 0) {
                         for (int i = 0; i < 20; i++) {
-                            double d = (double) pos.getX() + (double) this.getWorld().getRandom().nextFloat();
-                            double e = (double) pos.getY() + (double) this.getWorld().getRandom().nextFloat();
-                            double f = (double) pos.getZ() + (double) this.getWorld().getRandom().nextFloat();
-                            ((ServerWorld) this.getWorld()).spawnParticles(ParticleTypes.HAPPY_VILLAGER, d, e, f, 0, 0.0D, 0.0D, 0.0D, 0.01D);
+                            double d = (double) pos.getX() + (double) this.getLevel().getRandom().nextFloat();
+                            double e = (double) pos.getY() + (double) this.getLevel().getRandom().nextFloat();
+                            double f = (double) pos.getZ() + (double) this.getLevel().getRandom().nextFloat();
+                            ((ServerLevel) this.getLevel()).spawnParticles(ParticleTypes.HAPPY_VILLAGER, d, e, f, 0, 0.0D, 0.0D, 0.0D, 0.01D);
                         }
                     }
                     if (this.hatchTick >= 598) {
-                        this.getWorld().breakBlock(this.pos, false);
-                        DragonEntity dragonEntity = EntityInit.DRAGON.create(this.getWorld());
-                        dragonEntity.refreshPositionAndAngles((double) this.getPos().getX() + 0.5D, (double) this.getPos().getY() + 0.55D, (double) this.getPos().getZ() + 0.5D, 90F, 0.0F);
-                        dragonEntity.initialize(((ServerWorld) this.getWorld()), this.getWorld().getLocalDifficulty(pos), SpawnReason.STRUCTURE, null);
+                        this.getLevel().breakBlock(this.pos, false);
+                        DragonEntity dragonEntity = EntityInit.DRAGON.create(this.getLevel());
+                        dragonEntity.refreshPositionAndAngles((double) this.getBlockPos().getX() + 0.5D, (double) this.getBlockPos().getY() + 0.55D, (double) this.getBlockPos().getZ() + 0.5D, 90F, 0.0F);
+                        dragonEntity.initialize(((ServerLevel) this.getLevel()), this.getLevel().getLocalDifficulty(pos), EntitySpawnReason.STRUCTURE, null);
                         dragonEntity.setSize(1);
-                        this.getWorld().spawnEntity(dragonEntity);
+                        this.getLevel().spawnEntity(dragonEntity);
                     }
                 }
 
@@ -147,24 +147,24 @@ public class DragonEggEntity extends BlockEntity {
 
     private void updateTheEyeSummoning() {
         if (ConfigInit.CONFIG.allow_the_eye_summoning) {
-            if (this.getWorld().getBlockState(pos.down()).equals(Blocks.CRYING_OBSIDIAN.getDefaultState()) && this.getWorld().getRegistryKey() == World.END) {
+            if (this.getLevel().getBlockState(pos.down()).equals(Blocks.CRYING_OBSIDIAN.defaultBlockState()) && this.getLevel().getRegistryKey() == Level.END) {
                 overallSummoningTick++;
-                BlockState state = this.getCachedState();
-                if (overallSummoningTick == 20 && this.isValid(this.getWorld(), pos, state)) {
+                BlockState state = this.getBlockState();
+                if (overallSummoningTick == 20 && this.isValid(this.getLevel(), pos, state)) {
                     summoningTick++;
-                    if (!this.getWorld().isClient() && summoningTick >= 60) {
-                        TheEyeEntity theEyeEntity = (TheEyeEntity) EntityInit.THE_EYE.create(this.getWorld());
-                        theEyeEntity.refreshPositionAndAngles((double) this.getPos().getX() + 0.5D, (double) this.getPos().getY() + 0.55D, (double) this.getPos().getZ() + 0.5D, 90F, 0.0F);
-                        theEyeEntity.initialize(((ServerWorld) this.getWorld()), this.getWorld().getLocalDifficulty(pos), SpawnReason.STRUCTURE, null);
+                    if (!this.getLevel().isClientSide() && summoningTick >= 60) {
+                        TheEyeEntity theEyeEntity = (TheEyeEntity) EntityInit.THE_EYE.create(this.getLevel());
+                        theEyeEntity.refreshPositionAndAngles((double) this.getBlockPos().getX() + 0.5D, (double) this.getBlockPos().getY() + 0.55D, (double) this.getBlockPos().getZ() + 0.5D, 90F, 0.0F);
+                        theEyeEntity.initialize(((ServerLevel) this.getLevel()), this.getLevel().getLocalDifficulty(pos), EntitySpawnReason.STRUCTURE, null);
                         theEyeEntity.setEyeInvulnerabletime();
-                        this.getWorld().spawnEntity(theEyeEntity);
-                        this.getWorld().breakBlock(pos, false);
+                        this.getLevel().spawnEntity(theEyeEntity);
+                        this.getLevel().breakBlock(pos, false);
                     }
                 }
                 if (overallSummoningTick >= 20) {
                     overallSummoningTick = 0;
                 }
-                if (this.getWorld().isClient() && summoningTick != 0) {
+                if (this.getLevel().isClientSide() && summoningTick != 0) {
                     if (summoningTick % 10 == 0) {
                         this.dragonAltartParticle(1);
                     }

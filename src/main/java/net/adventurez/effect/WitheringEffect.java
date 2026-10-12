@@ -1,19 +1,19 @@
 package net.adventurez.effect;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.attribute.AttributeContainer;
-import net.minecraft.entity.attribute.EntityAttributeInstance;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.entity.effect.StatusEffectCategory;
-import net.minecraft.util.Identifier;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeMap;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.resources.Identifier;
 
-public class WitheringEffect extends StatusEffect {
+public class WitheringEffect extends MobEffect {
 
-    private static final EntityAttributeModifier WITHERING = new EntityAttributeModifier(Identifier.of("adventurez:withering"), -0.15D, EntityAttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
+    private static final AttributeModifier WITHERING = new AttributeModifier(Identifier.of("adventurez:withering"), -0.15D, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL);
 
-    public WitheringEffect(StatusEffectCategory type, int color) {
+    public WitheringEffect(MobEffectCategory type, int color) {
         super(type, color);
     }
 
@@ -29,9 +29,9 @@ public class WitheringEffect extends StatusEffect {
     }
 
     @Override
-    public void onApplied(AttributeContainer attributeContainer, int amplifier) {
+    public void onApplied(AttributeMap attributeContainer, int amplifier) {
         super.onApplied(attributeContainer, amplifier);
-        EntityAttributeInstance entityAttributeInstance = attributeContainer.getCustomInstance((EntityAttributes.GENERIC_MOVEMENT_SPEED));
+        AttributeInstance entityAttributeInstance = attributeContainer.getCustomInstance((Attributes.GENERIC_MOVEMENT_SPEED));
         if (entityAttributeInstance != null) {
             entityAttributeInstance.removeModifier(WITHERING);
             entityAttributeInstance.addPersistentModifier(WITHERING);
@@ -40,9 +40,9 @@ public class WitheringEffect extends StatusEffect {
     }
 
     @Override
-    public void onRemoved(AttributeContainer attributeContainer) {
+    public void onRemoved(AttributeMap attributeContainer) {
         super.onRemoved(attributeContainer);
-        EntityAttributeInstance entityAttributeInstance = attributeContainer.getCustomInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED);
+        AttributeInstance entityAttributeInstance = attributeContainer.getCustomInstance(Attributes.GENERIC_MOVEMENT_SPEED);
         if (entityAttributeInstance != null) {
             entityAttributeInstance.removeModifier(WITHERING);
         }

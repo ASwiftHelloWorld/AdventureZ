@@ -6,15 +6,15 @@ import net.adventurez.entity.model.WitherPuppetModel;
 import net.adventurez.init.RenderInit;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.render.entity.BipedEntityRenderer;
-import net.minecraft.client.render.entity.EntityRendererFactory;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.resources.Identifier;
 
 @Environment(EnvType.CLIENT)
-public class WitherPuppetRenderer extends BipedEntityRenderer<WitherPuppetEntity, WitherPuppetModel<WitherPuppetEntity>> {
+public class WitherPuppetRenderer extends HumanoidMobRenderer<WitherPuppetEntity, WitherPuppetModel<WitherPuppetEntity>> {
     private static final Identifier TEXTURE = AdventureMain.identifierOf("textures/entity/wither_puppet.png");
 
-    public WitherPuppetRenderer(EntityRendererFactory.Context context) {
+    public WitherPuppetRenderer(EntityRendererProvider.Context context) {
         super(context, new WitherPuppetModel<>(context.getPart(RenderInit.WITHER_PUPPET_LAYER)), 0.5F);
     }
 

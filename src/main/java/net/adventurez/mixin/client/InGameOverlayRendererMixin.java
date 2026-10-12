@@ -9,20 +9,20 @@ import net.adventurez.init.ItemInit;
 import net.adventurez.item.GildedNetheriteArmor;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.hud.InGameOverlayRenderer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.item.ItemStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.ScreenEffectRenderer;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
 
 @Environment(EnvType.CLIENT)
-@Mixin(InGameOverlayRenderer.class)
+@Mixin(ScreenEffectRenderer.class)
 public abstract class InGameOverlayRendererMixin {
 
     @Inject(method = "renderOverlays", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/network/ClientPlayerEntity;isOnFire()Z"), cancellable = true)
-    private static void fireOverlayMixin(MinecraftClient minecraftClient, MatrixStack matrixStack, CallbackInfo info) {
-        ItemStack itemStack = minecraftClient.player.getEquippedStack(EquipmentSlot.CHEST);
-        if (!itemStack.isEmpty() && itemStack.isOf(ItemInit.GILDED_NETHERITE_CHESTPLATE) && GildedNetheriteArmor.isStoneGolemArmorActive(itemStack)) {
+    private static void fireOverlayMixin(Minecraft minecraftClient, PoseStack matrixStack, CallbackInfo info) {
+        ItemStack itemStack = minecraftClient.player.getItemBySlot(EquipmentSlot.CHEST);
+        if (!itemStack.isEmpty() && net.adventurez.util.MinecraftCompat.isItem(itemStack, ItemInit.GILDED_NETHERITE_CHESTPLATE) && GildedNetheriteArmor.isStoneGolemArmorActive(itemStack)) {
             info.cancel();
         }
     }

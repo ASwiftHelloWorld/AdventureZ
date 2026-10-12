@@ -1,29 +1,29 @@
 package net.adventurez.entity.nonliving;
 
 import net.adventurez.entity.BlazeGuardianEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.data.DataTracker.Builder;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.tag.DamageTypeTags;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.network.syncher.SynchedEntityData.Builder;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.level.Level;
 
 public class BlazeGuardianShieldEntity extends Entity {
     public final BlazeGuardianEntity owner;
     public final String name;
     private int hit;
 
-    public BlazeGuardianShieldEntity(EntityType<? extends Entity> entityType, World world) {
+    public BlazeGuardianShieldEntity(EntityType<? extends Entity> entityType, Level world) {
         super(entityType, world);
         owner = null;
         name = "null";
     }
 
     public BlazeGuardianShieldEntity(EntityType<? extends Entity> entityType, BlazeGuardianEntity owner, String name) {
-        super(entityType, owner.getWorld());
+        super(entityType, owner.level());
         this.owner = owner;
         this.name = name;
     }
@@ -33,17 +33,17 @@ public class BlazeGuardianShieldEntity extends Entity {
     }
 
     @Override
-    protected void readCustomDataFromNbt(NbtCompound nbt) {
+    protected void readCustomDataFromNbt(CompoundTag nbt) {
     }
 
     @Override
-    protected void writeCustomDataToNbt(NbtCompound nbt) {
+    protected void writeCustomDataToNbt(CompoundTag nbt) {
     }
 
     @Override
     public void tick() {
         super.tick();
-        if (!this.getWorld().isClient() && (this.owner == null || this.owner.isDead() || this.owner.isRemoved())) {
+        if (!this.level().isClientSide() && (this.owner == null || this.owner.isDead() || this.owner.isRemoved())) {
             this.discard();
         }
     }
@@ -55,20 +55,20 @@ public class BlazeGuardianShieldEntity extends Entity {
 
     @Override
     public boolean damage(DamageSource source, float amount) {
-        if (source.isIn(DamageTypeTags.IS_PROJECTILE)) {
+        if (source.is(DamageTypeTags.IS_PROJECTILE)) {
             return false;
         }
         hit++;
-        if (hit > 1 + this.getWorld().getRandom().nextInt(2)) {
-            this.getWorld().playSound(null, this.getBlockPos(), SoundEvents.ITEM_SHIELD_BREAK, SoundCategory.HOSTILE, 1.0F, 1.0F);
+        if (hit > 1 + this.level().getRandom().nextInt(2)) {
+            this.level().playSound(null, this.getBlockPos(), SoundEvents.ITEM_SHIELD_BREAK, SoundSource.HOSTILE, 1.0F, 1.0F);
             if (this.owner != null) {
                 this.removeShield(this.name, this.owner);
             }
-            if (!this.getWorld().isClient()) {
+            if (!this.level().isClientSide()) {
                 this.discard();
             }
         } else {
-            this.getWorld().playSound(null, this.getBlockPos(), SoundEvents.ITEM_SHIELD_BLOCK, SoundCategory.HOSTILE, 1.0F, 1.0F);
+            this.level().playSound(null, this.getBlockPos(), SoundEvents.ITEM_SHIELD_BLOCK, SoundSource.HOSTILE, 1.0F, 1.0F);
         }
         return this.isInvulnerableTo(source);
     }

@@ -5,51 +5,51 @@ import org.jetbrains.annotations.Nullable;
 import net.adventurez.init.EntityInit;
 import net.adventurez.init.SoundInit;
 import net.adventurez.mixin.accessor.ProjectileEntityAccessor;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityData;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.ai.RangedAttackMob;
-import net.minecraft.entity.ai.goal.BowAttackGoal;
-import net.minecraft.entity.ai.goal.ActiveTargetGoal;
-import net.minecraft.entity.ai.goal.LookAroundGoal;
-import net.minecraft.entity.ai.goal.LookAtEntityGoal;
-import net.minecraft.entity.ai.goal.MeleeAttackGoal;
-import net.minecraft.entity.ai.goal.RevengeGoal;
-import net.minecraft.entity.ai.goal.SwimGoal;
-import net.minecraft.entity.ai.goal.WanderAroundFarGoal;
-import net.minecraft.entity.ai.pathing.PathNodeType;
-import net.minecraft.entity.attribute.DefaultAttributeContainer;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.ArrowEntity;
-import net.minecraft.entity.projectile.PersistentProjectileEntity;
-import net.minecraft.entity.projectile.ProjectileUtil;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.RangedWeaponItem;
-import net.minecraft.predicate.entity.EntityPredicates;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.entity.mob.AbstractPiglinEntity;
-import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.entity.mob.PathAwareEntity;
-import net.minecraft.world.LocalDifficulty;
-import net.minecraft.world.ServerWorldAccess;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.monster.RangedAttackMob;
+import net.minecraft.world.entity.ai.goal.RangedBowAttackGoal;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
+import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
+import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.level.pathfinder.PathType;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.arrow.Arrow;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
+import net.minecraft.world.entity.projectile.ProjectileUtil;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ProjectileWeaponItem;
+import net.minecraft.world.entity.EntitySelector;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.monster.piglin.AbstractPiglin;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.Level;
 
-public class SoulReaperEntity extends HostileEntity implements RangedAttackMob {
-    private final BowAttackGoal<SoulReaperEntity> bowAttackGoal = new BowAttackGoal<>(this, 1.0D, 40, 15.0F);
+public class SoulReaperEntity extends Monster implements RangedAttackMob {
+    private final RangedBowAttackGoal<SoulReaperEntity> bowAttackGoal = new RangedBowAttackGoal<>(this, 1.0D, 40, 15.0F);
     private final MeleeAttackGoal meleeAttackGoal = new MeleeAttackGoal(this, 1.2D, true) {
         @Override
         public void stop() {
@@ -64,38 +64,38 @@ public class SoulReaperEntity extends HostileEntity implements RangedAttackMob {
         }
     };
 
-    public SoulReaperEntity(EntityType<? extends HostileEntity> entityType, World world) {
+    public SoulReaperEntity(EntityType<? extends Monster> entityType, Level world) {
         super(entityType, world);
-        this.setPathfindingPenalty(PathNodeType.LAVA, 8.0F);
+        this.setPathfindingPenalty(PathType.LAVA, 8.0F);
         this.experiencePoints = 30;
     }
 
-    public static DefaultAttributeContainer.Builder createSoulReaperAttributes() {
-        return HostileEntity.createHostileAttributes().add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.25D).add(EntityAttributes.GENERIC_MAX_HEALTH, 120.0D);
+    public static AttributeSupplier.Builder createSoulReaperAttributes() {
+        return Monster.createHostileAttributes().add(Attributes.GENERIC_MOVEMENT_SPEED, 0.25D).add(Attributes.GENERIC_MAX_HEALTH, 120.0D);
     }
 
     @Override
     public void initGoals() {
-        this.goalSelector.add(0, new SwimGoal(this));
-        this.goalSelector.add(5, new WanderAroundFarGoal(this, 1.0D));
-        this.goalSelector.add(6, new LookAtEntityGoal(this, PlayerEntity.class, 8.0F));
-        this.goalSelector.add(7, new LookAroundGoal(this));
-        this.targetSelector.add(1, (new RevengeGoal(this, new Class[] { SoulReaperEntity.class })));
-        this.targetSelector.add(2, new ActiveTargetGoal<>(this, PlayerEntity.class, true));
-        this.targetSelector.add(3, new ActiveTargetGoal<>(this, AbstractPiglinEntity.class, true));
+        this.goalSelector.add(0, new FloatGoal(this));
+        this.goalSelector.add(5, new WaterAvoidingRandomStrollGoal(this, 1.0D));
+        this.goalSelector.add(6, new LookAtPlayerGoal(this, Player.class, 8.0F));
+        this.goalSelector.add(7, new RandomLookAroundGoal(this));
+        this.targetSelector.add(1, (new HurtByTargetGoal(this, new Class[] { SoulReaperEntity.class })));
+        this.targetSelector.add(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        this.targetSelector.add(3, new NearestAttackableTargetGoal<>(this, AbstractPiglin.class, true));
     }
 
     @Override
     @Nullable
-    public EntityData initialize(ServerWorldAccess serverWorldAccess, LocalDifficulty difficulty, SpawnReason spawnReason, @Nullable EntityData entityData) {
+    public SpawnGroupData initialize(ServerLevelAccessor serverWorldAccess, DifficultyInstance difficulty, EntitySpawnReason spawnReason, @Nullable SpawnGroupData entityData) {
         entityData = super.initialize(serverWorldAccess, difficulty, spawnReason, entityData);
-        Random random = this.getWorld().getRandom();
+        RandomSource random = this.level().getRandom();
         this.initEquipment(random, difficulty);
         this.updateEnchantments(serverWorldAccess, random, difficulty);
         this.bowAttackGoal.setAttackInterval(40);
         this.goalSelector.add(4, this.bowAttackGoal);
-        if (spawnReason.equals(SpawnReason.COMMAND) || spawnReason.equals(SpawnReason.NATURAL) || spawnReason.equals(SpawnReason.CHUNK_GENERATION)) {
-            NightmareEntity nightmareEntity = EntityInit.NIGHTMARE.create(this.getWorld());
+        if (spawnReason.equals(EntitySpawnReason.COMMAND) || spawnReason.equals(EntitySpawnReason.NATURAL) || spawnReason.equals(EntitySpawnReason.CHUNK_GENERATION)) {
+            NightmareEntity nightmareEntity = EntityInit.NIGHTMARE.create(this.level());
             nightmareEntity.refreshPositionAndAngles(this.getX(), this.getY(), this.getZ(), this.getYaw(), 0.0F);
             nightmareEntity.initialize(serverWorldAccess, difficulty, spawnReason, null);
             serverWorldAccess.spawnEntity(nightmareEntity);
@@ -109,17 +109,17 @@ public class SoulReaperEntity extends HostileEntity implements RangedAttackMob {
         return false;
     }
 
-    public static boolean canSpawn(EntityType<SoulReaperEntity> type, ServerWorldAccess world, SpawnReason spawnReason, BlockPos pos, Random random) {
+    public static boolean canSpawn(EntityType<SoulReaperEntity> type, ServerLevelAccessor world, EntitySpawnReason spawnReason, BlockPos pos, RandomSource random) {
         return (canSpawnInDark(type, world, spawnReason, pos, random) && world.getBlockState(pos.up(3)).isAir()
-                && world.getEntitiesByClass(SoulReaperEntity.class, new Box(pos).expand(60D), EntityPredicates.EXCEPT_SPECTATOR).isEmpty() && random.nextInt(7) == 0)
-                || spawnReason == SpawnReason.SPAWNER;
+                && world.getEntitiesByClass(SoulReaperEntity.class, new AABB(pos).inflate(60D), EntitySelector.EXCEPT_SPECTATOR).isEmpty() && random.nextInt(7) == 0)
+                || spawnReason == EntitySpawnReason.SPAWNER;
     }
 
     @Override
     public void tickRiding() {
         super.tickRiding();
-        if (this.getVehicle() instanceof PathAwareEntity) {
-            PathAwareEntity pathAwareEntity = (PathAwareEntity) this.getVehicle();
+        if (this.getVehicle() instanceof PathfinderMob) {
+            PathfinderMob pathAwareEntity = (PathfinderMob) this.getVehicle();
             this.bodyYaw = pathAwareEntity.bodyYaw;
         }
 
@@ -131,12 +131,12 @@ public class SoulReaperEntity extends HostileEntity implements RangedAttackMob {
     }
 
     @Override
-    public boolean canHaveStatusEffect(StatusEffectInstance effect) {
-        return effect.getEffectType() == StatusEffects.WITHER ? false : super.canHaveStatusEffect(effect);
+    public boolean canHaveStatusEffect(MobEffectInstance effect) {
+        return effect.getEffectType() == MobEffects.WITHER ? false : super.canHaveStatusEffect(effect);
     }
 
     @Override
-    public void initEquipment(Random random, LocalDifficulty difficulty) {
+    public void initEquipment(RandomSource random, DifficultyInstance difficulty) {
         super.initEquipment(random, difficulty);
         this.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
     }
@@ -144,18 +144,18 @@ public class SoulReaperEntity extends HostileEntity implements RangedAttackMob {
     @Override
     public boolean tryAttack(Entity target) {
         if (target instanceof LivingEntity livingEntity) {
-            livingEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.WITHER, 300));
+            livingEntity.addStatusEffect(new MobEffectInstance(MobEffects.WITHER, 300));
         }
         return super.tryAttack(target);
     }
 
     @Override
     public void tickMovement() {
-        if (this.getWorld() != null && !this.getWorld().isClient) {
+        if (this.level() != null && !this.level().isClient) {
             LivingEntity target = this.getTarget();
             if (target != null) {
                 if (this.distanceTo(target) > 7F) {
-                    if (this.getEquippedStack(EquipmentSlot.MAINHAND).getItem().equals(Items.NETHERITE_SWORD)) {
+                    if (this.getItemBySlot(EquipmentSlot.MAINHAND).getItem().equals(Items.NETHERITE_SWORD)) {
                         this.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
                         this.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
                     }
@@ -168,7 +168,7 @@ public class SoulReaperEntity extends HostileEntity implements RangedAttackMob {
                     this.goalSelector.remove(this.bowAttackGoal);
                 }
             } else {
-                if (this.getEquippedStack(EquipmentSlot.MAINHAND).getItem().equals(Items.BOW)) {
+                if (this.getItemBySlot(EquipmentSlot.MAINHAND).getItem().equals(Items.BOW)) {
                     this.goalSelector.add(4, this.bowAttackGoal);
                 } else {
                     this.goalSelector.add(4, this.meleeAttackGoal);
@@ -180,23 +180,23 @@ public class SoulReaperEntity extends HostileEntity implements RangedAttackMob {
 
     @Override
     public void shootAt(LivingEntity target, float pullProgress) {
-        ItemStack itemStack = this.getProjectileType(this.getStackInHand(ProjectileUtil.getHandPossiblyHolding(this, Items.BOW)));
-        PersistentProjectileEntity persistentProjectileEntity = this.createArrowProjectile(itemStack, pullProgress);
+        ItemStack itemStack = this.getProjectileType(this.getItemInHand(ProjectileUtil.getHandPossiblyHolding(this, Items.BOW)));
+        AbstractArrow persistentProjectileEntity = this.createArrowProjectile(itemStack, pullProgress);
         double d = target.getX() - this.getX();
         double e = target.getBodyY(0.3333333333333333D) - persistentProjectileEntity.getY();
         double f = target.getZ() - this.getZ();
-        double g = (double) MathHelper.sqrt((float) (d * d + f * f));
-        persistentProjectileEntity.setVelocity(d, e + g * 0.21D, f, 1.3F, (float) (14 - this.getWorld().getDifficulty().getId() * 4));
+        double g = (double) Mth.sqrt((float) (d * d + f * f));
+        persistentProjectileEntity.setVelocity(d, e + g * 0.21D, f, 1.3F, (float) (14 - this.level().getDifficulty().getId() * 4));
         this.playSound(SoundEvents.ENTITY_SKELETON_SHOOT, 1.0F, 1.0F / (this.getRandom().nextFloat() * 0.4F + 0.8F));
-        this.getWorld().spawnEntity(persistentProjectileEntity);
+        this.level().spawnEntity(persistentProjectileEntity);
     }
 
-    public PersistentProjectileEntity createArrowProjectile(ItemStack arrow, float damageModifier) {
+    public AbstractArrow createArrowProjectile(ItemStack arrow, float damageModifier) {
         ItemStack blackarrow = new ItemStack(Items.ARROW);
-        ItemStack itemStack = this.getStackInHand(ProjectileUtil.getHandPossiblyHolding(this, Items.BOW));
-        PersistentProjectileEntity persistentProjectileEntity = ProjectileUtil.createArrowProjectile(this, blackarrow, 4F, itemStack);
-        if (persistentProjectileEntity instanceof ArrowEntity arrowEntity) {
-            arrowEntity.addEffect(new StatusEffectInstance(StatusEffects.WITHER, 200));
+        ItemStack itemStack = this.getItemInHand(ProjectileUtil.getHandPossiblyHolding(this, Items.BOW));
+        AbstractArrow persistentProjectileEntity = ProjectileUtil.createArrowProjectile(this, blackarrow, 4F, itemStack);
+        if (persistentProjectileEntity instanceof Arrow arrowEntity) {
+            arrowEntity.addEffect(new MobEffectInstance(MobEffects.WITHER, 200));
         }
         ((ProjectileEntityAccessor) persistentProjectileEntity).callSetPierceLevel((byte) 1);
 
@@ -204,7 +204,7 @@ public class SoulReaperEntity extends HostileEntity implements RangedAttackMob {
     }
 
     @Override
-    public boolean canUseRangedWeapon(RangedWeaponItem weapon) {
+    public boolean canUseRangedWeapon(ProjectileWeaponItem weapon) {
         return weapon == Items.BOW;
     }
 

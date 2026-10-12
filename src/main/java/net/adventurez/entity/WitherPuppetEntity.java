@@ -1,65 +1,65 @@
 package net.adventurez.entity;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.TargetPredicate;
-import net.minecraft.entity.ai.goal.ActiveTargetGoal;
-import net.minecraft.entity.ai.goal.LookAtEntityGoal;
-import net.minecraft.entity.ai.goal.MeleeAttackGoal;
-import net.minecraft.entity.ai.goal.RevengeGoal;
-import net.minecraft.entity.ai.goal.SwimGoal;
-import net.minecraft.entity.ai.goal.TrackTargetGoal;
-import net.minecraft.entity.ai.goal.WanderAroundGoal;
-import net.minecraft.entity.attribute.DefaultAttributeContainer;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.entity.mob.PathAwareEntity;
-import net.minecraft.entity.mob.PiglinEntity;
-import net.minecraft.world.World;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.targeting.TargetingConditions;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
+import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.target.TargetGoal;
+import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.monster.piglin.Piglin;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.core.BlockPos;
 
-public class WitherPuppetEntity extends HostileEntity {
-    private MobEntity owner;
+public class WitherPuppetEntity extends Monster {
+    private Mob owner;
     private boolean alive;
     private int lifeTicks;
 
-    public WitherPuppetEntity(EntityType<? extends HostileEntity> entityType, World world) {
+    public WitherPuppetEntity(EntityType<? extends Monster> entityType, Level world) {
         super(entityType, world);
         this.experiencePoints = 0;
     }
 
-    public static DefaultAttributeContainer.Builder createWitherPuppetAttributes() {
-        return HostileEntity.createHostileAttributes().add(EntityAttributes.GENERIC_MAX_HEALTH, 14.0D).add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.25D)
-                .add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 5.0D).add(EntityAttributes.GENERIC_FOLLOW_RANGE, 38.0D);
+    public static AttributeSupplier.Builder createWitherPuppetAttributes() {
+        return Monster.createHostileAttributes().add(Attributes.GENERIC_MAX_HEALTH, 14.0D).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.25D)
+                .add(Attributes.GENERIC_ATTACK_DAMAGE, 5.0D).add(Attributes.GENERIC_FOLLOW_RANGE, 38.0D);
     }
 
     @Override
     public void initGoals() {
         super.initGoals();
-        this.goalSelector.add(0, new SwimGoal(this));
+        this.goalSelector.add(0, new FloatGoal(this));
         this.goalSelector.add(1, new MeleeAttackGoal(this, 1.2D, false));
-        this.goalSelector.add(6, new WanderAroundGoal(this, 0.9D));
-        this.goalSelector.add(7, new LookAtEntityGoal(this, PlayerEntity.class, 3.0F, 1.0F));
-        this.goalSelector.add(8, new LookAtEntityGoal(this, MobEntity.class, 8.0F));
-        this.targetSelector.add(1, (new RevengeGoal(this, new Class[] { NecromancerEntity.class })));
-        this.targetSelector.add(2, (new RevengeGoal(this, new Class[] { PiglinEntity.class })));
+        this.goalSelector.add(6, new RandomStrollGoal(this, 0.9D));
+        this.goalSelector.add(7, new LookAtPlayerGoal(this, Player.class, 3.0F, 1.0F));
+        this.goalSelector.add(8, new LookAtPlayerGoal(this, Mob.class, 8.0F));
+        this.targetSelector.add(1, (new HurtByTargetGoal(this, new Class[] { NecromancerEntity.class })));
+        this.targetSelector.add(2, (new HurtByTargetGoal(this, new Class[] { Piglin.class })));
         this.targetSelector.add(3, new TrackOwnerTargetGoal(this));
-        this.targetSelector.add(4, new ActiveTargetGoal<>(this, PlayerEntity.class, true));
+        this.targetSelector.add(4, new NearestAttackableTargetGoal<>(this, Player.class, true));
     }
 
     @Override
-    public void readCustomDataFromNbt(NbtCompound tag) {
+    public void readCustomDataFromNbt(CompoundTag tag) {
         super.readCustomDataFromNbt(tag);
         if (tag.contains("LifeTicks")) {
             this.setLifeTicks(tag.getInt("LifeTicks"));
@@ -67,7 +67,7 @@ public class WitherPuppetEntity extends HostileEntity {
     }
 
     @Override
-    public void writeCustomDataToNbt(NbtCompound tag) {
+    public void writeCustomDataToNbt(CompoundTag tag) {
         super.writeCustomDataToNbt(tag);
         if (this.alive) {
             tag.putInt("LifeTicks", this.lifeTicks);
@@ -85,19 +85,19 @@ public class WitherPuppetEntity extends HostileEntity {
             this.discard();
             this.playSpawnEffects();
         }
-        if (this.getWorld().isClient()) {
+        if (this.level().isClientSide()) {
             for (int i = 0; i < 2; ++i) {
-                this.getWorld().addParticle(ParticleTypes.SMOKE, this.getParticleX(0.5D), this.getRandomBodyY(), this.getParticleZ(0.5D), 0.0D, 0.0D, 0.0D);
+                this.level().addParticle(ParticleTypes.SMOKE, this.getParticleX(0.5D), this.getRandomBodyY(), this.getParticleZ(0.5D), 0.0D, 0.0D, 0.0D);
             }
         }
 
     }
 
-    public MobEntity getOwner() {
+    public Mob getOwner() {
         return this.owner;
     }
 
-    public void setOwner(MobEntity owner) {
+    public void setOwner(Mob owner) {
         this.owner = owner;
     }
 
@@ -127,8 +127,8 @@ public class WitherPuppetEntity extends HostileEntity {
     }
 
     @Override
-    public boolean canHaveStatusEffect(StatusEffectInstance effect) {
-        return effect.getEffectType() == StatusEffects.WITHER ? false : super.canHaveStatusEffect(effect);
+    public boolean canHaveStatusEffect(MobEffectInstance effect) {
+        return effect.getEffectType() == MobEffects.WITHER ? false : super.canHaveStatusEffect(effect);
     }
 
     @Override
@@ -138,16 +138,16 @@ public class WitherPuppetEntity extends HostileEntity {
 
     @Override
     public boolean tryAttack(Entity target) {
-        if (!this.getWorld().isClient() && target instanceof LivingEntity livingEntity && this.getWorld().getRandom().nextInt(5) == 0) {
-            livingEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.WEAKNESS, 80, 0, false, false), this);
+        if (!this.level().isClientSide() && target instanceof LivingEntity livingEntity && this.level().getRandom().nextInt(5) == 0) {
+            livingEntity.addStatusEffect(new MobEffectInstance(MobEffects.WEAKNESS, 80, 0, false, false), this);
         }
         return super.tryAttack(target);
     }
 
-    class TrackOwnerTargetGoal extends TrackTargetGoal {
-        private final TargetPredicate TRACK_OWNER_PREDICATE = TargetPredicate.createAttackable().setBaseMaxDistance(80.0D).ignoreVisibility().ignoreDistanceScalingFactor();
+    class TrackOwnerTargetGoal extends TargetGoal {
+        private final TargetingConditions TRACK_OWNER_PREDICATE = TargetingConditions.createAttackable().setBaseMaxDistance(80.0D).ignoreVisibility().ignoreDistanceScalingFactor();
 
-        public TrackOwnerTargetGoal(PathAwareEntity mob) {
+        public TrackOwnerTargetGoal(PathfinderMob mob) {
             super(mob, false);
         }
 

@@ -3,7 +3,7 @@ package net.adventurez.entity.goal;
 import java.util.EnumSet;
 
 import net.adventurez.entity.DragonEntity;
-import net.minecraft.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.goal.Goal;
 
 public class DragonSitGoal extends Goal {
     private final DragonEntity dragonEntity;

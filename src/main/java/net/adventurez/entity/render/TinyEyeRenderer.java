@@ -5,34 +5,34 @@ import net.adventurez.entity.model.TinyEyeModel;
 import net.adventurez.entity.nonliving.TinyEyeEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.entity.EntityRenderer;
-import net.minecraft.client.render.entity.EntityRendererFactory;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.resources.Identifier;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
 
 @Environment(EnvType.CLIENT)
 public class TinyEyeRenderer extends EntityRenderer<TinyEyeEntity> {
     private static final Identifier TEXTURE = AdventureMain.identifierOf("textures/entity/the_eye.png");
     private final TinyEyeModel<TinyEyeEntity> model = new TinyEyeModel<>(TinyEyeModel.getTexturedModelData().createModel());
 
-    public TinyEyeRenderer(EntityRendererFactory.Context context) {
+    public TinyEyeRenderer(EntityRendererProvider.Context context) {
         super(context);
     }
 
     @Override
     public int getBlockLight(TinyEyeEntity tinyEyeEntity, BlockPos blockPos) {
-        return tinyEyeEntity.getWorld().getLightLevel(blockPos);
+        return tinyEyeEntity.level().getLightLevel(blockPos);
     }
 
     @Override
-    public void render(TinyEyeEntity tinyEyeEntity, float f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i) {
+    public void render(TinyEyeEntity tinyEyeEntity, float f, float g, PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int i) {
         matrixStack.push();
-        float h = MathHelper.lerpAngleDegrees(g, tinyEyeEntity.prevYaw, tinyEyeEntity.getYaw());
+        float h = Mth.lerpAngleDegrees(g, tinyEyeEntity.prevYaw, tinyEyeEntity.getYaw());
         matrixStack.scale(-0.5F, -0.5F, 0.5F);
         matrixStack.translate(0.0D, -1.4D, 0.0D);
         this.model.setAngles(tinyEyeEntity, 0.0F, 0.0F, 0.0F, h, 0.0F);

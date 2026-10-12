@@ -1,21 +1,21 @@
 package net.adventurez.network.packet;
 
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 
-public record VelocityPacket(int entityId, float velocity) implements CustomPayload {
+public record VelocityPacket(int entityId, float velocity) implements CustomPacketPayload {
 
-    public static final CustomPayload.Id<VelocityPacket> PACKET_ID = new CustomPayload.Id<>(Identifier.of("adventurez", "velocity_packet"));
+    public static final CustomPacketPayload.Id<VelocityPacket> PACKET_ID = new CustomPacketPayload.Id<>(Identifier.of("adventurez", "velocity_packet"));
 
-    public static final PacketCodec<RegistryByteBuf, VelocityPacket> PACKET_CODEC = PacketCodec.of((value, buf) -> {
+    public static final StreamCodec<RegistryFriendlyByteBuf, VelocityPacket> PACKET_CODEC = StreamCodec.of((value, buf) -> {
         buf.writeInt(value.entityId);
         buf.writeFloat(value.velocity);
     }, buf -> new VelocityPacket(buf.readInt(), buf.readFloat()));
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public Id<? extends CustomPacketPayload> getId() {
         return PACKET_ID;
     }
 

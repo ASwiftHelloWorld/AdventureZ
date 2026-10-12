@@ -2,69 +2,69 @@ package net.adventurez.entity;
 
 import net.adventurez.init.EntityInit;
 import net.adventurez.init.SoundInit;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.ai.goal.AnimalMateGoal;
-import net.minecraft.entity.ai.goal.EscapeDangerGoal;
-import net.minecraft.entity.ai.goal.FollowParentGoal;
-import net.minecraft.entity.ai.goal.LookAroundGoal;
-import net.minecraft.entity.ai.goal.LookAtEntityGoal;
-import net.minecraft.entity.ai.goal.MoveToTargetPosGoal;
-import net.minecraft.entity.ai.goal.SwimGoal;
-import net.minecraft.entity.ai.goal.TemptGoal;
-import net.minecraft.entity.ai.goal.WanderAroundFarGoal;
-import net.minecraft.entity.attribute.DefaultAttributeContainer;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.entity.data.TrackedDataHandlerRegistry;
-import net.minecraft.entity.data.DataTracker.Builder;
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.entity.mob.PathAwareEntity;
-import net.minecraft.entity.passive.AnimalEntity;
-import net.minecraft.entity.passive.PassiveEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldAccess;
-import net.minecraft.world.WorldView;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.ai.goal.BreedGoal;
+import net.minecraft.world.entity.ai.goal.PanicGoal;
+import net.minecraft.world.entity.ai.goal.FollowParentGoal;
+import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
+import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
+import net.minecraft.world.entity.ai.goal.MoveToBlockGoal;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.TemptGoal;
+import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData.Builder;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.AgeableMob;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
 
-public class IguanaEntity extends AnimalEntity {
+public class IguanaEntity extends Animal {
 
-    public static final TrackedData<Boolean> OPEN_MOUTH;
+    public static final EntityDataAccessor<Boolean> OPEN_MOUTH;
 
-    public IguanaEntity(EntityType<? extends IguanaEntity> entityType, World world) {
+    public IguanaEntity(EntityType<? extends IguanaEntity> entityType, Level world) {
         super(entityType, world);
     }
 
-    public static DefaultAttributeContainer.Builder createIguanaAttributes() {
-        return MobEntity.createMobAttributes().add(EntityAttributes.GENERIC_MAX_HEALTH, 10.0D).add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.22D);
+    public static AttributeSupplier.Builder createIguanaAttributes() {
+        return Mob.createMobAttributes().add(Attributes.GENERIC_MAX_HEALTH, 10.0D).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.22D);
     }
 
-    public static boolean isValidNaturalSpawn(EntityType<? extends AnimalEntity> type, WorldAccess world, SpawnReason spawnReason, BlockPos pos, Random random) {
+    public static boolean isValidNaturalSpawn(EntityType<? extends Animal> type, LevelAccessor world, EntitySpawnReason spawnReason, BlockPos pos, RandomSource random) {
         return world.getBlockState(pos.down()).isOf(Blocks.RED_SAND) && world.getBaseLightLevel(pos, 0) > 8;
     }
 
     @Override
     protected void initGoals() {
         super.initGoals();
-        this.goalSelector.add(0, new SwimGoal(this));
-        this.goalSelector.add(1, new EscapeDangerGoal(this, 1.8D));
-        this.goalSelector.add(2, new AnimalMateGoal(this, 1.0D));
+        this.goalSelector.add(0, new FloatGoal(this));
+        this.goalSelector.add(1, new PanicGoal(this, 1.8D));
+        this.goalSelector.add(2, new BreedGoal(this, 1.0D));
         this.goalSelector.add(3, new TemptGoal(this, 1.25D, Ingredient.ofItems(Items.DEAD_BUSH), false));
         this.goalSelector.add(4, new FollowParentGoal(this, 1.25D));
-        this.goalSelector.add(5, new WanderAroundFarGoal(this, 1.0D));
-        this.goalSelector.add(6, new LookAtEntityGoal(this, PlayerEntity.class, 5.0F));
-        this.goalSelector.add(7, new LookAroundGoal(this));
+        this.goalSelector.add(5, new WaterAvoidingRandomStrollGoal(this, 1.0D));
+        this.goalSelector.add(6, new LookAtPlayerGoal(this, Player.class, 5.0F));
+        this.goalSelector.add(7, new RandomLookAroundGoal(this));
         this.goalSelector.add(8, new EatDeadBushGoal(this, 1.0D));
     }
 
@@ -95,20 +95,20 @@ public class IguanaEntity extends AnimalEntity {
     }
 
     @Override
-    public IguanaEntity createChild(ServerWorld serverWorld, PassiveEntity passiveEntity) {
+    public IguanaEntity createChild(ServerLevel serverWorld, AgeableMob passiveEntity) {
         return EntityInit.IGUANA.create(serverWorld);
     }
 
     @Override
     public boolean isBreedingItem(ItemStack stack) {
-        return stack.isOf(Items.DEAD_BUSH);
+        return net.adventurez.util.MinecraftCompat.isItem(stack, Items.DEAD_BUSH);
     }
 
     static {
-        OPEN_MOUTH = DataTracker.registerData(IguanaEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+        OPEN_MOUTH = SynchedEntityData.registerData(IguanaEntity.class, EntityDataSerializers.BOOLEAN);
     }
 
-    private class EatDeadBushGoal extends MoveToTargetPosGoal {
+    private class EatDeadBushGoal extends MoveToBlockGoal {
         private final IguanaEntity iguanaEntity;
 
         public EatDeadBushGoal(IguanaEntity iguanaEntity, double speed) {
@@ -135,11 +135,11 @@ public class IguanaEntity extends AnimalEntity {
 
         @Override
         public void tick() {
-            if (!this.iguanaEntity.getWorld().isClient() && this.hasReached()) {
+            if (!this.iguanaEntity.level().isClientSide() && this.hasReached()) {
                 if (this.iguanaEntity.getHealth() < this.iguanaEntity.getMaxHealth())
                     this.iguanaEntity.heal(2f);
 
-                this.iguanaEntity.getWorld().breakBlock(targetPos, false);
+                this.iguanaEntity.level().breakBlock(targetPos, false);
                 this.iguanaEntity.setLoveTicks(600);
             }
             super.tick();
@@ -151,13 +151,13 @@ public class IguanaEntity extends AnimalEntity {
         }
 
         @Override
-        protected int getInterval(PathAwareEntity mob) {
+        protected int getInterval(PathfinderMob mob) {
             return 60 + mob.getRandom().nextInt(600);
         }
 
         @Override
-        protected boolean isTargetPos(WorldView world, BlockPos pos) {
-            if (world.getBlockState(pos).isOf(Blocks.DEAD_BUSH))
+        protected boolean isTargetPos(LevelReader world, BlockPos pos) {
+            if (net.adventurez.util.MinecraftCompat.isBlock(world.getBlockState(pos), Blocks.DEAD_BUSH))
                 return true;
             else
                 return false;

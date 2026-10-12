@@ -3,9 +3,9 @@ package net.adventurez.mixin.accessor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-import net.minecraft.block.entity.ChestLidAnimator;
+import net.minecraft.world.level.block.entity.ChestLidController;
 
-@Mixin(ChestLidAnimator.class)
+@Mixin(ChestLidController.class)
 public interface ChestLidAnimatorAccessor {
 
     @Accessor("open")

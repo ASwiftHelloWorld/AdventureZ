@@ -3,10 +3,10 @@ package net.adventurez.entity.goal;
 import java.util.EnumSet;
 
 import net.adventurez.entity.DragonEntity;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.random.Random;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.util.Mth;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.util.RandomSource;
 
 public class DragonFlyRandomlyGoal extends Goal {
     private final DragonEntity dragonEntity;
@@ -35,10 +35,10 @@ public class DragonFlyRandomlyGoal extends Goal {
     public void tick() {
         super.tick();
         flyTimer--;
-        Vec3d vec3d2 = new Vec3d(d, e, f);
-        Vec3d vec3d = this.dragonEntity.getVelocity().add(vec3d2);
+        Vec3 vec3d2 = new Vec3(d, e, f);
+        Vec3 vec3d = this.dragonEntity.getVelocity().add(vec3d2);
         this.dragonEntity.setVelocity(vec3d);
-        this.dragonEntity.headYaw = MathHelper.wrapDegrees((float) (MathHelper.atan2(f, d) * 57.2957763671875D) - 90.0F);
+        this.dragonEntity.headYaw = Mth.wrapDegrees((float) (Mth.atan2(f, d) * 57.2957763671875D) - 90.0F);
     }
 
     @Override
@@ -57,7 +57,7 @@ public class DragonFlyRandomlyGoal extends Goal {
 
     @Override
     public void start() {
-        Random random = this.dragonEntity.getRandom();
+        RandomSource random = this.dragonEntity.getRandom();
         flyTimer = 100 + random.nextInt(60);
         Math.sin(Math.PI * random.nextDouble());
         d = Math.sin(Math.PI * random.nextDouble() * 2.0D) * 0.007D;

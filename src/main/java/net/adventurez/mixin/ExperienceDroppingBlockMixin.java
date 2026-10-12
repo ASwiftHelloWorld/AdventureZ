@@ -5,36 +5,37 @@ import org.spongepowered.asm.mixin.Mixin;
 import net.adventurez.entity.PiglinBeastEntity;
 import net.adventurez.init.ConfigInit;
 import net.adventurez.init.EntityInit;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.ExperienceDroppingBlock;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.SpawnRestriction;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.predicate.entity.EntityPredicates;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.DropExperienceBlock;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.SpawnPlacements;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.entity.EntitySelector;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 
 @SuppressWarnings("deprecation")
-@Mixin(ExperienceDroppingBlock.class)
+@Mixin(DropExperienceBlock.class)
 public abstract class ExperienceDroppingBlockMixin extends Block {
 
-    public ExperienceDroppingBlockMixin(Settings settings) {
+    public ExperienceDroppingBlockMixin(BlockBehaviour.Properties settings) {
         super(settings);
     }
 
     @Override
-    public void afterBreak(World world, PlayerEntity player, BlockPos pos, BlockState state, BlockEntity blockEntity, ItemStack tool) {
-        if (!world.isClient() && world instanceof ServerWorld serverWorld && state.isOf(Blocks.NETHER_GOLD_ORE) && ConfigInit.CONFIG.piglin_beast_ore_spawn_chance != 0) {
-            if (!player.isCreative() && world.getRegistryKey() == World.NETHER
-                    && player.getMainHandStack().getEnchantments().getEnchantments().stream().filter(entry -> entry.matchesId(Enchantments.SILK_TOUCH.getRegistry())).findAny().isPresent()) {
-                if (world.getEntitiesByType(EntityInit.PIGLIN_BEAST, player.getBoundingBox().expand(40D), EntityPredicates.EXCEPT_SPECTATOR).isEmpty()) {
+    public void afterBreak(Level world, Player player, BlockPos pos, BlockState state, BlockEntity blockEntity, ItemStack tool) {
+        if (!world.isClientSide() && world instanceof ServerLevel serverWorld && net.adventurez.util.MinecraftCompat.isBlock(state, Blocks.NETHER_GOLD_ORE) && ConfigInit.CONFIG.piglin_beast_ore_spawn_chance != 0) {
+            if (!player.isCreative() && world.getRegistryKey() == Level.NETHER
+                    && player.getMainHandItem().getEnchantments().getEnchantments().stream().filter(entry -> entry.matchesId(Enchantments.SILK_TOUCH.getRegistry())).findAny().isPresent()) {
+                if (world.getEntitiesByType(EntityInit.PIGLIN_BEAST, player.getBoundingBox().inflate(40D), EntitySelector.EXCEPT_SPECTATOR).isEmpty()) {
                     int spawnChanceInt = world.getRandom().nextInt(ConfigInit.CONFIG.piglin_beast_ore_spawn_chance) + 1;
                     if (spawnChanceInt == 1) {
 
@@ -42,16 +43,16 @@ public abstract class ExperienceDroppingBlockMixin extends Block {
                         int posYOfPlayer = player.getBlockPos().getY();
                         for (int counter = 0; counter < 100; counter++) {
                             float randomFloat = world.getRandom().nextFloat() * 6.2831855F;
-                            int posX = pos.getX() + MathHelper.floor(MathHelper.cos(randomFloat) * 18.0F + world.getRandom().nextInt(16));
-                            int posZ = pos.getZ() + MathHelper.floor(MathHelper.sin(randomFloat) * 18.0F + world.getRandom().nextInt(16));
+                            int posX = pos.getX() + Mth.floor(Mth.cos(randomFloat) * 18.0F + world.getRandom().nextInt(16));
+                            int posZ = pos.getZ() + Mth.floor(Mth.sin(randomFloat) * 18.0F + world.getRandom().nextInt(16));
                             // int posY = world.getTopY(Heightmap.Type.WORLD_SURFACE_WG, posX, posZ); doesnt work in nether
                             int posY = posYOfPlayer - 20 + world.getRandom().nextInt(40);
                             BlockPos spawnPos = new BlockPos(posX, posY, posZ);
 
                             if (world.isRegionLoaded(spawnPos.getX() - 4, spawnPos.getY() - 4, spawnPos.getZ() - 4, spawnPos.getX() + 4, spawnPos.getY() + 4, spawnPos.getZ() + 4)
-                                    && SpawnRestriction.canSpawn(EntityInit.PIGLIN_BEAST, serverWorld, SpawnReason.EVENT, spawnPos, world.getRandom())) {
+                                    && SpawnPlacements.canSpawn(EntityInit.PIGLIN_BEAST, serverWorld, EntitySpawnReason.EVENT, spawnPos, world.getRandom())) {
                                 beastEntity.refreshPositionAndAngles(spawnPos, 0.0F, 0.0F);
-                                beastEntity.initialize(serverWorld, world.getLocalDifficulty(spawnPos), SpawnReason.EVENT, null);
+                                beastEntity.initialize(serverWorld, world.getLocalDifficulty(spawnPos), EntitySpawnReason.EVENT, null);
                                 world.spawnEntity(beastEntity);
                                 beastEntity.playSpawnEffects();
                                 break;

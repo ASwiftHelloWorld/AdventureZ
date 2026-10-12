@@ -3,9 +3,9 @@ package net.adventurez.mixin.accessor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
-import net.minecraft.entity.projectile.PersistentProjectileEntity;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 
-@Mixin(PersistentProjectileEntity.class)
+@Mixin(AbstractArrow.class)
 public interface ProjectileEntityAccessor {
 
     @Invoker("setPierceLevel")

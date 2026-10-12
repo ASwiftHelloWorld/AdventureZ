@@ -6,11 +6,11 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.particle.v1.FabricSpriteProvider;
 import net.fabricmc.fabric.api.particle.v1.FabricParticleTypes;
 import net.minecraft.client.particle.*;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.particle.SimpleParticleType;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
+import net.minecraft.util.Mth;
 
 import java.util.Random;
 
@@ -22,16 +22,16 @@ public class ParticleInit {
     public static final SimpleParticleType FART_PARTICLE = FabricParticleTypes.simple();
 
     public static void init() {
-        Registry.register(Registries.PARTICLE_TYPE, AdventureMain.identifierOf("amethyst_shard_particle"), AMETHYST_SHARD_PARTICLE);
-        Registry.register(Registries.PARTICLE_TYPE, AdventureMain.identifierOf("void_cloud_particle"), VOID_CLOUD_PARTICLE);
-        Registry.register(Registries.PARTICLE_TYPE, AdventureMain.identifierOf("sprint_particle"), SPRINT_PARTICLE);
-        Registry.register(Registries.PARTICLE_TYPE, AdventureMain.identifierOf("fart_particle"), FART_PARTICLE);
+        Registry.register(BuiltInRegistries.PARTICLE_TYPE, AdventureMain.identifierOf("amethyst_shard_particle"), AMETHYST_SHARD_PARTICLE);
+        Registry.register(BuiltInRegistries.PARTICLE_TYPE, AdventureMain.identifierOf("void_cloud_particle"), VOID_CLOUD_PARTICLE);
+        Registry.register(BuiltInRegistries.PARTICLE_TYPE, AdventureMain.identifierOf("sprint_particle"), SPRINT_PARTICLE);
+        Registry.register(BuiltInRegistries.PARTICLE_TYPE, AdventureMain.identifierOf("fart_particle"), FART_PARTICLE);
     }
 
     @Environment(EnvType.CLIENT)
     public static class FartParticle extends ExplosionSmokeParticle {
 
-        public FartParticle(ClientWorld clientWorld, double d, double e, double f, double g, double h, double i, SpriteProvider spriteProvider) {
+        public FartParticle(ClientLevel clientWorld, double d, double e, double f, double g, double h, double i, SpriteProvider spriteProvider) {
             super(clientWorld, d, e, f, g, h, i, spriteProvider);
             this.gravityStrength = 0.5F;
             this.red = 0f;
@@ -48,7 +48,7 @@ public class ParticleInit {
             }
 
             @Override
-            public Particle createParticle(SimpleParticleType simpleParticleType, ClientWorld clientWorld, double d, double e, double f, double g, double h, double i) {
+            public Particle createParticle(SimpleParticleType simpleParticleType, ClientLevel clientWorld, double d, double e, double f, double g, double h, double i) {
                 return new FartParticle(clientWorld, d, e, f, g, h, i, this.spriteProvider);
             }
         }
@@ -59,7 +59,7 @@ public class ParticleInit {
         static final Random RANDOM = new Random();
         private final SpriteProvider spriteProvider;
 
-        public ShardParticle(ClientWorld clientWorld, double d, double e, double f, double g, double h, double i, SpriteProvider spriteProvider) {
+        public ShardParticle(ClientLevel clientWorld, double d, double e, double f, double g, double h, double i, SpriteProvider spriteProvider) {
             super(clientWorld, d, e, f, g, h, i);
             this.velocityMultiplier = 0.96F;
             this.ascending = true;
@@ -77,7 +77,7 @@ public class ParticleInit {
         @Override
         public int getBrightness(float tint) {
             float f = ((float) this.age + tint) / (float) this.maxAge;
-            f = MathHelper.clamp(f, 0.0F, 1.0F);
+            f = Mth.clamp(f, 0.0F, 1.0F);
             int i = super.getBrightness(tint);
             int j = i & 255;
             int k = i >> 16 & 255;
@@ -104,7 +104,7 @@ public class ParticleInit {
             }
 
             @Override
-            public Particle createParticle(SimpleParticleType defaultParticleType, ClientWorld clientWorld, double d, double e, double f, double g, double h, double i) {
+            public Particle createParticle(SimpleParticleType defaultParticleType, ClientLevel clientWorld, double d, double e, double f, double g, double h, double i) {
                 ShardParticle shardParticle = new ShardParticle(clientWorld, d, e, f, 0.5D - ShardParticle.RANDOM.nextDouble(), h, 0.5D - ShardParticle.RANDOM.nextDouble(), this.spriteProvider);
                 int rand = clientWorld.random.nextInt(4);
                 if (rand == 0)
@@ -135,7 +135,7 @@ public class ParticleInit {
         private final double startY;
         private final double startZ;
 
-        private VoidCloudParticle(ClientWorld clientWorld, double d, double e, double f, double g, double h, double i) {
+        private VoidCloudParticle(ClientLevel clientWorld, double d, double e, double f, double g, double h, double i) {
             super(clientWorld, d, e, f);
             this.velocityX = g;
             this.velocityY = h;
@@ -216,7 +216,7 @@ public class ParticleInit {
             }
 
             @Override
-            public Particle createParticle(SimpleParticleType defaultParticleType, ClientWorld clientWorld, double d, double e, double f, double g, double h, double i) {
+            public Particle createParticle(SimpleParticleType defaultParticleType, ClientLevel clientWorld, double d, double e, double f, double g, double h, double i) {
                 VoidCloudParticle portalParticle = new VoidCloudParticle(clientWorld, d, e, f, g, h, i);
                 portalParticle.setSprite(this.spriteProvider);
                 return portalParticle;
@@ -229,7 +229,7 @@ public class ParticleInit {
         static final Random RANDOM = new Random();
         private final SpriteProvider spriteProvider;
 
-        public SprintParticle(ClientWorld clientWorld, double d, double e, double f, double g, double h, double i, SpriteProvider spriteProvider) {
+        public SprintParticle(ClientLevel clientWorld, double d, double e, double f, double g, double h, double i, SpriteProvider spriteProvider) {
             super(clientWorld, d, e, f);
             this.velocityMultiplier = 1.0F;
             this.ascending = false;
@@ -259,7 +259,7 @@ public class ParticleInit {
             }
 
             @Override
-            public Particle createParticle(SimpleParticleType defaultParticleType, ClientWorld clientWorld, double d, double e, double f, double g, double h, double i) {
+            public Particle createParticle(SimpleParticleType defaultParticleType, ClientLevel clientWorld, double d, double e, double f, double g, double h, double i) {
                 SprintParticle sprintParticle = new SprintParticle(clientWorld, d, e, f, g, h, i, this.spriteProvider);
                 sprintParticle.velocityX = -g * 1.5D;
                 sprintParticle.velocityZ = -i * 1.5D;

@@ -1,41 +1,41 @@
 package net.adventurez.entity;
 
 import net.adventurez.init.SoundInit;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.entity.ai.goal.*;
-import net.minecraft.entity.attribute.DefaultAttributeContainer;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.entity.data.TrackedDataHandlerRegistry;
-import net.minecraft.entity.mob.Angerable;
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.entity.mob.PathAwareEntity;
-import net.minecraft.entity.mob.ZombieEntity;
-import net.minecraft.entity.passive.FoxEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.TimeHelper;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.intprovider.UniformIntProvider;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.world.entity.NeutralMob;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.monster.zombie.Zombie;
+import net.minecraft.world.entity.animal.fox.Fox;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.TimeUtil;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.valueproviders.UniformInt;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class DubiousPumpkinEntity extends PathAwareEntity implements Angerable {
-    public static final TrackedData<Boolean> ANGRY = DataTracker.registerData(DubiousPumpkinEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
-    private static final UniformIntProvider ANGER_TIME_RANGE = TimeHelper.betweenSeconds(10, 29);
+public class DubiousPumpkinEntity extends PathfinderMob implements NeutralMob {
+    public static final EntityDataAccessor<Boolean> ANGRY = SynchedEntityData.registerData(DubiousPumpkinEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final UniformInt ANGER_TIME_RANGE = TimeUtil.betweenSeconds(10, 29);
     private int angerTime;
     @Nullable
     private UUID angryAt;
 
-    public DubiousPumpkinEntity(EntityType<? extends DubiousPumpkinEntity> entityType, World world) {
+    public DubiousPumpkinEntity(EntityType<? extends DubiousPumpkinEntity> entityType, Level world) {
         super(entityType, world);
     }
 
@@ -45,26 +45,26 @@ public class DubiousPumpkinEntity extends PathAwareEntity implements Angerable {
         this.goalSelector.add(0, new SwimGoal(this));
         this.goalSelector.add(1, new DubiousPumpkinEntity.AttackGoal());
         this.goalSelector.add(5, new WanderAroundGoal(this, 1.0));
-        this.goalSelector.add(6, new LookAtEntityGoal(this, PlayerEntity.class, 6.0F));
+        this.goalSelector.add(6, new LookAtEntityGoal(this, Player.class, 6.0F));
         this.goalSelector.add(7, new LookAroundGoal(this));
         this.targetSelector.add(1, new DubiousPumpkinEntity.DubiousPumpkinRevengeGoal());
-        this.targetSelector.add(3, new ActiveTargetGoal<>(this, PlayerEntity.class, 10, true, false, this::shouldAngerAt));
-        this.targetSelector.add(4, new ActiveTargetGoal<>(this, ZombieEntity.class, 10, true, true, null));
+        this.targetSelector.add(3, new ActiveTargetGoal<>(this, Player.class, 10, true, false, this::shouldAngerAt));
+        this.targetSelector.add(4, new ActiveTargetGoal<>(this, Zombie.class, 10, true, true, null));
         this.targetSelector.add(5, new UniversalAngerGoal<>(this, false));
     }
 
-    public static DefaultAttributeContainer.Builder createDubiousPumpkinAttributes() {
-        return MobEntity.createMobAttributes().add(EntityAttributes.GENERIC_MAX_HEALTH, 10.0).add(EntityAttributes.GENERIC_FOLLOW_RANGE, 20.0).add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.25).add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 1.0);
+    public static AttributeSupplier.Builder createDubiousPumpkinAttributes() {
+        return Mob.createMobAttributes().add(Attributes.GENERIC_MAX_HEALTH, 10.0).add(Attributes.GENERIC_FOLLOW_RANGE, 20.0).add(Attributes.GENERIC_MOVEMENT_SPEED, 0.25).add(Attributes.GENERIC_ATTACK_DAMAGE, 1.0);
     }
 
     @Override
-    public void readCustomDataFromNbt(NbtCompound nbt) {
+    public void readCustomDataFromNbt(CompoundTag nbt) {
         super.readCustomDataFromNbt(nbt);
-        this.readAngerFromNbt(this.getWorld(), nbt);
+        this.readAngerFromNbt(this.level(), nbt);
     }
 
     @Override
-    public void writeCustomDataToNbt(NbtCompound nbt) {
+    public void writeCustomDataToNbt(CompoundTag nbt) {
         super.writeCustomDataToNbt(nbt);
         this.writeAngerToNbt(nbt);
     }
@@ -92,7 +92,7 @@ public class DubiousPumpkinEntity extends PathAwareEntity implements Angerable {
 
     @Override
     public void stopAnger() {
-        Angerable.super.stopAnger();
+        NeutralMob.super.stopAnger();
         this.dataTracker.set(ANGRY, false);
     }
 
@@ -123,7 +123,7 @@ public class DubiousPumpkinEntity extends PathAwareEntity implements Angerable {
     }
 
     @Override
-    protected void initDataTracker(DataTracker.Builder builder) {
+    protected void initDataTracker(SynchedEntityData.Builder builder) {
         super.initDataTracker(builder);
         builder.add(ANGRY, false);
     }
@@ -132,8 +132,8 @@ public class DubiousPumpkinEntity extends PathAwareEntity implements Angerable {
     public void tick() {
         super.tick();
 
-        if (!this.getWorld().isClient()) {
-            this.tickAngerLogic((ServerWorld) this.getWorld(), true);
+        if (!this.level().isClientSide()) {
+            this.tickAngerLogic((ServerLevel) this.level(), true);
         }
     }
 
@@ -182,7 +182,7 @@ public class DubiousPumpkinEntity extends PathAwareEntity implements Angerable {
         }
 
         @Override
-        protected void setMobEntityTarget(MobEntity mob, LivingEntity target) {
+        protected void setMobEntityTarget(Mob mob, LivingEntity target) {
             if (mob instanceof DubiousPumpkinEntity && !mob.isBaby()) {
                 super.setMobEntityTarget(mob, target);
             }

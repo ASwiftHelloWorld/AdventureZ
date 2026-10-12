@@ -5,16 +5,16 @@ import com.google.common.collect.ImmutableList;
 import net.adventurez.entity.BlazeGuardianEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.model.ModelData;
-import net.minecraft.client.model.ModelPart;
-import net.minecraft.client.model.ModelPartBuilder;
-import net.minecraft.client.model.ModelPartData;
-import net.minecraft.client.model.ModelTransform;
-import net.minecraft.client.model.TexturedModelData;
-import net.minecraft.client.render.entity.model.CompositeEntityModel;
+import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.builders.CubeListBuilder;
+import net.minecraft.client.model.geom.builders.PartDefinition;
+import net.minecraft.client.model.geom.PartPose;
+import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.client.model.ListModel;
 
 @Environment(EnvType.CLIENT)
-public class BlazeGuardianModel<T extends BlazeGuardianEntity> extends CompositeEntityModel<T> {
+public class BlazeGuardianModel<T extends BlazeGuardianEntity> extends ListModel<T> {
     private final ModelPart body;
     private final ModelPart head;
     private final ModelPart shieldOne;
@@ -31,12 +31,12 @@ public class BlazeGuardianModel<T extends BlazeGuardianEntity> extends Composite
         this.shieldFour = root.getChild("shieldFour");
     }
 
-    public static TexturedModelData getTexturedModelData() {
-        ModelData modelData = new ModelData();
-        ModelPartData modelPartData = modelData.getRoot();
-        modelPartData.addChild("body", ModelPartBuilder.create().uv(0, 42).cuboid(-2.0F, -12.0F, -2.0F, 4.0F, 22.0F, 4.0F), ModelTransform.pivot(0.0F, 13.0F, 0.0F));
+    public static LayerDefinition getTexturedModelData() {
+        MeshDefinition modelData = new MeshDefinition();
+        PartDefinition modelPartData = modelData.getRoot();
+        modelPartData.addChild("body", CubeListBuilder.create().uv(0, 42).cuboid(-2.0F, -12.0F, -2.0F, 4.0F, 22.0F, 4.0F), PartPose.pivot(0.0F, 13.0F, 0.0F));
         modelPartData.addChild("head",
-                ModelPartBuilder.create().uv(38, 20).cuboid(-3.0F, -9.0F, -3.0F, 6.0F, 7.0F, 6.0F).uv(38, 33).cuboid(-4.0F, -9.0F, -4.0F, 8.0F, 2.0F, 1.0F).uv(0, 40)
+                CubeListBuilder.create().uv(38, 20).cuboid(-3.0F, -9.0F, -3.0F, 6.0F, 7.0F, 6.0F).uv(38, 33).cuboid(-4.0F, -9.0F, -4.0F, 8.0F, 2.0F, 1.0F).uv(0, 40)
                         .cuboid(3.0F, -7.0F, -4.0F, 1.0F, 5.0F, 1.0F).uv(10, 28).cuboid(3.0F, -9.0F, -3.0F, 1.0F, 7.0F, 1.0F).uv(24, 7).cuboid(-4.0F, -9.0F, -3.0F, 1.0F, 7.0F, 1.0F).uv(22, 46)
                         .cuboid(3.0F, -9.0F, 2.0F, 1.0F, 7.0F, 2.0F).uv(0, 2).cuboid(2.0F, -3.0F, 3.0F, 1.0F, 1.0F, 1.0F).uv(0, 0).cuboid(-3.0F, -3.0F, 3.0F, 1.0F, 1.0F, 1.0F).uv(16, 46)
                         .cuboid(-4.0F, -9.0F, 2.0F, 1.0F, 7.0F, 2.0F).uv(14, 0).cuboid(-3.0F, -9.0F, 3.0F, 6.0F, 6.0F, 1.0F).uv(0, 28).cuboid(3.0F, -9.0F, -2.0F, 1.0F, 4.0F, 4.0F).uv(0, 0)
@@ -46,12 +46,12 @@ public class BlazeGuardianModel<T extends BlazeGuardianEntity> extends Composite
                         .cuboid(-4.0F, -10.0F, -4.0F, 1.0F, 1.0F, 3.0F).uv(28, 24).cuboid(3.0F, -10.0F, -4.0F, 1.0F, 1.0F, 3.0F).uv(33, 21).cuboid(-4.0F, -10.0F, 1.0F, 1.0F, 1.0F, 3.0F).uv(28, 20)
                         .cuboid(3.0F, -10.0F, 1.0F, 1.0F, 1.0F, 3.0F).uv(0, 8).cuboid(-2.0F, -10.0F, 3.0F, 4.0F, 1.0F, 1.0F).uv(38, 22).cuboid(-1.0F, -11.0F, -4.0F, 2.0F, 1.0F, 1.0F).uv(38, 20)
                         .cuboid(-1.0F, -11.0F, 3.0F, 2.0F, 1.0F, 1.0F),
-                ModelTransform.pivot(0.0F, 2.0F, 0.0F));
-        modelPartData.addChild("shieldTwo", ModelPartBuilder.create().uv(28, 0).cuboid(-5.0F, -6.0F, -12.0F, 10.0F, 18.0F, 2.0F), ModelTransform.pivot(0.0F, 12.0F, 0.0F));
-        modelPartData.addChild("shieldThree", ModelPartBuilder.create().uv(38, 38).cuboid(-5.0F, -6.0F, 10.0F, 10.0F, 18.0F, 2.0F), ModelTransform.pivot(0.0F, 12.0F, 0.0F));
-        modelPartData.addChild("shieldFour", ModelPartBuilder.create().uv(28, 0).cuboid(-5.0F, -6.0F, -12.0F, 10.0F, 18.0F, 2.0F), ModelTransform.pivot(0.0F, 12.0F, 0.0F));
-        modelPartData.addChild("shieldOne", ModelPartBuilder.create().uv(28, 0).cuboid(-5.0F, -6.0F, -12.0F, 10.0F, 18.0F, 2.0F), ModelTransform.pivot(0.0F, 12.0F, 0.0F));
-        return TexturedModelData.of(modelData, 128, 128);
+                PartPose.pivot(0.0F, 2.0F, 0.0F));
+        modelPartData.addChild("shieldTwo", CubeListBuilder.create().uv(28, 0).cuboid(-5.0F, -6.0F, -12.0F, 10.0F, 18.0F, 2.0F), PartPose.pivot(0.0F, 12.0F, 0.0F));
+        modelPartData.addChild("shieldThree", CubeListBuilder.create().uv(38, 38).cuboid(-5.0F, -6.0F, 10.0F, 10.0F, 18.0F, 2.0F), PartPose.pivot(0.0F, 12.0F, 0.0F));
+        modelPartData.addChild("shieldFour", CubeListBuilder.create().uv(28, 0).cuboid(-5.0F, -6.0F, -12.0F, 10.0F, 18.0F, 2.0F), PartPose.pivot(0.0F, 12.0F, 0.0F));
+        modelPartData.addChild("shieldOne", CubeListBuilder.create().uv(28, 0).cuboid(-5.0F, -6.0F, -12.0F, 10.0F, 18.0F, 2.0F), PartPose.pivot(0.0F, 12.0F, 0.0F));
+        return LayerDefinition.of(modelData, 128, 128);
     }
 
     @Override

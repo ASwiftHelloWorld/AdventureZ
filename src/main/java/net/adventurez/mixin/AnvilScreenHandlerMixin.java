@@ -11,18 +11,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.adventurez.init.ItemInit;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.screen.AnvilScreenHandler;
-import net.minecraft.screen.ForgingScreenHandler;
-import net.minecraft.screen.Property;
-import net.minecraft.screen.ScreenHandlerContext;
-import net.minecraft.screen.ScreenHandlerType;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.inventory.AnvilMenu;
+import net.minecraft.world.inventory.ItemCombinerMenu;
+import net.minecraft.world.inventory.DataSlot;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.MenuType;
 
-@Mixin(AnvilScreenHandler.class)
-public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
+@Mixin(AnvilMenu.class)
+public abstract class AnvilScreenHandlerMixin extends ItemCombinerMenu {
 
     @Unique
     private int repairedAmount;
@@ -30,9 +30,9 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
     @Shadow
     @Mutable
     @Final
-    private Property levelCost = Property.create();
+    private DataSlot levelCost = DataSlot.create();
 
-    public AnvilScreenHandlerMixin(ScreenHandlerType<?> type, int syncId, PlayerInventory playerInventory, ScreenHandlerContext context) {
+    public AnvilScreenHandlerMixin(MenuType<?> type, int syncId, Inventory playerInventory, ContainerLevelAccess context) {
         super(type, syncId, playerInventory, context);
     }
 
@@ -52,7 +52,7 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
     }
 
     @Inject(method = "canTakeOutput", at = @At("HEAD"), cancellable = true)
-    public void canTakeOutputMixin(PlayerEntity player, boolean present, CallbackInfoReturnable<Boolean> info) {
+    public void canTakeOutputMixin(Player player, boolean present, CallbackInfoReturnable<Boolean> info) {
         ItemStack itemStack = this.input.getStack(0);
         if (itemStack.getItem() == ItemInit.PRIME_EYE && itemStack.getDamage() != 0) {
             ItemStack itemStack2 = this.input.getStack(1);
@@ -63,7 +63,7 @@ public abstract class AnvilScreenHandlerMixin extends ForgingScreenHandler {
     }
 
     @Inject(method = "onTakeOutput", at = @At("HEAD"))
-    public void onTakeOutputMixin(PlayerEntity player, ItemStack stack, CallbackInfo info) {
+    public void onTakeOutputMixin(Player player, ItemStack stack, CallbackInfo info) {
         ItemStack itemStack = this.input.getStack(0);
         if (itemStack.getItem() == ItemInit.PRIME_EYE) {
             ItemStack itemStack2 = this.input.getStack(1);

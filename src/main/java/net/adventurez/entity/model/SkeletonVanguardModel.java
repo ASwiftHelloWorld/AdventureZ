@@ -5,17 +5,17 @@ import com.google.common.collect.ImmutableList;
 import net.adventurez.entity.SkeletonVanguardEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.model.ModelData;
-import net.minecraft.client.model.ModelPart;
-import net.minecraft.client.model.ModelPartBuilder;
-import net.minecraft.client.model.ModelPartData;
-import net.minecraft.client.model.ModelTransform;
-import net.minecraft.client.model.TexturedModelData;
-import net.minecraft.client.render.entity.model.CompositeEntityModel;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.model.geom.builders.MeshDefinition;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.model.geom.builders.CubeListBuilder;
+import net.minecraft.client.model.geom.builders.PartDefinition;
+import net.minecraft.client.model.geom.PartPose;
+import net.minecraft.client.model.geom.builders.LayerDefinition;
+import net.minecraft.client.model.ListModel;
+import net.minecraft.util.Mth;
 
 @Environment(EnvType.CLIENT)
-public class SkeletonVanguardModel<T extends SkeletonVanguardEntity> extends CompositeEntityModel<T> {
+public class SkeletonVanguardModel<T extends SkeletonVanguardEntity> extends ListModel<T> {
     private final ModelPart head;
     private final ModelPart spear;
     private final ModelPart body;
@@ -34,16 +34,16 @@ public class SkeletonVanguardModel<T extends SkeletonVanguardEntity> extends Com
         this.rightLeg = root.getChild("rightLeg");
     }
 
-    public static TexturedModelData getTexturedModelData() {
-        ModelData modelData = new ModelData();
-        ModelPartData modelPartData = modelData.getRoot();
-        modelPartData.addChild("body", ModelPartBuilder.create().uv(0, 38).cuboid(-4.0F, 0.0F, -2.0F, 8.0F, 12.0F, 4.0F).uv(32, 0).cuboid(-5.0F, 0.0F, -3.0F, 10.0F, 6.0F, 6.0F),
-                ModelTransform.pivot(0.0F, 0.0F, 0.0F));
-        modelPartData.addChild("head", ModelPartBuilder.create().uv(32, 32).cuboid(-4.0F, -8.0F, -4.0F, 8.0F, 8.0F, 8.0F).uv(0, 21).cuboid(-5.0F, -9.0F, -5.0F, 10.0F, 7.0F, 10.0F).uv(24, 38)
-                .cuboid(-1.0F, -11.0F, -6.0F, 2.0F, 8.0F, 1.0F), ModelTransform.pivot(0.0F, 0.0F, 0.0F));
-        ModelPartData modelPartData1 = modelPartData.addChild("rightArm", ModelPartBuilder.create().uv(22, 63).cuboid(-1.0F, -2.0F, -1.0F, 2.0F, 12.0F, 2.0F), ModelTransform.pivot(5.0F, 2.0F, 0.0F));
+    public static LayerDefinition getTexturedModelData() {
+        MeshDefinition modelData = new MeshDefinition();
+        PartDefinition modelPartData = modelData.getRoot();
+        modelPartData.addChild("body", CubeListBuilder.create().uv(0, 38).cuboid(-4.0F, 0.0F, -2.0F, 8.0F, 12.0F, 4.0F).uv(32, 0).cuboid(-5.0F, 0.0F, -3.0F, 10.0F, 6.0F, 6.0F),
+                PartPose.pivot(0.0F, 0.0F, 0.0F));
+        modelPartData.addChild("head", CubeListBuilder.create().uv(32, 32).cuboid(-4.0F, -8.0F, -4.0F, 8.0F, 8.0F, 8.0F).uv(0, 21).cuboid(-5.0F, -9.0F, -5.0F, 10.0F, 7.0F, 10.0F).uv(24, 38)
+                .cuboid(-1.0F, -11.0F, -6.0F, 2.0F, 8.0F, 1.0F), PartPose.pivot(0.0F, 0.0F, 0.0F));
+        PartDefinition modelPartData1 = modelPartData.addChild("rightArm", CubeListBuilder.create().uv(22, 63).cuboid(-1.0F, -2.0F, -1.0F, 2.0F, 12.0F, 2.0F), PartPose.pivot(5.0F, 2.0F, 0.0F));
         modelPartData1.addChild("spear",
-                ModelPartBuilder.create().uv(58, 0).cuboid(-0.5F, 0.0F, -1.0F, 1.0F, 1.0F, 2.0F).uv(56, 36).cuboid(-0.5F, 1.0F, -2.0F, 1.0F, 1.0F, 2.0F).uv(56, 33)
+                CubeListBuilder.create().uv(58, 0).cuboid(-0.5F, 0.0F, -1.0F, 1.0F, 1.0F, 2.0F).uv(56, 36).cuboid(-0.5F, 1.0F, -2.0F, 1.0F, 1.0F, 2.0F).uv(56, 33)
                         .cuboid(-0.5F, 2.0F, -3.0F, 1.0F, 1.0F, 2.0F).uv(56, 30).cuboid(-0.5F, 3.0F, -4.0F, 1.0F, 1.0F, 2.0F).uv(44, 55).cuboid(-0.5F, 4.0F, -5.0F, 1.0F, 1.0F, 2.0F).uv(54, 51)
                         .cuboid(-0.5F, 5.0F, -6.0F, 1.0F, 1.0F, 2.0F).uv(54, 48).cuboid(-0.5F, 6.0F, -7.0F, 1.0F, 1.0F, 2.0F).uv(54, 54).cuboid(-0.5F, 7.0F, -8.0F, 1.0F, 1.0F, 2.0F).uv(40, 54)
                         .cuboid(-0.5F, 8.0F, -9.0F, 1.0F, 1.0F, 2.0F).uv(32, 16).cuboid(-0.5F, 9.0F, -11.0F, 1.0F, 1.0F, 3.0F).uv(30, 21).cuboid(-0.5F, 10.0F, -12.0F, 1.0F, 1.0F, 5.0F).uv(0, 54)
@@ -53,18 +53,18 @@ public class SkeletonVanguardModel<T extends SkeletonVanguardEntity> extends Com
                         .cuboid(-0.5F, -1.0F, 0.0F, 1.0F, 1.0F, 2.0F).uv(46, 17).cuboid(-0.5F, -2.0F, 1.0F, 1.0F, 1.0F, 2.0F).uv(46, 12).cuboid(-0.5F, -3.0F, 2.0F, 1.0F, 1.0F, 2.0F).uv(40, 17)
                         .cuboid(-0.5F, -4.0F, 3.0F, 1.0F, 1.0F, 2.0F).uv(37, 21).cuboid(-0.5F, -5.0F, 4.0F, 1.0F, 1.0F, 2.0F).uv(12, 17).cuboid(-0.5F, -6.0F, 5.0F, 1.0F, 1.0F, 2.0F).uv(32, 0)
                         .cuboid(-0.5F, -8.0F, 6.0F, 1.0F, 2.0F, 2.0F).uv(0, 0).cuboid(-0.5F, -9.0F, 8.0F, 1.0F, 1.0F, 1.0F),
-                ModelTransform.pivot(0.0F, 9.0F, 0.0F));
+                PartPose.pivot(0.0F, 9.0F, 0.0F));
         modelPartData.addChild("leftArm",
-                ModelPartBuilder.create().uv(56, 59).cuboid(-1.0F, -2.0F, -1.0F, 2.0F, 12.0F, 2.0F).uv(0, 0).cuboid(-3.0F, 11.0F, -6.0F, 6.0F, 1.0F, 20.0F).uv(0, 12)
+                CubeListBuilder.create().uv(56, 59).cuboid(-1.0F, -2.0F, -1.0F, 2.0F, 12.0F, 2.0F).uv(0, 0).cuboid(-3.0F, 11.0F, -6.0F, 6.0F, 1.0F, 20.0F).uv(0, 12)
                         .cuboid(-1.0F, 10.0F, -2.0F, 2.0F, 1.0F, 5.0F).uv(32, 12).cuboid(3.0F, 11.0F, -4.0F, 3.0F, 1.0F, 3.0F).uv(0, 54).cuboid(3.0F, 11.0F, 4.0F, 2.0F, 1.0F, 10.0F).uv(40, 48)
                         .cuboid(-5.0F, 11.0F, 4.0F, 2.0F, 1.0F, 10.0F).uv(30, 27).cuboid(-6.0F, 11.0F, -4.0F, 3.0F, 1.0F, 3.0F).uv(0, 6).cuboid(3.0F, 11.0F, -1.0F, 5.0F, 1.0F, 5.0F).uv(0, 0)
                         .cuboid(-8.0F, 11.0F, -1.0F, 5.0F, 1.0F, 5.0F),
-                ModelTransform.pivot(-5.0F, 2.0F, 0.0F));
-        modelPartData.addChild("rightLeg", ModelPartBuilder.create().uv(48, 59).cuboid(-1.0F, 0.0F, -1.0F, 2.0F, 12.0F, 2.0F).uv(18, 48).cuboid(-2.0F, -2.0F, -3.0F, 5.0F, 9.0F, 6.0F),
-                ModelTransform.pivot(2.0F, 12.0F, 0.0F));
-        modelPartData.addChild("leftLeg", ModelPartBuilder.create().uv(40, 59).cuboid(-1.0F, 0.0F, -1.0F, 2.0F, 12.0F, 2.0F).uv(46, 15).cuboid(-3.0F, -2.0F, -3.0F, 5.0F, 9.0F, 6.0F),
-                ModelTransform.pivot(-2.0F, 12.0F, 0.0F));
-        return TexturedModelData.of(modelData, 128, 128);
+                PartPose.pivot(-5.0F, 2.0F, 0.0F));
+        modelPartData.addChild("rightLeg", CubeListBuilder.create().uv(48, 59).cuboid(-1.0F, 0.0F, -1.0F, 2.0F, 12.0F, 2.0F).uv(18, 48).cuboid(-2.0F, -2.0F, -3.0F, 5.0F, 9.0F, 6.0F),
+                PartPose.pivot(2.0F, 12.0F, 0.0F));
+        modelPartData.addChild("leftLeg", CubeListBuilder.create().uv(40, 59).cuboid(-1.0F, 0.0F, -1.0F, 2.0F, 12.0F, 2.0F).uv(46, 15).cuboid(-3.0F, -2.0F, -3.0F, 5.0F, 9.0F, 6.0F),
+                PartPose.pivot(-2.0F, 12.0F, 0.0F));
+        return LayerDefinition.of(modelData, 128, 128);
     }
 
     @Override
@@ -77,26 +77,26 @@ public class SkeletonVanguardModel<T extends SkeletonVanguardEntity> extends Com
         this.head.yaw = i * 0.0119453292F;
         this.head.pitch = j * 0.0061453292F;
         this.spear.pitch = -0.7854F;
-        this.rightArm.pitch = MathHelper.cos(f * 0.6662F + 3.1415927F) * 2.0F * g * 0.4F;
+        this.rightArm.pitch = Mth.cos(f * 0.6662F + 3.1415927F) * 2.0F * g * 0.4F;
         this.rightArm.yaw = 0.0F;
         this.rightArm.roll = 0.0F;
-        this.leftArm.pitch = (MathHelper.cos(f * 0.6662F) * 2.0F * g * 0.5F) * 0.2F - 1.5708F;
+        this.leftArm.pitch = (Mth.cos(f * 0.6662F) * 2.0F * g * 0.5F) * 0.2F - 1.5708F;
         this.leftArm.yaw = 0.0F;
         this.leftArm.roll = 0.0F;
-        this.rightLeg.pitch = MathHelper.cos(f * 0.6662F) * 1.4F * g * 0.5F;
+        this.rightLeg.pitch = Mth.cos(f * 0.6662F) * 1.4F * g * 0.5F;
         this.rightLeg.yaw = 0.0F;
         this.rightLeg.roll = 0.0F;
-        this.leftLeg.pitch = MathHelper.cos(f * 0.6662F + 3.1415927F) * 1.4F * g * 0.5F;
+        this.leftLeg.pitch = Mth.cos(f * 0.6662F + 3.1415927F) * 1.4F * g * 0.5F;
         this.leftLeg.yaw = 0.0F;
         this.leftLeg.roll = 0.0F;
-        float k = MathHelper.sin(this.handSwingProgress * 3.1415927F);
+        float k = Mth.sin(this.handSwingProgress * 3.1415927F);
         if (k > 0.0F) {
             this.rightArm.pitch = -k * 1.5F;
             this.rightArm.roll = -k * 0.4F;
         }
         float shieldSwing = vanguard.getDataTracker().get(SkeletonVanguardEntity.SHIELD_SWING) * 2F;
         if (shieldSwing > 0.0F) {
-            this.leftArm.pitch = MathHelper.sin(shieldSwing * 3.1415927F) - 1.5708F;
+            this.leftArm.pitch = Mth.sin(shieldSwing * 3.1415927F) - 1.5708F;
         }
     }
 

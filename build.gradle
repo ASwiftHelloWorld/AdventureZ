@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.17-SNAPSHOT'
+	id 'net.fabricmc.fabric-loom' version '1.19.0-alpha.2'
 	id 'maven-publish'
 }
 
@@ -23,25 +23,27 @@ repositories {
 
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	// Fabric API
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	// Config
-	modImplementation ("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
+	implementation ("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
     	exclude(group: "net.fabricmc.fabric-api")
   	}
 	// Modmenu
-	modCompileOnly modRuntimeOnly("com.terraformersmc:modmenu:${project.mod_menu_version}"),{
+	compileOnly("com.terraformersmc:modmenu:${project.mod_menu_version}") {
+		exclude(group: "net.fabricmc.fabric-api")
+	}
+	runtimeOnly("com.terraformersmc:modmenu:${project.mod_menu_version}") {
 		exclude(group: "net.fabricmc.fabric-api")
 	}
 	// Patchouli
-	modCompileOnly ("vazkii.patchouli:Patchouli:${project.patchouli_version}") {
+	compileOnly ("vazkii.patchouli:Patchouli:${project.patchouli_version}") {
 		exclude(group: "net.fabricmc.fabric-api")
 	}
 	// VoidZ
-	 modCompileOnly ('maven.modrinth:voidz:1.0.11+1.21'){
+	 compileOnly ('maven.modrinth:voidz:1.0.11+1.21'){
 	 	exclude(group: "net.fabricmc.fabric-api")
 	 }
 	//	modCompileOnly ("com.github.Globox1997:VoidZ:1.21-SNAPSHOT") {
@@ -52,7 +54,7 @@ dependencies {
 	// 	exclude(group: "net.fabricmc.fabric-api")
 	// }
 	// Iris
-	modCompileOnly ('maven.modrinth:iris:1.6.2+1.19.2'){
+	compileOnly ('maven.modrinth:iris:1.6.2+1.19.2'){
 		exclude(group: "net.fabricmc.fabric-api")
 	}
 }
@@ -66,14 +68,15 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 21
+	it.options.release = 25
+	it.options.compilerArgs.addAll(['-Xmaxerrs', '1000'])
 }
 
 java {
 	withSourcesJar()
 
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
 }
 
 jar {

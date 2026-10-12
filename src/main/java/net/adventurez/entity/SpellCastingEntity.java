@@ -4,28 +4,28 @@ import java.util.EnumSet;
 
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.entity.data.TrackedDataHandlerRegistry;
-import net.minecraft.entity.data.DataTracker.Builder;
-import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.particle.EntityEffectParticleEffect;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData.Builder;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.particles.ColorParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 
-public abstract class SpellCastingEntity extends HostileEntity {
-    public SpellCastingEntity(EntityType<? extends HostileEntity> entityType, World world) {
+public abstract class SpellCastingEntity extends Monster {
+    public SpellCastingEntity(EntityType<? extends Monster> entityType, Level world) {
         super(entityType, world);
         this.spell = SpellCastingEntity.Spell.NONE;
     }
 
-    private static final TrackedData<Byte> SPELL;
+    private static final EntityDataAccessor<Byte> SPELL;
     protected int spellTicks;
     private SpellCastingEntity.Spell spell;
 
@@ -35,18 +35,18 @@ public abstract class SpellCastingEntity extends HostileEntity {
         builder.add(SPELL, (byte) 0);
     }
 
-    public void readCustomDataFromNbt(NbtCompound tag) {
+    public void readCustomDataFromNbt(CompoundTag tag) {
         super.readCustomDataFromNbt(tag);
         this.spellTicks = tag.getInt("SpellTicks");
     }
 
-    public void writeCustomDataToNbt(NbtCompound tag) {
+    public void writeCustomDataToNbt(CompoundTag tag) {
         super.writeCustomDataToNbt(tag);
         tag.putInt("SpellTicks", this.spellTicks);
     }
 
     public boolean isSpellcasting() {
-        if (this.getWorld().isClient()) {
+        if (this.level().isClientSide()) {
             return (Byte) this.dataTracker.get(SPELL) > 0;
         } else {
             return this.spellTicks > 0;
@@ -59,7 +59,7 @@ public abstract class SpellCastingEntity extends HostileEntity {
     }
 
     protected SpellCastingEntity.Spell getSpell() {
-        return !this.getWorld().isClient() ? this.spell : SpellCastingEntity.Spell.byId((Byte) this.dataTracker.get(SPELL));
+        return !this.level().isClientSide() ? this.spell : SpellCastingEntity.Spell.byId((Byte) this.dataTracker.get(SPELL));
     }
 
     protected void mobTick() {
@@ -72,15 +72,15 @@ public abstract class SpellCastingEntity extends HostileEntity {
 
     public void tick() {
         super.tick();
-        if (this.getWorld().isClient() && this.isSpellcasting() && !(this instanceof ShamanEntity)) {
+        if (this.level().isClientSide() && this.isSpellcasting() && !(this instanceof ShamanEntity)) {
             SpellCastingEntity.Spell spell = this.getSpell();
             float d = (float) spell.particleVelocity[0];
             float e = (float) spell.particleVelocity[1];
             float f = (float) spell.particleVelocity[2];
-            float g = this.bodyYaw * 0.017453292F + MathHelper.cos((float) this.age * 0.6662F) * 0.25F;
-            float h = MathHelper.cos(g);
-            float i = MathHelper.sin(g);
-            this.getWorld().addParticle(EntityEffectParticleEffect.create(ParticleTypes.ENTITY_EFFECT, d, e, f), (float) this.getX() + (float) h * 0.92f, this.getY() + 2.32f,
+            float g = this.bodyYaw * 0.017453292F + Mth.cos((float) this.age * 0.6662F) * 0.25F;
+            float h = Mth.cos(g);
+            float i = Mth.sin(g);
+            this.level().addParticle(ColorParticleOption.create(ParticleTypes.ENTITY_EFFECT, d, e, f), (float) this.getX() + (float) h * 0.92f, this.getY() + 2.32f,
                     this.getZ() + (float) i * 0.92f, 0.0, 0.0, 0.0);
         }
 
@@ -93,7 +93,7 @@ public abstract class SpellCastingEntity extends HostileEntity {
     protected abstract SoundEvent getCastSpellSound();
 
     static {
-        SPELL = DataTracker.registerData(SpellCastingEntity.class, TrackedDataHandlerRegistry.BYTE);
+        SPELL = SynchedEntityData.registerData(SpellCastingEntity.class, EntityDataSerializers.BYTE);
     }
 
     public static enum Spell {

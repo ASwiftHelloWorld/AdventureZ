@@ -5,53 +5,53 @@ import org.jetbrains.annotations.Nullable;
 import net.adventurez.entity.nonliving.AmethystShardEntity;
 import net.adventurez.init.ParticleInit;
 import net.adventurez.init.SoundInit;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.EntityData;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.ai.goal.ActiveTargetGoal;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.ai.goal.LookAroundGoal;
-import net.minecraft.entity.ai.goal.LookAtEntityGoal;
-import net.minecraft.entity.ai.goal.MeleeAttackGoal;
-import net.minecraft.entity.ai.goal.WanderAroundGoal;
-import net.minecraft.entity.attribute.DefaultAttributeContainer;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.data.DataTracker;
-import net.minecraft.entity.data.TrackedData;
-import net.minecraft.entity.data.TrackedDataHandlerRegistry;
-import net.minecraft.entity.data.DataTracker.Builder;
-import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.random.Random;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
+import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
+import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
+import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData.Builder;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.LocalDifficulty;
-import net.minecraft.world.ServerWorldAccess;
-import net.minecraft.world.World;
+import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.Level;
 
-public class AmethystGolemEntity extends HostileEntity {
+public class AmethystGolemEntity extends Monster {
 
-    public static final TrackedData<Integer> BACK_CRYSTALS;
-    public static final TrackedData<Boolean> DEEPSLATE_VARIANT;
+    public static final EntityDataAccessor<Integer> BACK_CRYSTALS;
+    public static final EntityDataAccessor<Boolean> DEEPSLATE_VARIANT;
     private int grow = 0;
     private boolean isStronger = false;
 
-    public AmethystGolemEntity(EntityType<? extends HostileEntity> entityType, World world) {
+    public AmethystGolemEntity(EntityType<? extends Monster> entityType, Level world) {
         super(entityType, world);
 
     }
 
-    public static DefaultAttributeContainer.Builder createAmethystGolemAttributes() {
-        return HostileEntity.createHostileAttributes().add(EntityAttributes.GENERIC_MAX_HEALTH, 40.0D).add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 8.0D)
-                .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.24D).add(EntityAttributes.GENERIC_FOLLOW_RANGE, 20.0D).add(EntityAttributes.GENERIC_ARMOR, 1.0D);
+    public static AttributeSupplier.Builder createAmethystGolemAttributes() {
+        return Monster.createHostileAttributes().add(Attributes.GENERIC_MAX_HEALTH, 40.0D).add(Attributes.GENERIC_ATTACK_DAMAGE, 8.0D)
+                .add(Attributes.GENERIC_MOVEMENT_SPEED, 0.24D).add(Attributes.GENERIC_FOLLOW_RANGE, 20.0D).add(Attributes.GENERIC_ARMOR, 1.0D);
     }
 
     @Override
@@ -59,14 +59,14 @@ public class AmethystGolemEntity extends HostileEntity {
         super.initGoals();
         this.goalSelector.add(1, new MeleeAttackGoal(this, 0.85D, false));
         this.goalSelector.add(2, new ThrowShardGoal(this));
-        this.goalSelector.add(5, new LookAtEntityGoal(this, PlayerEntity.class, 8.0F));
-        this.goalSelector.add(6, new LookAroundGoal(this));
-        this.goalSelector.add(7, new WanderAroundGoal(this, 0.9D));
-        this.targetSelector.add(1, new ActiveTargetGoal<>(this, PlayerEntity.class, true));
+        this.goalSelector.add(5, new LookAtPlayerGoal(this, Player.class, 8.0F));
+        this.goalSelector.add(6, new RandomLookAroundGoal(this));
+        this.goalSelector.add(7, new RandomStrollGoal(this, 0.9D));
+        this.targetSelector.add(1, new NearestAttackableTargetGoal<>(this, Player.class, true));
     }
 
-    public static boolean canSpawn(EntityType<AmethystGolemEntity> type, ServerWorldAccess world, SpawnReason spawnReason, BlockPos pos, Random random) {
-        return (canSpawnInDark(type, world, spawnReason, pos, random) && !world.isSkyVisible(pos)) || spawnReason == SpawnReason.SPAWNER;
+    public static boolean canSpawn(EntityType<AmethystGolemEntity> type, ServerLevelAccessor world, EntitySpawnReason spawnReason, BlockPos pos, RandomSource random) {
+        return (canSpawnInDark(type, world, spawnReason, pos, random) && !world.isSkyVisible(pos)) || spawnReason == EntitySpawnReason.SPAWNER;
     }
 
     @Override
@@ -77,7 +77,7 @@ public class AmethystGolemEntity extends HostileEntity {
     }
 
     @Override
-    public void readCustomDataFromNbt(NbtCompound tag) {
+    public void readCustomDataFromNbt(CompoundTag tag) {
         super.readCustomDataFromNbt(tag);
         this.dataTracker.set(BACK_CRYSTALS, tag.getInt("Crystals"));
         this.dataTracker.set(DEEPSLATE_VARIANT, tag.getBoolean("DeepslateGolem"));
@@ -86,7 +86,7 @@ public class AmethystGolemEntity extends HostileEntity {
     }
 
     @Override
-    public void writeCustomDataToNbt(NbtCompound tag) {
+    public void writeCustomDataToNbt(CompoundTag tag) {
         super.writeCustomDataToNbt(tag);
         tag.putInt("Crystals", this.dataTracker.get(BACK_CRYSTALS));
         tag.putBoolean("DeepslateGolem", this.dataTracker.get(DEEPSLATE_VARIANT));
@@ -97,11 +97,11 @@ public class AmethystGolemEntity extends HostileEntity {
     @Override
     public void tick() {
         super.tick();
-        if (!this.getWorld().isClient() && this.dataTracker.get(BACK_CRYSTALS) < 4) {
+        if (!this.level().isClientSide() && this.dataTracker.get(BACK_CRYSTALS) < 4) {
             this.grow++;
             if (this.grow >= 3600) {
                 this.dataTracker.set(BACK_CRYSTALS, this.dataTracker.get(BACK_CRYSTALS) + 1);
-                this.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(this.getAttributeBaseValue(EntityAttributes.GENERIC_MAX_HEALTH) + 10.0D);
+                this.getAttributeInstance(Attributes.GENERIC_MAX_HEALTH).setBaseValue(this.getAttributeBaseValue(Attributes.GENERIC_MAX_HEALTH) + 10.0D);
                 this.heal(10F);
                 this.grow = 0;
             }
@@ -109,11 +109,11 @@ public class AmethystGolemEntity extends HostileEntity {
     }
 
     @Override
-    public EntityData initialize(ServerWorldAccess world, LocalDifficulty difficulty, SpawnReason spawnReason, @Nullable EntityData entityData) {
+    public SpawnGroupData initialize(ServerLevelAccessor world, DifficultyInstance difficulty, EntitySpawnReason spawnReason, @Nullable SpawnGroupData entityData) {
         int random = this.getRandom().nextInt(5);
         this.dataTracker.set(BACK_CRYSTALS, random);
         if (random > 0) {
-            this.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(this.getAttributeBaseValue(EntityAttributes.GENERIC_MAX_HEALTH) + random * 10.0D);
+            this.getAttributeInstance(Attributes.GENERIC_MAX_HEALTH).setBaseValue(this.getAttributeBaseValue(Attributes.GENERIC_MAX_HEALTH) + random * 10.0D);
         }
         return super.initialize(world, difficulty, spawnReason, entityData);
     }
@@ -125,7 +125,7 @@ public class AmethystGolemEntity extends HostileEntity {
 
     @Override
     public void checkDespawn() {
-        if (this.getWorld().getDifficulty() == Difficulty.PEACEFUL) {
+        if (this.level().getDifficulty() == Difficulty.PEACEFUL) {
             this.discard();
         }
     }
@@ -151,28 +151,28 @@ public class AmethystGolemEntity extends HostileEntity {
     }
 
     public void amethystGolemRageMode() {
-        if (this.getWorld() instanceof ServerWorld serverWorld) {
-            this.getAttributeInstance(EntityAttributes.GENERIC_ARMOR).setBaseValue(this.getAttributeBaseValue(EntityAttributes.GENERIC_ARMOR) + 2.0D);
+        if (this.level() instanceof ServerLevel serverWorld) {
+            this.getAttributeInstance(Attributes.GENERIC_ARMOR).setBaseValue(this.getAttributeBaseValue(Attributes.GENERIC_ARMOR) + 2.0D);
             if (!this.isStronger) {
-                this.getAttributeInstance(EntityAttributes.GENERIC_MOVEMENT_SPEED).setBaseValue(this.getAttributeBaseValue(EntityAttributes.GENERIC_MOVEMENT_SPEED) + 0.1D);
+                this.getAttributeInstance(Attributes.GENERIC_MOVEMENT_SPEED).setBaseValue(this.getAttributeBaseValue(Attributes.GENERIC_MOVEMENT_SPEED) + 0.1D);
             }
-            serverWorld.playSoundFromEntity(null, this, SoundInit.AMETHYST_GOLEM_RAGE_EVENT, SoundCategory.HOSTILE, 1.0F, 1.0F);
+            serverWorld.playSoundFromEntity(null, this, SoundInit.AMETHYST_GOLEM_RAGE_EVENT, SoundSource.HOSTILE, 1.0F, 1.0F);
             for (int i = 0; i < 20; i++) {
-                double d = (double) this.getX() - 1.0F + this.getWorld().getRandom().nextFloat() * 2.0F;
-                double e = (double) ((float) this.getRandomBodyY() + this.getWorld().getRandom().nextFloat() * 0.1F);
-                double f = (double) this.getZ() - 1.0F + this.getWorld().getRandom().nextFloat() * 2.0F;
-                double g = (double) (this.getWorld().getRandom().nextFloat() * 0.4D);
-                double h = (double) this.getWorld().getRandom().nextFloat() * 0.2D;
-                double l = (double) (this.getWorld().getRandom().nextFloat() * 0.4D);
-                ((ServerWorld) this.getWorld()).spawnParticles(ParticleInit.AMETHYST_SHARD_PARTICLE, d, e, f, 4, g, h, l, 1.0D);
+                double d = (double) this.getX() - 1.0F + this.level().getRandom().nextFloat() * 2.0F;
+                double e = (double) ((float) this.getRandomBodyY() + this.level().getRandom().nextFloat() * 0.1F);
+                double f = (double) this.getZ() - 1.0F + this.level().getRandom().nextFloat() * 2.0F;
+                double g = (double) (this.level().getRandom().nextFloat() * 0.4D);
+                double h = (double) this.level().getRandom().nextFloat() * 0.2D;
+                double l = (double) (this.level().getRandom().nextFloat() * 0.4D);
+                ((ServerLevel) this.level()).spawnParticles(ParticleInit.AMETHYST_SHARD_PARTICLE, d, e, f, 4, g, h, l, 1.0D);
             }
             this.isStronger = true;
         }
     }
 
     static {
-        BACK_CRYSTALS = DataTracker.registerData(AmethystGolemEntity.class, TrackedDataHandlerRegistry.INTEGER);
-        DEEPSLATE_VARIANT = DataTracker.registerData(AmethystGolemEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+        BACK_CRYSTALS = SynchedEntityData.registerData(AmethystGolemEntity.class, EntityDataSerializers.INTEGER);
+        DEEPSLATE_VARIANT = SynchedEntityData.registerData(AmethystGolemEntity.class, EntityDataSerializers.BOOLEAN);
     }
 
     public static class ThrowShardGoal extends Goal {
@@ -186,7 +186,7 @@ public class AmethystGolemEntity extends HostileEntity {
 
         @Override
         public boolean canStart() {
-            long l = this.amethystGolemEntity.getWorld().getTime();
+            long l = this.amethystGolemEntity.level().getTime();
             if (l - this.lastUpdateTime < 100L || this.cooldown-- > 0) {
                 return false;
             } else {
@@ -214,18 +214,18 @@ public class AmethystGolemEntity extends HostileEntity {
             } else if (this.cooldown > 0) {
                 return false;
             } else {
-                return !(livingEntity instanceof PlayerEntity) || !livingEntity.isSpectator() && !((PlayerEntity) livingEntity).isCreative();
+                return !(livingEntity instanceof Player) || !livingEntity.isSpectator() && !((Player) livingEntity).isCreative();
             }
         }
 
         @Override
         public void start() {
-            this.amethystGolemEntity.swingHand(Hand.MAIN_HAND);
-            if (!this.amethystGolemEntity.getWorld().isClient()) {
-                this.amethystGolemEntity.getWorld().playSoundFromEntity(null, this.amethystGolemEntity, SoundInit.ROCK_THROW_EVENT, SoundCategory.HOSTILE, 0.74F, 1.0F);
-                AmethystShardEntity amethystShardEntity = new AmethystShardEntity(this.amethystGolemEntity, this.amethystGolemEntity.getWorld());
+            this.amethystGolemEntity.swingHand(InteractionHand.MAIN_HAND);
+            if (!this.amethystGolemEntity.level().isClientSide()) {
+                this.amethystGolemEntity.level().playSoundFromEntity(null, this.amethystGolemEntity, SoundInit.ROCK_THROW_EVENT, SoundSource.HOSTILE, 0.74F, 1.0F);
+                AmethystShardEntity amethystShardEntity = new AmethystShardEntity(this.amethystGolemEntity, this.amethystGolemEntity.level());
                 amethystShardEntity.setVelocity(amethystGolemEntity, amethystGolemEntity.getPitch(), amethystGolemEntity.getYaw(), -20.0F, 0.7F, this.amethystGolemEntity.getRandom().nextFloat());
-                this.amethystGolemEntity.getWorld().spawnEntity(amethystShardEntity);
+                this.amethystGolemEntity.level().spawnEntity(amethystShardEntity);
             }
             this.cooldown = 80 + this.amethystGolemEntity.getRandom().nextInt(200);
             this.stop();

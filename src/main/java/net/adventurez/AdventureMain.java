@@ -3,7 +3,7 @@ package net.adventurez;
 import net.adventurez.init.*;
 import net.adventurez.network.AdventureServerPacket;
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
 
 public class AdventureMain implements ModInitializer {
 

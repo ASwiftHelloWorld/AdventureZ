@@ -10,16 +10,16 @@ import org.spongepowered.asm.mixin.injection.At;
 import net.adventurez.entity.DragonEntity;
 import net.fabricmc.api.Environment;
 import net.fabricmc.api.EnvType;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerInteractionManager;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 
 @Environment(EnvType.CLIENT)
-@Mixin(ClientPlayerInteractionManager.class)
+@Mixin(MultiPlayerGameMode.class)
 public class ClientPlayerInteractionManagerMixin {
 
     @Shadow
     @Final
-    private MinecraftClient client;
+    private Minecraft client;
 
     @Inject(method = "hasRidingInventory", at = @At(value = "HEAD"), cancellable = true)
     public void hasRidingInventoryMixin(CallbackInfoReturnable<Boolean> info) {
